@@ -22,7 +22,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 #//my.entando.com/entando-sample
 
 ENV USE_MOCKS false
-ENV DOMAIN entando
+ENV DOMAIN //tuanonna.com
 
 # Install and configure `serve`.
 RUN npm install -g serve
