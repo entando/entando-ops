@@ -24,15 +24,17 @@ ENV NPM_CONFIG_LOGLEVEL warn
 ENV USE_MOCKS false
 ENV DOMAIN //my.entando.com
 
-# Install and configure `serve`.
-RUN npm install -g serve
-CMD serve -s build
-EXPOSE 5000
+COPY start.sh /start.sh
 
-# Download project from entando repository
-RUN git clone https://github.com/entando/designtime-admin-app.git
+# Install and configure `serve`. Download project from entando repository
+RUN npm install -g serve \
+&& chmod a+x /start.sh \
+&& git clone https://github.com/entando/designtime-admin-app.git \
+&& chown -R node:0 /designtime-admin-app/ && chmod -R ug+w /designtime-admin-app/
+
+USER node
 
 WORKDIR designtime-admin-app
 
-# Build for production.
-RUN npm install && npm run build --production
+CMD /start.sh >> /dev/null
+EXPOSE 5000
