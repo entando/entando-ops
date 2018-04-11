@@ -1,0 +1,10 @@
+#!/bin/bash
+if [ ! -d $HOME/data/userdata ]; then
+        echo "HOME information"
+        ls -al $HOME
+        whoami
+        groups
+        id
+        cp $HOME/data_template/* $HOME/data -rf
+fi
+run-postgresql

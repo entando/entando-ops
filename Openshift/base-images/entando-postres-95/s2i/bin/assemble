@@ -1,0 +1,40 @@
+#!/bin/bash
+log=pg_startup.log
+run-postgresql 2>&1 | tee "$log" &
+pg_pid=$!
+for i in {1..40}
+do
+    sleep 5
+    if fgrep --quiet "Future log output will appear in directory" "$log"
+    then
+        echo "Postgresql Started"
+        break
+    fi
+done
+
+cd /opt/s2i/destination/src/maven
+pwd
+ls -al
+mvn_command="mvn jetty:run --no-snapshot-updates -Ppostgres -Dmaven.repo.local=$HOME/.m2/repository"
+log=db_creation.log
+$mvn_command 2>&1 | tee "$log" &
+jetty_pid=$!
+for i in {1..40}
+do
+    sleep 5
+    if fgrep --quiet "Started Jetty Server" "$log"
+    then
+        echo "Jetty started and database created"
+        kill $jetty_pid
+        kill $pg_pid
+        cp $HOME/data $HOME/data_template -rf
+        /usr/libexec/fix-permissions $HOME/data_template
+        /usr/libexec/fix-permissions $HOME/openshift-custom-postgresql.conf
+        /usr/libexec/fix-permissions $HOME/passwd
+        rm /var/run/postgresql/.s.PGSQL*
+        rm /tmp/.s.PGSQL*
+        rm * -rf
+        exit 0
+    fi
+done
+exit 1
