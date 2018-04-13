@@ -8,20 +8,20 @@
     <version>1.0-SNAPSHOT</version>
     <name>sample</name>
     <url>http://maven.apache.org/</url>
-    <!--<repositories>-->
-        <!--&lt;!&ndash;development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Ampie: remember to take this out&ndash;&gt;-->
-        <!--<repository>-->
-            <!--<id>entando-snapshots</id>-->
-            <!--<url>http://repository.entando.org/repository/maven-snapshots/</url>-->
-            <!--<layout>default</layout>-->
-            <!--<releases>-->
-                <!--<enabled>false</enabled>-->
-            <!--</releases>-->
-            <!--<snapshots>-->
-                <!--<enabled>true</enabled>-->
-            <!--</snapshots>-->
-        <!--</repository>-->
-    <!--</repositories>-->
+    <repositories>
+        <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Ampie: remember to take this out-->
+        <repository>
+            <id>entando-snapshots</id>
+            <url>http://repository.entando.org/repository/maven-snapshots/</url>
+            <layout>default</layout>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
     <profiles>
         <profile>
             <id>production</id>

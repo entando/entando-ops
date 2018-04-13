@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--Just a typical POM to pre-download dependencies to support mvn jetty:run -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -8,34 +9,7 @@
     <version>1.0-SNAPSHOT</version>
     <name>sample</name>
     <url>http://maven.apache.org/</url>
-    <!--<repositories>-->
-        <!--&lt;!&ndash;development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Ampie: remember to take this out&ndash;&gt;-->
-        <!--<repository>-->
-            <!--<id>entando-snapshots</id>-->
-            <!--<url>http://repository.entando.org/repository/maven-snapshots/</url>-->
-            <!--<layout>default</layout>-->
-            <!--<releases>-->
-                <!--<enabled>false</enabled>-->
-            <!--</releases>-->
-            <!--<snapshots>-->
-                <!--<enabled>true</enabled>-->
-            <!--</snapshots>-->
-        <!--</repository>-->
-    <!--</repositories>-->
     <profiles>
-        <profile>
-            <id>production</id>
-            <activation>
-                <property>
-                    <name>env.MAVEN_WORKING_MODE</name>
-                    <value>production</value>
-                </property>
-            </activation>
-            <properties>
-                <env>production</env>
-                <env.db.environment>production</env.db.environment>
-            </properties>
-        </profile>
         <profile>
             <id>development-unix</id>
             <activation>
@@ -50,103 +24,15 @@
                 <env.db.environment>develop</env.db.environment>
             </properties>
         </profile>
-        <profile>
-            <id>ci</id>
-            <properties>
-                <env>ci</env>
-            </properties>
-        </profile>
-        <profile>
-            <id>standalone</id>
-            <activation>
-                <property>
-                    <name>env.MAVEN_WORKING_MODE</name>
-                    <value>standalone</value>
-                </property>
-            </activation>
-            <properties>
-                <env>standalone</env>
-                <env.db.environment>production</env.db.environment>
-            </properties>
-        </profile>
-        <profile>
-            <id>development-windows</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                </os>
-            </activation>
-            <properties>
-                <env>development-windows</env>
-                <env.db.environment>develop</env.db.environment>
-            </properties>
-        </profile>
-
-        <!-- Added for jboss -->
-        <profile>
-            <id>production-jboss</id>
-            <activation>
-                <property>
-                    <name>env.MAVEN_WORKING_MODE</name>
-                    <value>production-jboss</value>
-                </property>
-            </activation>
-            <properties>
-                <env>production-jboss</env>
-                <env.db.environment>production</env.db.environment>
-                <jboss>jboss</jboss>
-            </properties>
-        </profile>
-        <profile>
-            <id>openshift</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <!--<property>-->
-                <!--<name>env.MAVEN_WORKING_MODE</name>-->
-                <!--<value>openshift</value>-->
-                <!--</property>-->
-            </activation>
-            <properties>
-                <env>openshift</env>
-                <env.db.environment>production</env.db.environment>
-                <jboss>jboss</jboss>
-            </properties>
-        </profile>
-
     </profiles>
     <properties>
-        <!--
-        <test.database.driver>org.postgresql.Driver</test.database.driver>
-        <test.database.hostname>localhost</test.database.hostname>
-        <test.database.port>5432</test.database.port>
-        <test.database.username>agile</test.database.username>
-        <test.database.password>agile</test.database.password>
-        <test.database.port.url>jdbc:postgresql://${test.database.hostname}:${test.database.port}/${project.artifactId}testPort</test.database.port.url>
-        <test.database.serv.url>jdbc:postgresql://${test.database.hostname}:${test.database.port}/${project.artifactId}testServ</test.database.serv.url>
-        -->
-        <!--
-        <test.database.driver>com.mysql.jdbc.Driver</test.database.driver>
-        <test.database.hostname>localhost</test.database.hostname>
-        <test.database.port>3306</test.database.port>
-        <test.database.username>root</test.database.username>
-        <test.database.password>agile</test.database.password>
-        <test.database.port.url>jdbc:mysql://${test.database.hostname}:${test.database.port}/${project.artifactId}testPort</test.database.port.url>
-        <test.database.serv.url>jdbc:mysql://${test.database.hostname}:${test.database.port}/${project.artifactId}testServ</test.database.serv.url>
-        -->
-        <test.database.driver>org.apache.derby.jdbc.EmbeddedDriver</test.database.driver>
-        <test.database.hostname>localhost</test.database.hostname>
-        <test.database.port>1527</test.database.port>
-        <test.database.username>agile</test.database.username>
-        <test.database.password>agile</test.database.password>
-        <test.database.port.url>jdbc:derby:${project.build.directory}/test/db/${project.artifactId}testPort;create=true</test.database.port.url>
-        <test.database.serv.url>jdbc:derby:${project.build.directory}/test/db/${project.artifactId}testServ;create=true</test.database.serv.url>
-
         <skipDerby>true</skipDerby>
         <skipStandalone>true</skipStandalone>
         <entando.version>4.3.2</entando.version>
         <spring.version>4.1.6.RELEASE</spring.version>
         <struts2.version>2.5.10.1</struts2.version>
         <cxf.version>2.7.14</cxf.version>
+        <entando.private.build>true</entando.private.build>
     </properties>
     <build>
         <finalName>sample</finalName>
@@ -206,24 +92,9 @@
                                 <assembly>
                                     <descriptorRef>project</descriptorRef>
                                 </assembly>
-                                <env>
-                                    <PG_ENTANDO_PORT_DB_JNDI_NAME>java:jboss/datasources/${profile.application.name}PortDataSource</PG_ENTANDO_PORT_DB_JNDI_NAME>
-                                    <PG_ENTANDO_SERV_DB_JNDI_NAME>java:jboss/datasources/${profile.application.name}ServDataSource</PG_ENTANDO_SERV_DB_JNDI_NAME>
-                                    <PG_ENTANDO_PORT_DB_CONNECTION_STRING>${profile.database.url.portdb}</PG_ENTANDO_PORT_DB_CONNECTION_STRING>
-                                    <PG_ENTANDO_SERV_DB_CONNECTION_STRING>${profile.database.url.servdb}</PG_ENTANDO_SERV_DB_CONNECTION_STRING>
-                                    <MAVEN_ARGS>package -Popenshift -DskipTests -B --no-snapshot-updates -Dmaven.repo.local=/opt/app-root/src/.m2/repository</MAVEN_ARGS>
-                                </env>
                             </build>
                         </image>
                     </images>
-                    <resources>
-                        <services>
-                            <service>
-                                <name>${profile.application.name}</name>
-                                <expose>true</expose>
-                            </service>
-                        </services>
-                    </resources>
                 </configuration>
             </plugin>
             <plugin>
@@ -651,30 +522,39 @@
                         <jettyEnvXml>${project.build.directory}/jetty/jetty-env.xml</jettyEnvXml>
                     </webApp>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>start</id>
+                        <phase>pre-integration-test</phase>
+                        <goals><goal>start</goal></goals>
+                    </execution>
+                    <execution>
+                        <id>stop</id>
+                        <phase>post-integration-test</phase>
+                        <goals><goal>stop</goal></goals>
+                    </execution>
+                </executions>
                 <dependencies>
                     <dependency>
                         <groupId>postgresql</groupId>
                         <artifactId>postgresql</artifactId>
                         <version>9.1-901.jdbc4</version>
                     </dependency>
-                    <!-- uncomment if you need -->
-                    <!--
                     <dependency>
                             <groupId>mysql</groupId>
                             <artifactId>mysql-connector-java</artifactId>
                             <version>5.1.18</version>
                     </dependency>
-                    -->
-                    <!--<dependency>-->
-                        <!--<groupId>org.apache.derby</groupId>-->
-                        <!--<artifactId>derby</artifactId>-->
-                        <!--<version>10.9.1.0</version>-->
-                    <!--</dependency>-->
-                    <!--<dependency>-->
-                        <!--<groupId>org.apache.derby</groupId>-->
-                        <!--<artifactId>derbyclient</artifactId>-->
-                        <!--<version>10.9.1.0</version>-->
-                    <!--</dependency>-->
+                    <dependency>
+                        <groupId>org.apache.derby</groupId>
+                        <artifactId>derby</artifactId>
+                        <version>10.9.1.0</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.apache.derby</groupId>
+                        <artifactId>derbyclient</artifactId>
+                        <version>10.9.1.0</version>
+                    </dependency>
                     <dependency>
                         <groupId>commons-dbcp</groupId>
                         <artifactId>commons-dbcp</artifactId>

@@ -1,4 +1,5 @@
 #!/bin/bash
+#Start PG service in the background and continue once the last expected logline appears
 log=pg_startup.log
 run-postgresql 2>&1 | tee "$log" &
 pg_pid=$!
@@ -12,17 +13,18 @@ do
     fi
 done
 
+#Start Maven in the background and exit once the logline immediately following DB creation appears
 cd /opt/s2i/destination/src/maven
 pwd
 ls -al
-mvn_command="mvn jetty:run --no-snapshot-updates -Ppostgres -Dmaven.repo.local=$HOME/.m2/repository"
+mvn_command="mvn jetty:run -Ppostgresql $MAVEN_ARGS_APPEND"
 log=db_creation.log
 $mvn_command 2>&1 | tee "$log" &
 jetty_pid=$!
 for i in {1..40}
 do
     sleep 5
-    if fgrep --quiet "Started Jetty Server" "$log"
+    if fgrep --quiet "Self Rest Call" "$log"
     then
         echo "Jetty started and database created"
         kill $jetty_pid

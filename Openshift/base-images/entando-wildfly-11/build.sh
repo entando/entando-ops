@@ -1,1 +1,1 @@
-docker build -t entando/entando-wildfly-110:5.2 .
+docker build -t entando/entando-wildfly-110:5.0.0001 .

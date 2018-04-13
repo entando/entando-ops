@@ -196,9 +196,29 @@
         </pluginRepository>
       </pluginRepositories>
     </profile>
-
+    <profile>
+      <id>entando</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <repositories>
+        <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Gets removed from Dockerfile-->
+        <repository>
+          <id>entando-snapshots</id>
+          <url>http://repository.entando.org/repository/maven-snapshots/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
   </profiles>
   <activeProfiles>
     <activeProfile>securecentral</activeProfile>
+    <activeProfile>entando</activeProfile>
   </activeProfiles>
 </settings>
