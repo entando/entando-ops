@@ -37,7 +37,7 @@ RUN cd $HOME/sample && \
   for i in {1..150} ;  \
       do sleep 6 && tail db_creation.log -n 5; \
       if fgrep --quiet "Configuring Jetty for project" db_creation.log; \
-        then echo "Jetty started" &&  kill $jetty_pid && break; \
+        then echo "Jetty started" &&  while kill -0 $jetty_pid;do sleep 1;done; break; \
       fi; \
   done; \
   cd $HOME && rm $HOME/sample -rf && \
