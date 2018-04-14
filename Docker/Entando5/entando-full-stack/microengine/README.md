@@ -7,7 +7,7 @@ it's mandatory to pass as argument the `DOMAIN` env variable  to make requests t
 __USE_MOCKS__ (boolean, default: false)
 a boolean used to determine whether the API calls will be against a real Entando Core or if they are just being mocked
 
-__DOMAIN__ (string, default: //my.entando.com)
+__DOMAIN__ (string, default: `//127.0.0.1.nip.io:8080/entando-sample`)
 a string representing the domain name of the Entando Core instance. The protocol is optional and it is possible to specify a subdirectory of the domain. Trailing slashes are not valid and it only vaildates up to 3rd level domains.
 All the following would be valid values:
 

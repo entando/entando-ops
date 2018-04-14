@@ -22,7 +22,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 #//my.entando.com/entando-sample
 
 ENV USE_MOCKS false
-ENV DOMAIN //my.entando.com
+ENV DOMAIN //127.0.0.1.nip.io:8080/entando-sample
 
 COPY start.sh /start.sh
 
