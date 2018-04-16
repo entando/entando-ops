@@ -29,12 +29,12 @@ COPY start.sh /start.sh
 # Install and configure `serve`. Download project from entando repository
 RUN npm install -g serve \
 && chmod a+x /start.sh \
-&& git clone https://github.com/entando/designtime-admin-app.git \
-&& chown -R node:0 /designtime-admin-app/ && chmod -R ug+w /designtime-admin-app/
+&& git clone https://github.com/entando/app-builder.git \
+&& chown -R node:0 /app-builder/ && chmod -R ug+w /app-builder/
 
 USER node
 
-WORKDIR designtime-admin-app
+WORKDIR app-builder
 
 CMD /start.sh >> /dev/null
 EXPOSE 5000

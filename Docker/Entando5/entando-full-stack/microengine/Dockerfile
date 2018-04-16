@@ -29,12 +29,12 @@ COPY start.sh /start.sh
 # Install and configure `serve`. Download project from entando repository
 RUN npm install -g serve \
 && chmod a+x /start.sh \
-&& git clone https://github.com/entando/runtime-admin-app.git \
-&& chown -R node:0 /runtime-admin-app/ && chmod -R ug+w /runtime-admin-app/
+&& git clone https://github.com/entando/mapp-engine-admin-app.git \
+&& chown -R node:0 /mapp-engine-admin-app/ && chmod -R ug+w /mapp-engine-admin-app/
 
 USER node
 
-WORKDIR runtime-admin-app
+WORKDIR mapp-engine-admin-app
 
 CMD /start.sh >> /dev/null
 EXPOSE 5000
