@@ -1,4 +1,4 @@
-FROM builder
+FROM entando/base-builder-jetty
 
 USER 0
 
