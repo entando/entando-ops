@@ -1,7 +1,5 @@
 FROM openjdk:8-slim
 
-LABEL maintainer="Pietrangelo Masala <p.masala@entando.com>"
-
 #Environment Variables
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 ENV JRE_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
@@ -21,21 +19,12 @@ RUN chown 1001:0 ${PROJECT_HOME}/.m2/archetype-catalog.xml && chmod ug+w ${PROJE
 
 WORKDIR ${PROJECT_HOME}
 
-# run as user 1001 for OpenShift security constraints
-USER 1001
-
-# Install entando dependencies (core, components, archetypes) from master branch
+# Install entando dependencies (archetypes) from master branch
 # Set local maven repository to /opt/entando/.m2/repository
 # Create a symbolic link to archetype-catalog.xml file in repository directory to have local archetypes updated
 RUN cd ${PROJECT_HOME} \
-&& git clone https://github.com/entando/entando-core.git \
-&& git clone https://github.com/entando/entando-components.git \
 && git clone https://github.com/entando/entando-archetypes.git \
-&& cd entando-core && mvn -Dmaven.repo.local=${MVN_HOME}/repository install -DskipTests && cd .. \
-&& cd entando-components && mvn -Dmaven.repo.local=${MVN_HOME}/repository install -DskipTests && cd .. \
-&& cd entando-archetypes && mvn -Dmaven.repo.local=${MVN_HOME}/repository install \
-&& chmod -R ug+w ${MVN_HOME}/repository/ \
+&& cd ${PROJECT_HOME}/entando-archetypes && mvn -Dmaven.repo.local=${MVN_HOME}/repository install \
+&& chown -R 1001:0 ${MVN_HOME}/ && chmod -R ug+w ${MVN_HOME}/ \
 && rm -rf ${PROJECT_HOME}/entando-* \
 && cd ${MVN_HOME}/repository && ln -s ${MVN_HOME}/archetype-catalog.xml .
-
-expose 8080
