@@ -24,3 +24,11 @@ it will takes sometime before you'll be able to see something on the browser
 
 Open your browser and point to `http://127.0.0.1.nip.io:8080/entando`
 
+
+## How to Run
+
+execute `./start.sh`
+
+## How to stop
+
+execute `./stop.sh`
