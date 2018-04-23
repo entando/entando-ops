@@ -1,1 +1,1 @@
-docker build -t ampie/entando-postgresql-95:5.0 .
+docker build -t ampie/entando-s2i-postgresql-95:4.3.2 .
