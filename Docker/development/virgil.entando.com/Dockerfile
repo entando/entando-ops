@@ -13,7 +13,5 @@ RUN npm install -g react-scripts \
 
 WORKDIR assisted-demo-tool
 
-USER node
-
 CMD yarn start
 EXPOSE 3000
