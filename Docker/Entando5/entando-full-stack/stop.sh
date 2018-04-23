@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 
-echo "----------------------------------------------------"
+#Declare common functions
+# function line print an hr line 80 chars width"
+
+function line {
+	echo "--------------------------------------------------------------------------------"
+	echo
+}
+
+line
 echo "Start stopping all running containers"
 echo
 docker stop appbuilder
@@ -15,4 +23,4 @@ docker stop engine-api
 echo
 echo "Engine-api container stopped and deleted"
 echo
-echo "----------------------------------------------------"
+line
