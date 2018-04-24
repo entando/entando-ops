@@ -11,11 +11,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y maven imagemagi
 && apt-get autoclean -y \
 && mkdir -p ${PROJECT_HOME} && mkdir -p ${PROJECT_HOME}/.m2/repository && chown -R 1001:0 ${PROJECT_HOME}/ && chmod -R ug+w ${PROJECT_HOME}/
 
-COPY archetype-catalog.xml ${MVN_HOME}/archetype-catalog.xml
 COPY settings.xml ${MAVEN_HOME}/conf/settings.xml
-
-RUN chown 1001:0 ${PROJECT_HOME}/.m2/archetype-catalog.xml && chmod ug+w ${PROJECT_HOME}/.m2/archetype-catalog.xml
-
 
 WORKDIR ${PROJECT_HOME}
 
@@ -26,5 +22,4 @@ RUN cd ${PROJECT_HOME} \
 && git clone https://github.com/entando/entando-archetypes.git \
 && cd ${PROJECT_HOME}/entando-archetypes && mvn -Dmaven.repo.local=${MVN_HOME}/repository install \
 && chown -R 1001:0 ${MVN_HOME}/ && chmod -R ug+w ${MVN_HOME}/ \
-&& rm -rf ${PROJECT_HOME}/entando-* \
-&& cd ${MVN_HOME}/repository && ln -s ${MVN_HOME}/archetype-catalog.xml .
+&& rm -rf ${PROJECT_HOME}/entando-*
