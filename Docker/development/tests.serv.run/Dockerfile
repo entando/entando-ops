@@ -31,7 +31,6 @@ RUN cd /root/entando-5.0/entando-components \
 && cd .. \
 && cd entando-archetypes \
 && mvn clean install -DskipTests && mvn clean && cd .. \
-&& cp /root/.m2/archetype-catalog.xml /root/.m2/repository \
 && mvn archetype:generate -B -Dfilter=entando -DarchetypeCatalog=local -DarchetypeGroupId=org.entando.entando -DarchetypeArtifactId=entando-archetype-entando-sample -DgroupId=org.entando -DartifactId=entando-sample -Dversion=1.0-SNAPSHOT -Dpackage=test.entando \
 && rm -f /root/entando-5.0/entando-sample/pom.xml \
 && rm -f /root/entando-5.0/entando-sample/src/main/filters/filter-development-unix.properties
