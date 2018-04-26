@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: entando-postgres
+  annotations:
+    openshift.io/dispaly-name: "Entando and Postgresql Template ( Ephemeral )"
+    description: >-
+      An Entando application with a Postgesql database. For more information about using this template, see
+      to do add other informations here.
+
+
+      WARNING: Any data stored will be lost upon pod destruction. Only use this template for testing."
+    openshift.io/long-description: >-
+      This template defines resources needed to develop an Entando application, including a build configuration,
+      application deployment configuration, and database deployment configuration. The database is stored in
+      non-persistent storage, so this configuration should be used for testing/development purpose only."
+    tags: "entando,wildfly,postgresql,java,quickstart"
+    iconClass: icon-wildfly
+    openshift.io/provider-display-name: "Entando"
+    openshift.io/documentation-url: "https://github.com/entando/entando-ops/tree/master/Openshift/base-images/Wildfly11"
+    openshift.io/support-url: "https://access.entando.com"
+message: "Your admin credentials are admin:adminadmin"
+labels:
+  template: "entando-postgres"
