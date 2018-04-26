@@ -1,6 +1,6 @@
 
 # entando-builder
-FROM centos:7.4.1708
+FROM centos:7
 MAINTAINER Pietrangelo Masala <p.masala@entando.com>
 
 ### Atomic/OpenShift Labels
