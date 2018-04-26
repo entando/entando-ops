@@ -1,5 +1,5 @@
 
-IMAGE_NAME = entando-builder
+IMAGE_NAME = entando-builder-s2i
 
 .PHONY: build
 build:
