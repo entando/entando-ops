@@ -6,7 +6,9 @@ FROM node:8.9.4
 ENV NPM_CONFIG_LOGLEVEL warn
 
 # Install and configure `serve`.
-RUN npm install -g serve
+RUN npm install -g serve \
+&& mkdir -p /entando-components
+
 CMD serve -s build
 EXPOSE 5000
 
@@ -14,4 +16,4 @@ EXPOSE 5000
 COPY . .
 
 # Build for production.
-RUN npm run build --production
+#RUN npm run build
