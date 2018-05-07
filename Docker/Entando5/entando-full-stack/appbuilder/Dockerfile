@@ -22,7 +22,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 #//my.entando.com/entando-sample
 
 ENV USE_MOCKS false
-ENV DOMAIN //127.0.0.1.nip.io:8080/entando
+ENV DOMAIN //localhost:8080/entando
 
 COPY start.sh /start.sh
 
@@ -30,7 +30,14 @@ COPY start.sh /start.sh
 RUN npm install -g serve \
 && chmod a+x /start.sh \
 && git clone https://github.com/entando/app-builder.git \
+&& git clone https://github.com/entando/entando-components.git \
 && chown -R node:0 /app-builder/ && chmod -R ug+w /app-builder/
+
+COPY plugins.json /app-builder/entando-plugins-config/plugins.json
+
+# Install entando plugins
+RUN cd /entando-components/plugins/entando-plugin-jpkiebpm/app-builder \
+&& npm install
 
 USER node
 

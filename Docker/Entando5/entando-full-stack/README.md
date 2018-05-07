@@ -6,7 +6,7 @@
 
 `docker run -it --rm -d -p 80:5000 entando/appbuilder`
 
-Open your browse and point to `http://127.0.0.1.nip.io/`
+Open your browse and point to `http://localhost/`
 
 it will takes sometime before you'll be able to see something on the browser
 
@@ -14,7 +14,7 @@ it will takes sometime before you'll be able to see something on the browser
 
 `docker run -it --rm -d -p 81:5000 entando/microengine`
 
-Open your browser and point to `http://127.0.0.1.nip.io:81/`
+Open your browser and point to `http://localhost:81/`
 
 it will takes sometime before you'll be able to see something on the browser
 
@@ -22,7 +22,7 @@ it will takes sometime before you'll be able to see something on the browser
 
 `docker run -it --rm -d -p 8080:8080 entando/engine-api`
 
-Open your browser and point to `http://127.0.0.1.nip.io:8080/entando`
+Open your browser and point to `http://localhost:8080/entando`
 
 
 ## How to Run
