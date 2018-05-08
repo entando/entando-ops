@@ -12,10 +12,10 @@
         <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Ampie: remember to take this out-->
         <repository>
             <id>entando-snapshots</id>
-            <url>http://repository.entando.org/repository/maven-snapshots/</url>
+            <url>http://nexus-myproject.192.168.42.25.nip.io/nexus/content/repositories/releases/</url>
             <layout>default</layout>
             <releases>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
@@ -143,7 +143,7 @@
 
         <skipDerby>true</skipDerby>
         <skipStandalone>true</skipStandalone>
-        <entando.version>4.3.2</entando.version>
+        <entando.version>4.3.3-RC1</entando.version>
         <spring.version>4.1.6.RELEASE</spring.version>
         <struts2.version>2.5.10.1</struts2.version>
         <cxf.version>2.7.14</cxf.version>

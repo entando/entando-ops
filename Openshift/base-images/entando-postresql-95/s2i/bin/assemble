@@ -24,7 +24,7 @@ jetty_pid=$!
 for i in {1..40}
 do
     sleep 5
-    if fgrep --quiet "Self Rest Call" "$log"
+    if fgrep --quiet "Started Jetty Server" "$log"
     then
         echo "Jetty started and database created"
         kill $jetty_pid

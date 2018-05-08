@@ -205,10 +205,11 @@
         <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Gets removed from Dockerfile-->
         <repository>
           <id>entando-snapshots</id>
-          <url>http://repository.entando.org/repository/maven-snapshots/</url>
+          <url>http://nexus-myproject.192.168.42.25.nip.io/nexus/content/repositories/releases/</url>
+          <!--<url>http://repository.entando.org/repository/maven-snapshots/</url>-->
           <layout>default</layout>
           <releases>
-            <enabled>false</enabled>
+            <enabled>true</enabled>
           </releases>
           <snapshots>
             <enabled>true</enabled>

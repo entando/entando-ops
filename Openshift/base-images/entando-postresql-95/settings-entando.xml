@@ -208,7 +208,7 @@
           <url>http://repository.entando.org/repository/maven-snapshots/</url>
           <layout>default</layout>
           <releases>
-            <enabled>false</enabled>
+            <enabled>true</enabled>
           </releases>
           <snapshots>
             <enabled>true</enabled>
