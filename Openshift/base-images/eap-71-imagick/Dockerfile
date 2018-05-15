@@ -20,7 +20,7 @@ EXPOSE 8888
 
 USER 0
 
-RUN yum repolist all && \
+RUN subscription-manager refresh && yum repolist all && \
 yum-config-manager --enable rhel-server-rhscl-7-rpms && \
 yum-config-manager --enable rhel-7-server-optional-rpms && \
 yum makecache && \
