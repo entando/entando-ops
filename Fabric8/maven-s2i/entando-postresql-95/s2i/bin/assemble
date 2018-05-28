@@ -1,0 +1,66 @@
+#!/bin/bash
+# insert settings for mirrors/repository managers into settings.xml if supplied
+function configure_mirrors() {
+  if [ -n "$MAVEN_MIRROR_URL" ]; then
+    xml="    <mirror>\
+       <id>mirror.default</id>\
+       <url>$MAVEN_MIRROR_URL</url>\
+       <mirrorOf>external:*</mirrorOf>\
+     </mirror>"
+    sed -i "s|<!-- ### configured mirrors ### -->|$xml|" $HOME/.m2/settings.xml
+  fi
+}
+#Start PG service in the background and continue once the last expected logline appears
+log=pg_startup.log
+export PGPASSWORD=postgres
+run-postgresql 2>&1 | tee "$log" &
+pg_pid=$!
+for i in {1..40}
+do
+    sleep 5
+    if fgrep --quiet "Future log output will appear in directory" "$log"
+    then
+        echo "Postgresql Started"
+        break
+    fi
+done
+LOCAL_SOURCE_DIR=$HOME/current-s2i-build
+mkdir -p $LOCAL_SOURCE_DIR
+#Start Maven in the background and exit once the logline immediately following DB creation appears
+if [ -d /opt/s2i/destination/src/maven ]; then
+    cp -Rf /opt/s2i/destination/src/maven/. $LOCAL_SOURCE_DIR
+else
+    cp -Rf /opt/s2i/destination/src/. $LOCAL_SOURCE_DIR
+fi
+cd $LOCAL_SOURCE_DIR
+pwd
+ls -al
+configure_mirrors
+if [ -d  $LOCAL_SOURCE_DIR/src/main/db/tar ]; then
+    ant PG-db-full-update-tar
+else
+    mvn_command="mvn jetty:run -Ppostgresql $MAVEN_ARGS_APPEND"
+    echo "executing $mvn_command "
+    log=db_creation.log
+    $mvn_command 2>&1 | tee "$log" &
+    jetty_pid=$!
+    for i in {1..100}
+    do
+        sleep 5
+        if fgrep --quiet "Started Jetty Server" "$log"
+        then
+            echo "Jetty started and database created"
+            kill $jetty_pid
+            kill $pg_pid
+            cp $HOME/data $HOME/data_template -rf
+            /usr/libexec/fix-permissions $HOME/data_template
+            /usr/libexec/fix-permissions $HOME/openshift-custom-postgresql.conf
+            /usr/libexec/fix-permissions $HOME/passwd
+            rm /var/run/postgresql/.s.PGSQL*
+            rm /tmp/.s.PGSQL*
+            rm * -rf
+            exit 0
+        fi
+    done
+    exit 1
+fi
