@@ -8,31 +8,6 @@
     <version>1.0-SNAPSHOT</version>
     <name>sample</name>
     <url>http://maven.apache.org/</url>
-    <repositories>
-        <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Ampie: remember to take this out-->
-        <repository>
-            <id>entando-snapshots</id>
-            <url>http://repository.entando.org/repository/maven-snapshots/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-        <repository>
-            <id>entando-releases</id>
-            <url>http://repository.entando.org/repository/maven-releases/</url>
-            <layout>default</layout>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-    </repositories>
     <profiles>
         <profile>
             <id>production</id>
@@ -153,8 +128,8 @@
                                             <!--Ampie: let's consider using a service definition here - could also be external -->
                                             <PG_ENTANDO_PORT_DB_CONNECTION_STRING>${profile.database.url.portdb}</PG_ENTANDO_PORT_DB_CONNECTION_STRING>
                                             <PG_ENTANDO_SERV_DB_CONNECTION_STRING>${profile.database.url.servdb}</PG_ENTANDO_SERV_DB_CONNECTION_STRING>
-                                            <MAVEN_ARGS_APPEND>--no-snapshot-updates</MAVEN_ARGS_APPEND>
-                                            <MAVEN_MIRROR_URL>${maven.mirror.url}</MAVEN_MIRROR_URL>
+                                            <!--<MAVEN_ARGS_APPEND>&#45;&#45;no-snapshot-updates</MAVEN_ARGS_APPEND>-->
+                                            <!--<MAVEN_MIRROR_URL>${maven.mirror.url}</MAVEN_MIRROR_URL>-->
                                         </env>
                                     </build>
                                 </image>
@@ -227,8 +202,8 @@
                                             <POSTGRESQL_PASSWORD>${profile.database.password}</POSTGRESQL_PASSWORD>
                                             <POSTGRESQL_DATABASE>${profile.database.name.portdb}</POSTGRESQL_DATABASE>
                                             <POSTGRESQL_DATABASE2>${profile.database.name.servdb}</POSTGRESQL_DATABASE2>
-                                            <MAVEN_ARGS_APPEND>--no-snapshot-updates</MAVEN_ARGS_APPEND>
-                                            <MAVEN_MIRROR_URL>${maven.mirror.url}</MAVEN_MIRROR_URL>
+                                            <!--<MAVEN_ARGS_APPEND>&#45;&#45;no-snapshot-updates</MAVEN_ARGS_APPEND>-->
+                                            <!--<MAVEN_MIRROR_URL>${maven.mirror.url}</MAVEN_MIRROR_URL>-->
                                         </env>
                                     </build>
                                 </image>

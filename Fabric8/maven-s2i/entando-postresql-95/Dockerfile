@@ -5,7 +5,8 @@ LABEL io.openshift.s2i.destination="/opt/s2i/destination" \
       io.k8s.display-name="Postgresql Database Image for Entando 5"
 
 ENV MAVEN_VERSION="3.5.3" \
-    JAVA_HOME="/usr/lib/jvm/java-1.8.0"
+    JAVA_HOME="/usr/lib/jvm/java-1.8.0" \
+    ENTANDO_VERSION="5.0.0-SNAPSHOT"
 
 #Change to root for installation operations
 USER root
@@ -24,7 +25,6 @@ RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf 26:root /tmp/maven-setup
 #The user 'postgres' is 26, and openshift requires the numeric:
 #Run all of this as postgres as this will be the user under which the S2I build takes place
 USER 26
-ARG ENTANDO_VERSION
 WORKDIR /tmp/maven-setup/
 RUN ./prepare_m2_repo.sh $ENTANDO_VERSION
 WORKDIR $HOME

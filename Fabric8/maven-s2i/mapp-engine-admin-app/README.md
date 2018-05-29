@@ -18,7 +18,7 @@ All the following would be valid values:
 
 ## How to run
 
-`docker run -it --rm -d -p 80:5000 -e DOMAIN=http://your-entando-domain-app-url entando/appbuilder`
+`docker run -it --rm -d -p 80:5000 -e DOMAIN=http://your-entando-domain-app-url entando/mapp-engine-admin-app-openshift`
 
 ## Exposed ports
 

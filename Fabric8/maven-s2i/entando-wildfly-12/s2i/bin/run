@@ -1,2 +1,2 @@
 #!/bin/bash
-exec /wildfly/bin/standalone.sh -Djboss.node.name=$HOSTNAME -Djgroups.bind_addr=$HOSTNAME -u 230.0.0.4 -Djava.net.preferIPv4Stack=true -Dbind_addr=$HOSTNAME -b=$HOSTNAME -c standalone-openshift.xml
+exec /wildfly/bin/standalone.sh -Djboss.node.name=$HOSTNAME -Djgroups.bind_addr=$HOSTNAME -Djava.net.preferIPv4Stack=true -Dbind_addr=$HOSTNAME -b=$HOSTNAME -c standalone-openshift.xml

@@ -19,8 +19,8 @@ RUN source /opt/rh/rh-nodejs8/enable && \
 COPY start.sh /start.sh
 USER root
 RUN chmod a+x /start.sh
-
 USER 1001
+
 WORKDIR /opt/app-root/src/mapp-engine-admin-app
 CMD /start.sh
 EXPOSE 5000
