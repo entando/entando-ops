@@ -15,7 +15,7 @@ RUN source /opt/rh/rh-nodejs8/enable && \
   echo [\"entando-plugin-jpkiebpm\"] > app-builder/entando-plugins-config/plugins.json && \
   cd entando-components/plugins/entando-plugin-jpkiebpm/app-builder && npm install && \
   cd /opt/app-root/src/app-builder && npm install && \
-  npm run import-plugins && npm run build && \
+  npm run import-plugins && \
   cd /opt/app-root/src && \
   chown -R 1001:0 app-builder && chmod -R ug+rw app-builder && \
   chown -R 1001:0 entando-components && chmod -R ug+rw entando-components
@@ -27,5 +27,5 @@ RUN chmod a+x /start.sh
 USER 1001
 WORKDIR /opt/app-root/src/app-builder
 CMD /start.sh
-EXPOSE 5000
+EXPOSE 3000
 
