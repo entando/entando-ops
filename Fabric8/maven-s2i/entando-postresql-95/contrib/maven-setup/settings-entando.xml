@@ -209,28 +209,28 @@
       </activation>
       <repositories>
         <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Gets removed from Dockerfile-->
-        <repository>
-          <id>entando-snapshots</id>
-          <url>http://repository.entando.org/repository/maven-snapshots/</url>
-          <layout>default</layout>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </repository>
         <!--<repository>-->
-          <!--<id>entando-releases</id>-->
-          <!--<url>http://repository.entando.org/repository/maven-releases/</url>-->
+          <!--<id>entando-snapshots</id>-->
+          <!--<url>http://repository.entando.org/repository/maven-snapshots/</url>-->
           <!--<layout>default</layout>-->
           <!--<releases>-->
-            <!--<enabled>true</enabled>-->
+            <!--<enabled>false</enabled>-->
           <!--</releases>-->
           <!--<snapshots>-->
-            <!--<enabled>false</enabled>-->
+            <!--<enabled>true</enabled>-->
           <!--</snapshots>-->
         <!--</repository>-->
+        <repository>
+          <id>entando-releases</id>
+          <url>http://repository.entando.org/repository/maven-releases/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
       </repositories>
     </profile>
   </profiles>

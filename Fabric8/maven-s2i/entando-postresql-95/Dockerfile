@@ -6,7 +6,7 @@ LABEL io.openshift.s2i.destination="/opt/s2i/destination" \
 
 ENV MAVEN_VERSION="3.5.3" \
     JAVA_HOME="/usr/lib/jvm/java-1.8.0" \
-    ENTANDO_VERSION="5.0.0-SNAPSHOT"
+    ENTANDO_VERSION="5.0.0"
 
 #Change to root for installation operations
 USER root

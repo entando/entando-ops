@@ -10,7 +10,7 @@ USER 1001
 # Install and configure `serve`. Download project from entando repository
 RUN source /opt/rh/rh-nodejs8/enable && \
   npm install -g serve && \
-  git clone https://github.com/entando/mapp-engine-admin-app.git && \
+  git clone --branch v5.0.0 https://github.com/entando/mapp-engine-admin-app.git && \
   cd /opt/app-root/src/mapp-engine-admin-app && npm install && \
   npm run import-plugins && \
   cd /opt/app-root/src && \

@@ -6,7 +6,7 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando applications on WildFly 12.0.0.Final" \
       io.k8s.display-name="Entando on WildFly 12.0.0.Final"
 
-ENV ENTANDO_VERSION="5.0.0-SNAPSHOT"
+ENV ENTANDO_VERSION="5.0.0"
 
 #Use root to install stuff
 USER root

@@ -10,8 +10,8 @@ USER 1001
 # Install and configure `serve`. Download project from entando repository
 RUN source /opt/rh/rh-nodejs8/enable && \
   npm install -g serve && \
-  git clone https://github.com/entando/app-builder.git && \
-  git clone https://github.com/entando/entando-components.git && \
+  git clone --branch v5.0.0 https://github.com/entando/app-builder.git && \
+  git clone --branch v5.0.0 https://github.com/entando/entando-components.git && \
   echo [\"entando-plugin-jpkiebpm\"] > app-builder/entando-plugins-config/plugins.json && \
   cd entando-components/plugins/entando-plugin-jpkiebpm/app-builder && npm install && \
   cd /opt/app-root/src/app-builder && npm install && \
