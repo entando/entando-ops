@@ -1,1 +1,4 @@
-docker build -t ampie/entando-s2i-eap-71:5.0.0-SNAPSHOT -t 172.30.1.1:5000/openshift/entando-s2i-eap-71:5.0.0-SNAPSHOT .
+export VERSION=${1:-5.0.0-SNAPSHOT}
+echo $VERSION
+#docker build --build-arg ENTANDO_VERSION=$VERSION -t entando/entando-fabric8s2i-eap-71:$VERSION .
+docker build -t entando/entando-fabric8s2i-eap-71:$VERSION .

@@ -19,11 +19,24 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
 EXPOSE 8888
 USER root
 
+#stay in root to ensure chmod works
+COPY ./contrib/maven-setup /tmp/maven-setup
+RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf 1001:root /tmp/maven-setup
+
+#Prepare the Maven repo as 1001 as this will be the user under which the S2I build takes place
+USER 1001
+WORKDIR /tmp/maven-setup/
+RUN ./prepare_m2_repo.sh $ENTANDO_VERSION
+WORKDIR $HOME
+
+USER root
+# Copy custom Entando JBoss config file
 COPY contrib/wfcfg/standalone-ha.xml /opt/eap/standalone/config/standalone-openshift.xml
 RUN chmod ug+rw /opt/eap/standalone/config/standalone-openshift.xml && chown 185:root /opt/eap/standalone/config/standalone-openshift.xml
 
 # Copy the S2I scripts customized for Entando to $STI_SCRIPTS_PATH
 COPY ./s2i/bin/assemble $STI_SCRIPTS_PATH/assemble
-RUN chmod -Rf ug+xrw $STI_SCRIPTS_PATH/assemble && chown -Rf 185:root $STI_SCRIPTS_PATH/assemble
+COPY ./s2i/bin/run $STI_SCRIPTS_PATH/run
+RUN chmod -Rf ug+xrw $STI_SCRIPTS_PATH/ && chown -Rf 185:root $STI_SCRIPTS_PATH/
 
 USER 185

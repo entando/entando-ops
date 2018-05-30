@@ -1,0 +1,2 @@
+#!/bin/bash
+exec $JBOSS_HOME/bin/standalone.sh -Djboss.node.name=$HOSTNAME -Djgroups.bind_addr=$HOSTNAME -Djava.net.preferIPv4Stack=true -Dbind_addr=$HOSTNAME -b=$HOSTNAME -c standalone-openshift.xml
