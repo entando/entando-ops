@@ -27,7 +27,8 @@ ENV DOMAIN //localhost:8080/entando
 COPY start.sh /start.sh
 
 # Install and configure `serve`. Download project from entando repository
-RUN npm install -g serve \
+RUN npm i -g npm \
+&& npm i -g serve \
 && chmod a+x /start.sh \
 && git clone https://github.com/entando/app-builder.git \
 && git clone https://github.com/entando/entando-components.git \
@@ -44,4 +45,4 @@ USER node
 WORKDIR app-builder
 
 CMD /start.sh >> /dev/null
-EXPOSE 5000
+EXPOSE 3000

@@ -4,4 +4,4 @@
 npm install && npm run import-plugins && npm run build
 
 #Execute serve
-serve -s build
+serve build
