@@ -115,7 +115,7 @@
             "displayName": "Server Keystore Secret Name",
             "description": "The name of the secret containing the keystore file",
             "name": "HTTPS_SECRET",
-            "value": "eap7-app-secret",
+            "value": "entando-app-secret",
             "required": true
         },
         {
@@ -205,7 +205,7 @@
         {
             "displayName": "Database Admin Password",
             "description": "Database Admin password",
-            "name": "DB_PASSWORD",
+            "name": "DB_ADMIN_PASSWORD",
             "from": "[a-zA-Z0-9]{8}",
             "generate": "expression",
             "required": false
@@ -237,7 +237,7 @@
             "displayName": "JGroups Secret Name",
             "description": "The name of the secret containing the keystore file",
             "name": "JGROUPS_ENCRYPT_SECRET",
-            "value": "eap7-app-secret",
+            "value": "entando-app-secret",
             "required": false
         },
         {
@@ -458,6 +458,16 @@
             }
         },
         {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-postgresql",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            }
+        },
+        {
             "kind": "BuildConfig",
             "apiVersion": "v1",
             "metadata": {
@@ -496,7 +506,7 @@
                         "from": {
                             "kind": "ImageStreamTag",
                             "namespace": "${IMAGE_STREAM_NAMESPACE}",
-                            "name": "jboss-eap71-openshift:1.2"
+                            "name": "entando-fabric8s2i-eap71:5.0.0"
                         }
                     }
                 },
@@ -504,6 +514,106 @@
                     "to": {
                         "kind": "ImageStreamTag",
                         "name": "${APPLICATION_NAME}:latest"
+                    }
+                },
+                "triggers": [
+                    {
+                        "type": "GitHub",
+                        "github": {
+                            "secret": "${GITHUB_WEBHOOK_SECRET}"
+                        }
+                    },
+                    {
+                        "type": "Generic",
+                        "generic": {
+                            "secret": "${GENERIC_WEBHOOK_SECRET}"
+                        }
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChange": {}
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-postgresql",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "${SOURCE_REPOSITORY_URL}",
+                        "ref": "${SOURCE_REPOSITORY_REF}"
+                    },
+                    "contextDir": "${CONTEXT_DIR}"
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "env": [
+                            {
+                                "name": "MAVEN_MIRROR_URL",
+                                "value": "${MAVEN_MIRROR_URL}"
+                            },
+                            {
+                                "name": "MAVEN_ARGS_APPEND",
+                                "value": "${MAVEN_ARGS_APPEND}"
+                            },
+                            {
+                                "name": "POSTGRESQL_USER",
+                                "value": "${DB_USERNAME}"
+                            },
+                            {
+                                "name": "POSTGRESQL_PASSWORD",
+                                "value": "${DB_PASSWORD}"
+                            },
+                            {
+                                "name": "POSTGRESQL_DATABASE",
+                                "value": "${ENTANDO_PORT_DATABASE}"
+                            },
+                            {
+                                "name": "POSTGRESQL_DATABASE2",
+                                "value": "${ENTANDO_SERV_DATABASE}"
+                            },
+                            {
+                                "name": "POSTGRESQL_MAX_CONNECTIONS",
+                                "value": "${POSTGRESQL_MAX_CONNECTIONS}"
+                            },
+                            {
+                                "name": "POSTGRESQL_MAX_PREPARED_TRANSACTIONS",
+                                "value": "${POSTGRESQL_MAX_CONNECTIONS}"
+                            },
+                            {
+                                "name": "POSTGRESQL_SHARED_BUFFERS",
+                                "value": "${POSTGRESQL_SHARED_BUFFERS}"
+                            },
+                            {
+                                "name": "POSTGRESQL_EFFECTIVE_CACHE_SIZE",
+                                "value": "128MB"
+                            }
+                        ],
+                        "forcePull": true,
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "namespace": "${IMAGE_STREAM_NAMESPACE}",
+                            "name": "entando-fabric8s2i-postgresql-95:5.0.0"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "${APPLICATION_NAME}-postgresql:latest"
                     }
                 },
                 "triggers": [
@@ -779,116 +889,6 @@
                 }
             }
         },
-        {
-            "kind": "ImageStream",
-            "apiVersion": "v1",
-            "metadata": {
-                "name": "${APPLICATION_NAME}-postgresql",
-                "labels": {
-                    "application": "${APPLICATION_NAME}"
-                }
-            }
-        },
-        {
-            "kind": "BuildConfig",
-            "apiVersion": "v1",
-            "metadata": {
-                "name": "${APPLICATION_NAME}-postgresql",
-                "labels": {
-                    "application": "${APPLICATION_NAME}"
-                }
-            },
-            "spec": {
-                "source": {
-                    "type": "Git",
-                    "git": {
-                        "uri": "${SOURCE_REPOSITORY_URL}",
-                        "ref": "${SOURCE_REPOSITORY_REF}"
-                    },
-                    "contextDir": "${CONTEXT_DIR}"
-                },
-                "strategy": {
-                    "type": "Source",
-                    "sourceStrategy": {
-                        "env": [
-                            {
-                                "name": "MAVEN_MIRROR_URL",
-                                "value": "${MAVEN_MIRROR_URL}"
-                            },
-                            {
-                                "name": "MAVEN_ARGS_APPEND",
-                                "value": "${MAVEN_ARGS_APPEND}"
-                            },
-                            {
-                                "name": "POSTGRESQL_USER",
-                                "value": "${DB_USERNAME}"
-                            },
-                            {
-                                "name": "POSTGRESQL_PASSWORD",
-                                "value": "${DB_PASSWORD}"
-                            },
-                            {
-                                "name": "POSTGRESQL_DATABASE",
-                                "value": "${ENTANDO_PORT_DATABASE}"
-                            },
-                            {
-                                "name": "POSTGRESQL_MAX_CONNECTIONS",
-                                "value": "${POSTGRESQL_MAX_CONNECTIONS}"
-                            },
-                            {
-                                "name": "POSTGRESQL_MAX_PREPARED_TRANSACTIONS",
-                                "value": "${POSTGRESQL_MAX_CONNECTIONS}"
-                            },
-                            {
-                                "name": "POSTGRESQL_SHARED_BUFFERS",
-                                "value": "${POSTGRESQL_SHARED_BUFFERS}"
-                            },
-                            {
-                                "name": "POSTGRESQL_EFFECTIVE_CACHE_SIZE",
-                                "value": "128MB"
-                            },
-                            {
-                                "name": "ARTIFACT_DIR",
-                                "value": "${ARTIFACT_DIR}"
-                            }
-                        ],
-                        "forcePull": true,
-                        "from": {
-                            "kind": "ImageStreamTag",
-                            "namespace": "${IMAGE_STREAM_NAMESPACE}",
-                            "name": "entando-s2i-postgresql-95:5.0.0-SNAPSHOT"
-                        }
-                    }
-                },
-                "output": {
-                    "to": {
-                        "kind": "ImageStreamTag",
-                        "name": "${APPLICATION_NAME}:latest"
-                    }
-                },
-                "triggers": [
-                    {
-                        "type": "GitHub",
-                        "github": {
-                            "secret": "${GITHUB_WEBHOOK_SECRET}"
-                        }
-                    },
-                    {
-                        "type": "Generic",
-                        "generic": {
-                            "secret": "${GENERIC_WEBHOOK_SECRET}"
-                        }
-                    },
-                    {
-                        "type": "ImageChange",
-                        "imageChange": {}
-                    },
-                    {
-                        "type": "ConfigChange"
-                    }
-                ]
-            }
-        },
 
         {
             "kind": "DeploymentConfig",
@@ -913,8 +913,7 @@
                             ],
                             "from": {
                                 "kind": "ImageStreamTag",
-                                "namespace": "${IMAGE_STREAM_NAMESPACE}",
-                                "name": "postgresql:${POSTGRESQL_IMAGE_STREAM_TAG}"
+                                "name": "${APPLICATION_NAME}-postgresql:latest"
                             }
                         }
                     },
@@ -939,7 +938,7 @@
                         "containers": [
                             {
                                 "name": "${APPLICATION_NAME}-postgresql",
-                                "image": "postgresql",
+                                "image": "${APPLICATION_NAME}-postgresql",
                                 "imagePullPolicy": "Always",
                                 "ports": [
                                     {
@@ -979,6 +978,10 @@
                                     {
                                         "name": "POSTGRESQL_DATABASE",
                                         "value": "${ENTANDO_PORT_DATABASE}"
+                                    },
+                                    {
+                                        "name": "POSTGRESQL_DATABASE2",
+                                        "value": "${ENTANDO_SERV_DATABASE}"
                                     },
                                     {
                                         "name": "POSTGRESQL_MAX_CONNECTIONS",

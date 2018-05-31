@@ -1,3 +1,4 @@
+source /opt/rh/rh-maven35/enable
 cp settings-entando.xml $HOME/.m2/settings.xml -f
 mvn archetype:generate -DgroupId=org.sample -DartifactId=sample \
   -DarchetypeGroupId=org.entando.entando -DarchetypeArtifactId=entando-archetype-webapp-generic -DarchetypeVersion=$1 \

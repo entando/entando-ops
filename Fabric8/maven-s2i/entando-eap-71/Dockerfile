@@ -1,4 +1,5 @@
 FROM registry.access.redhat.com/jboss-eap-7/eap71-openshift:latest
+ENV ENTANDO_VERSION="5.0.0"
 
 MAINTAINER Ampie Barnard "<a.barnard@entando.com>"
 
@@ -6,7 +7,7 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
             name="entando-eap71" \
             vendor="Entando Srl" \
             version="1.0" \
-            release="5.0.0-SNAPSHOT" \
+            release="5.0.0" \
             license="lgplv2.1" \
             summary="This is an extended EAP 7.1 OpenShift image with the entando dependencies installed." \
             description="This is an extended EAP 7.1 OpenShift image with the entando dependencies installed." \

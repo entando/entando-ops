@@ -1,9 +1,7 @@
-git clone --branch v$1 https://github.com/entando/entando-archetypes.git
-cd entando-archetypes && mvn clean install archetype:update-local-catalog && cd ..
 cp settings-entando.xml $HOME/.m2/settings.xml -f
 mvn archetype:generate -DgroupId=org.sample -DartifactId=sample \
   -DarchetypeGroupId=org.entando.entando -DarchetypeArtifactId=entando-archetype-webapp-generic -DarchetypeVersion=$1 \
-  -DinteractiveMode=false -DarchetypeCatalog=local
+  -DinteractiveMode=false
 cp pom-$1.xml sample/pom.xml -f
 cp filter-openshift.properties sample/src/main/filters/filter-openshift.properties
 cd sample
