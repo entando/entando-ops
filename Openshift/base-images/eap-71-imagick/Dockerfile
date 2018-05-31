@@ -24,11 +24,10 @@ EXPOSE 8888
 
 USER 0
 
-RUN REPOLIST=rhel-7-server-rpms, rhel-7-server-optional-rpms \
-INSTALL_PKGS="ImageMagick libaio-devel" && \
+RUN REPOLIST="rhel-7-server-rpms, rhel-7-server-optional-rpms" && \
 yum -y update-minimal --disablerepo "*" --enablerepo rhel-7-server-rpms --setopt=tsflags=nodocs \
 --security --sec-severity=Important --sec-severity=Critical && \
-yum -y install --disablerepo "*" --enablerepo ${REPOLIST} --setopt=tsflags=nodocs ${INSTALL_PKGS} && \
+yum -y install --disablerepo "*" --enablerepo ${REPOLIST} --setopt=tsflags=nodocs ImageMagick libaio-devel && \
 yum clean all && \
 rm -rf /var/cache/yum/* && \
 mkdir -p /licenses && \
