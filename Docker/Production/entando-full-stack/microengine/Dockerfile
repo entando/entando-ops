@@ -30,6 +30,7 @@ COPY start.sh /start.sh
 RUN npm install -g serve \
 && chmod a+x /start.sh \
 && git clone https://github.com/entando/mapp-engine-admin-app.git \
+&& cd /mapp-engine-admin-app && git checkout v5.0.0 && cd .. \
 && chown -R node:0 /mapp-engine-admin-app/ && chmod -R ug+w /mapp-engine-admin-app/
 
 USER node
@@ -37,4 +38,4 @@ USER node
 WORKDIR mapp-engine-admin-app
 
 CMD /start.sh >> /dev/null
-EXPOSE 5000
+EXPOSE 3000
