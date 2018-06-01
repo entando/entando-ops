@@ -1,4 +1,4 @@
-FROM entando/base-builder-jetty
+FROM entando/docker-builder-5
 
 USER 0
 
