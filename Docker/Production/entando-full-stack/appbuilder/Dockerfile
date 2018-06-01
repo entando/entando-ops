@@ -31,7 +31,7 @@ RUN npm i -g npm \
 && npm i -g serve \
 && chmod a+x /start.sh \
 && git clone https://github.com/entando/app-builder.git \
-&& cd /app-builder.git && git checkout v5.0.0 && cd .. \
+&& cd /app-builder && git checkout v5.0.0 && cd .. \
 && git clone https://github.com/entando/entando-components.git \
 && cd /entando-components && git checkout v5.0.0 && cd .. \
 && chown -R node:0 /app-builder/ && chmod -R ug+w /app-builder/
