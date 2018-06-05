@@ -1,4 +1,4 @@
-# Entando base image for entando relase 5.0.0 based docker images
+# Entando docker base image
 
 This image has a default user 1001 that has write permissions on `/opt/entando` that is the default path for the `WORKDIR` directive.
 
@@ -17,6 +17,8 @@ __MAVEN_HOME__ Set to `/usr/share/maven`
 __PROJECT_HOME__ Set to `/opt/entando`
 
 __MVN_HOME__ Set to `${PROJECT_HOME}/.m2`
+
+__ENTANDO_RELEASE__ Set to `v5.0.0` if you want to change the target release simply overwrite this ENV variable.
 
 ## Configuration
 
