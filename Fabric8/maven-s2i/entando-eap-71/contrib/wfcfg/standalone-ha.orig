@@ -143,8 +143,7 @@
         <subsystem xmlns="urn:jboss:domain:core-management:1.0"/>
         <subsystem xmlns="urn:jboss:domain:datasources:5.0">
             <datasources>
-                <datasource jndi-name="java:jboss/datasources/ExampleDS" pool-name="ExampleDS" enabled="true"
-                            use-java-context="true">
+                <datasource jndi-name="java:jboss/datasources/ExampleDS" pool-name="ExampleDS" enabled="true" use-java-context="true">
                     <connection-url>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE</connection-url>
                     <driver>h2</driver>
                     <security>
@@ -152,51 +151,9 @@
                         <password>sa</password>
                     </security>
                 </datasource>
-                <datasource jndi-name="${env.PG_ENTANDO_PORT_DB_JNDI_NAME}" enabled="true" use-java-context="true"
-                            pool-name="entandoDbPortDataSource" use-ccm="true">
-                    <connection-url>${env.PG_ENTANDO_PORT_DB_CONNECTION_STRING}</connection-url>
-                    <driver>postgresql</driver>
-                    <security>
-                        <user-name>${env.PG_USERNAME}</user-name>
-                        <password>${env.PG_PASSWORD}</password>
-                    </security>
-                    <validation>
-                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
-                        <background-validation>true</background-validation>
-                        <background-validation-millis>60000</background-validation-millis>
-                        <!--<validate-on-match>true</validate-on-match>-->
-                    </validation>
-                    <pool>
-                        <flush-strategy>IdleConnections</flush-strategy>
-                    </pool>
-                </datasource>
-                <datasource jndi-name="${env.PG_ENTANDO_SERV_DB_JNDI_NAME}" enabled="true" use-java-context="true"
-                            pool-name="entandoDbServDataSource" use-ccm="true">
-                    <connection-url>${env.PG_ENTANDO_SERV_DB_CONNECTION_STRING}</connection-url>
-                    <driver>postgresql</driver>
-                    <security>
-                        <user-name>${env.PG_USERNAME}</user-name>
-                        <password>${env.PG_PASSWORD}</password>
-                    </security>
-                    <validation>
-                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
-                        <background-validation>true</background-validation>
-                        <background-validation-millis>60000</background-validation-millis>
-                        <!--<validate-on-match>true</validate-on-match>-->
-                    </validation>
-                    <pool>
-                        <flush-strategy>IdleConnections</flush-strategy>
-                    </pool>
-                </datasource>
                 <drivers>
                     <driver name="h2" module="com.h2database.h2">
                         <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
-                    </driver>
-                    <driver name="mysql" module="com.mysql.jdbc">
-                        <xa-datasource-class>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</xa-datasource-class>
-                    </driver>
-                    <driver name="postgresql" module="org.postgresql">
-                        <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
                     </driver>
                 </drivers>
             </datasources>
@@ -407,36 +364,6 @@
                 </invalidation-cache>
                 <replicated-cache name="timestamps" mode="ASYNC"/>
             </cache-container>
-            <cache-container name="entando" default-cache="Entando_CategoryManager"
-                             jndi-name="infinispan/container/entando" statistics-enabled="false">
-                <transport lock-timeout="60000"/>
-                <replicated-cache name="Entando_CategoryManager"
-                                  jndi-name="infinispan/cache/entando/Entando_CategoryManager">
-                    <transaction mode="BATCH"/>
-                </replicated-cache>
-                <replicated-cache name="Entando_Cache" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_PageManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_PageModelManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_WidgetTypeManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_ConfigManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_RoleManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_GroupManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_LangManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_CacheInfoManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_I18nManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_UserProfileManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_DataObjectManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_jacmsContentManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_InitializerManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_ApiCatalogManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_DataObjectModelManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_ContentModelManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_KeyGeneratorManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_ResourceManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_DataObjectPageMapperManager" statistics-enabled="false" mode="SYNC"/>
-                <replicated-cache name="Entando_ContentPageMapperManager" statistics-enabled="false" mode="SYNC"/>
-            </cache-container>
-
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
         <subsystem xmlns="urn:jboss:domain:jca:5.0">

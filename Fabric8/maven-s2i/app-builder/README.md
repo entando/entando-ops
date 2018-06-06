@@ -36,7 +36,3 @@ All the following would be valid values:
 `3000`
 
 
-##Known Limitations
-Unfortunately, currently the DOMAIN variable has to be passed as a build parameter to the ReactJS app build. As a result
-we need to rebuild the app on container startup which slows startup down significantly. Please be patient, 
-we are hoping to address this soon

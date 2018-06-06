@@ -11,19 +11,9 @@ function configure_mirrors() {
   fi
 }
 #Start PG service in the background and continue once the last expected logline appears
-log=pg_startup.log
 export PGPASSWORD=postgres
-run-postgresql 2>&1 | tee "$log" &
-pg_pid=$!
-for i in {1..40}
-do
-    sleep 5
-    if fgrep --quiet "Future log output will appear in directory" "$log"
-    then
-        echo "Postgresql Started"
-        break
-    fi
-done
+echo "Creating DB $POSTGRESQL_DATABASE for $POSTGRESQL_USER"
+$(dirname "$0")/start_pg_and_wait.sh
 LOCAL_SOURCE_DIR=$HOME/current-s2i-build
 mkdir -p $LOCAL_SOURCE_DIR
 #Start Maven in the background and exit once the logline immediately following DB creation appears
@@ -51,12 +41,13 @@ else
         then
             echo "Jetty started and database created"
             kill $jetty_pid
-            kill $pg_pid
             cp $HOME/data $HOME/data_template -rf
             /usr/libexec/fix-permissions $HOME/data_template
             /usr/libexec/fix-permissions $HOME/openshift-custom-postgresql.conf
             /usr/libexec/fix-permissions $HOME/passwd
             rm /var/run/postgresql/.s.PGSQL*
+            rm "$log"
+            rm /var/lib/pgsql/pg_startup.log
             rm /tmp/.s.PGSQL*
             rm * -rf
             exit 0

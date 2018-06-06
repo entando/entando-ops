@@ -31,12 +31,11 @@ WORKDIR $HOME
 
 #use root to ensure chmod works
 USER root
-
 #Add scripts
 COPY ./contrib/common.sh /usr/share/container-scripts/postgresql/common.sh
 RUN chmod -Rf ug+rw /usr/share/container-scripts/postgresql/common.sh && chown -Rf postgres:root /usr/share/container-scripts/postgresql/common.sh
 COPY ./s2i/bin/ $STI_SCRIPTS_PATH
-RUN chmod -Rf ug+rw $STI_SCRIPTS_PATH && chown -Rf postgres:root $STI_SCRIPTS_PATH
+RUN chmod -Rf ug+rxw $STI_SCRIPTS_PATH && chown -Rf postgres:root $STI_SCRIPTS_PATH
 RUN mkdir -p /opt/s2i/destination && chmod -R ug+rw /opt/s2i/destination && chown -R postgres:root /opt/s2i/destination
 
 #And end by making the user postgres again

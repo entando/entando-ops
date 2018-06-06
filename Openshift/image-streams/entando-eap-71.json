@@ -19,13 +19,10 @@
           "tags": "builder,wildfly,java"
         },
         "from": {
-          "kind": "ImageStreamTag",
-          "name": "5.0.0-SNAPSHOT"
+          "kind": "DockerImage",
+          "name": "entando/entando-fabric8s2i-eap-71:5.0.1"
         },
-        "referencePolicy": {
-          "type": "Local"
-        },
-        "name": "latest"
+        "name": "5.0.1"
       }
     ]
   }
