@@ -150,14 +150,14 @@
             "displayName": "Server Certificate Name",
             "description": "The name associated with the server certificate",
             "name": "HTTPS_NAME",
-            "value": "",
+            "value": "jboss",
             "required": false
         },
         {
             "displayName": "Server Keystore Password",
             "description": "The password for the keystore and certificate",
             "name": "HTTPS_PASSWORD",
-            "value": "",
+            "value": "mykeystorepass",
             "required": false
         },
         {
@@ -241,14 +241,14 @@
             "displayName": "JGroups Certificate Name",
             "description": "The name associated with the server certificate",
             "name": "JGROUPS_ENCRYPT_NAME",
-            "value": "",
+            "value": "secret-key",
             "required": false
         },
         {
             "displayName": "JGroups Keystore Password",
             "description": "The password for the keystore and certificate",
             "name": "JGROUPS_ENCRYPT_PASSWORD",
-            "value": "",
+            "value": "password",
             "required": false
         },
         {
