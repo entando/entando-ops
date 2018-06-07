@@ -20,7 +20,7 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "entando/entando-fabric8s2i-postgresql-95:5.0.0"
+          "name": "docker.io/entando/entando-fabric8s2i-postgresql-95:5.0.0"
         },
         "name": "5.0.0"
       }

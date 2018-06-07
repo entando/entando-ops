@@ -38,7 +38,7 @@ RUN chmod ug+rw /opt/eap/standalone/configuration/standalone-openshift.xml && ch
 ENV STI_SCRIPTS_PATH="/usr/local/s2i"
 # Copy the S2I scripts customized for Entando to $STI_SCRIPTS_PATH
 COPY ./s2i/bin/assemble $STI_SCRIPTS_PATH/assemble
-COPY ./s2i/bin/run $STI_SCRIPTS_PATH/run
+#this run script doesn't work:COPY ./s2i/bin/run $STI_SCRIPTS_PATH/run
 RUN chmod -Rf ug+xrw $STI_SCRIPTS_PATH && chown -Rf 185:root $STI_SCRIPTS_PATH
 
 USER 185

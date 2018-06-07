@@ -21,6 +21,13 @@
     "message": "A new Entando EAP 12 and PostgreSQL 9.5 persistent based application with SSL support has been created in your project. The username/password for accessing the PostgreSQL database \"${DB_DATABASE}\" is specifed in the ${DB_SECRET} secret. Please be sure to create the following secrets: \"${HTTPS_SECRET}\" containing the ${HTTPS_KEYSTORE} file used for serving secure content; \"${JGROUPS_ENCRYPT_SECRET}\" containing the ${JGROUPS_ENCRYPT_KEYSTORE} file used for securing JGroups communications.",
     "parameters": [
         {
+            "displayName": "Project Name",
+            "description": "The name of the project where the application will be installed.",
+            "name": "PROJECT_NAME",
+            "value": "",
+            "required": true
+        },
+        {
             "displayName": "Application Name",
             "description": "The name for the application.",
             "name": "APPLICATION_NAME",
@@ -762,11 +769,11 @@
                                     },
                                     {
                                         "name": "PG_ENTANDO_PORT_DB_CONNECTION_STRING",
-                                        "value": "jdbc:postgresql://${APPLICATION_NAME}-postgresql.svc:5432/${ENTANDO_PORT_DATABASE}"
+                                        "value": "jdbc:postgresql://${APPLICATION_NAME}-postgresql.${PROJECT_NAME}.svc:5432/${ENTANDO_PORT_DATABASE}"
                                     },
                                     {
                                         "name": "PG_ENTANDO_SERV_DB_CONNECTION_STRING",
-                                        "value": "jdbc:postgresql://${APPLICATION_NAME}-postgresql.svc:5432/${ENTANDO_SERV_DATABASE}"
+                                        "value": "jdbc:postgresql://${APPLICATION_NAME}-postgresql.${PROJECT_NAME}.svc:5432/${ENTANDO_SERV_DATABASE}"
                                     },
                                     {
                                       "name": "PG_PASSWORD",
@@ -982,12 +989,22 @@
                                 ],
                                 "env": [
                                     {
-                                        "name": "POSTGRESQL_USER",
-                                        "value": "${DB_USERNAME}"
+                                      "name": "POSTGRESQL_PASSWORD",
+                                      "valueFrom":{
+                                        "secretKeyRef": {
+                                            "key": "password",
+                                            "name": "${DB_SECRET}"
+                                          }
+                                        }
                                     },
                                     {
-                                        "name": "POSTGRESQL_PASSWORD",
-                                        "value": "${DB_PASSWORD}"
+                                      "name": "POSTGRESQL_USER",
+                                      "valueFrom":{
+                                        "secretKeyRef": {
+                                            "key": "username",
+                                            "name": "${DB_SECRET}"
+                                          }
+                                        }
                                     },
                                     {
                                         "name": "POSTGRESQL_DATABASE",
