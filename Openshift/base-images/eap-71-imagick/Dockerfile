@@ -5,8 +5,8 @@ MAINTAINER Pietrangelo Masala "<p.masala@entando.com>"
 LABEL maintainer="Pietrangelo Masala <p.masala@entando.com>" \
             name="entando-eap71-imagick" \
             vendor="Entando Srl" \
-            version="1.1" \
-            release="1.1" \
+            version="1.2" \
+            release="1.2" \
             license="lgplv2.1" \
             summary="This is an extended EAP 7.1 OpenShift image with the entando dependencies installed." \
             description="This is an extended EAP 7.1 OpenShift image with the entando dependencies installed." \
@@ -36,5 +36,8 @@ chmod -R ug+w /opt/eap && chmod -R ug+rw /home/jboss
 
 COPY licenses/ /licenses
 COPY help/help.1 /help.1
+
+#overwrite defualt openshift-launch.sh script
+COPY openshift-launch.sh /opt/eap/bin/openshift-launch.sh
 
 USER 185
