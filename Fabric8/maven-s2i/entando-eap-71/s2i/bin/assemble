@@ -92,7 +92,9 @@ fi
 # Copy (probably binary) artifacts from the deployments/
 # directory to the $JBOSS_HOME/standalone/deployments/
 # directory for later deployment
-copy_artifacts "$LOCAL_SOURCE_DIR/deployments" war ear rar jar
+#Ampie optimization: Entando only supports a single war file
+copy_artifacts "$LOCAL_SOURCE_DIR/deployments" war
+#ear rar jar
 
 if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
   file_count=$(ls -1 $LOCAL_SOURCE_DIR/configuration | wc -l)

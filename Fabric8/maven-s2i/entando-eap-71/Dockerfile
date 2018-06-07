@@ -33,7 +33,7 @@ WORKDIR $HOME
 USER root
 WORKDIR $HOME
 # Copy custom Entando JBoss config file
-COPY contrib/wfcfg/standalone-ha.xml /opt/eap/standalone/configuration/standalone-openshift.xml
+COPY contrib/wfcfg/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
 RUN chmod ug+rw /opt/eap/standalone/configuration/standalone-openshift.xml && chown 185:root /opt/eap/standalone/configuration/standalone-openshift.xml
 ENV STI_SCRIPTS_PATH="/usr/local/s2i"
 # Copy the S2I scripts customized for Entando to $STI_SCRIPTS_PATH
