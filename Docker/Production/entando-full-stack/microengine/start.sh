@@ -4,4 +4,4 @@
 npm install && npm run build
 
 #Execute serve
-serve build
+serve -s build
