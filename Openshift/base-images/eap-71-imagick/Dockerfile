@@ -5,8 +5,8 @@ MAINTAINER Pietrangelo Masala "<p.masala@entando.com>"
 LABEL maintainer="Pietrangelo Masala <p.masala@entando.com>" \
             name="entando-eap71-imagick" \
             vendor="Entando Srl" \
-            version="1.3" \
-            release="1.3" \
+            version="1.4" \
+            release="1.4" \
             license="lgplv2.1" \
             summary="This is an extended EAP 7.1 OpenShift image with the entando dependencies installed." \
             description="This is an extended EAP 7.1 OpenShift image with the entando dependencies installed." \
