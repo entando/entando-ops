@@ -36,5 +36,9 @@ chmod -R ug+w /opt/eap && chmod -R ug+rw /home/jboss
 
 COPY licenses/ /licenses
 COPY help/help.1 /help.1
+#Overwite default launch script to solve node panic issue when pod scaling
+COPY openshift-launch.sh /opt/eap/bin/openshift-launch.sh
+#Overwrite default configuration to start with a 4G HEAP size
+COPY standalone.conf /opt/eap/bin/standalone.conf
 
 USER 185
