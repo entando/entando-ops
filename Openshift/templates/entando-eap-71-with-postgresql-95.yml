@@ -107,7 +107,7 @@
         {
             "displayName": "RedHat Process Automation Manager KIE Server Secret",
             "description": "The secret containing the 'username', 'password', 'url' that would provide access to a RedHat Process Automation Manager instance",
-            "name": "KIESERVER_SECRET",
+            "name": "KIE_SERVER_SECRET",
             "value": "entando-pam-secret",
             "required": false
         },
@@ -794,6 +794,28 @@
                                         }
                                     },
                                     {
+                                      "name": "DB_PASSWORD",
+                                      "valueFrom":{
+                                        "secretKeyRef": {
+                                            "key": "password",
+                                            "name": "${DB_SECRET}"
+                                          }
+                                        }
+                                    },
+                                    {
+                                      "name": "DB_USERNAME",
+                                      "valueFrom":{
+                                        "secretKeyRef": {
+                                            "key": "username",
+                                            "name": "${DB_SECRET}"
+                                          }
+                                        }
+                                    },
+                                    {
+                                        "name": "DB_DATABASE",
+                                        "value": "${ENTANDO_PORT_DATABASE}"
+                                    },
+                                    {
                                         "name": "TX_DATABASE_PREFIX_MAPPING",
                                         "value": "${APPLICATION_NAME}-postgresql=DB"
                                     },
@@ -1031,7 +1053,7 @@
                                         "valueFrom":{
                                           "secretKeyRef": {
                                               "key": "url",
-                                              "name": "${KIESERVER_SECRET}"
+                                              "name": "${KIE_SERVER_SECRET}"
                                             }
                                           }
                                     },
@@ -1040,7 +1062,7 @@
                                         "valueFrom":{
                                           "secretKeyRef": {
                                               "key": "username",
-                                              "name": "${KIESERVER_SECRET}"
+                                              "name": "${KIE_SERVER_SECRET}"
                                             }
                                           }
                                     },
@@ -1049,7 +1071,7 @@
                                         "valueFrom":{
                                           "secretKeyRef": {
                                               "key": "password",
-                                              "name": "${KIESERVER_SECRET}"
+                                              "name": "${KIE_SERVER_SECRET}"
                                             }
                                           }
                                     }

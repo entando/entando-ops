@@ -5,13 +5,13 @@
     "annotations": {
       "openshift.io/display-name": "Entando EAP 71"
     },
-    "name": "entando-s2i-eap-71"
+    "name": "entando-s2i-wildfly-12"
   },
   "spec": {
     "tags": [
       {
         "annotations": {
-          "description": "Build and run Entando applications on EAP 7.1/CentOS 7. ",
+          "description": "Build and run Entando applications on Wildfly 12/CentOS 7. ",
           "openshift.io/display-name": "Entando EAP",
           "openshift.io/provider-display-name": "Entando",
           "sampleRepo": "https://github.com/ampie/entando-sample.git",
@@ -20,7 +20,7 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "172.30.1.1:5000/entando/entando-fabric8s2i-eap-71:5.0.0"
+          "name": "172.30.1.1:5000/entando/entando-fabric8s2i-wildfly-12:5.0.0"
         },
         "importPolicy": {
           "insecure": true

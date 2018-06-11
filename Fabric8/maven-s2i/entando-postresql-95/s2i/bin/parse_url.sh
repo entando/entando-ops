@@ -1,19 +1,19 @@
 # Extract the protocol (includes trailing "://").
-PAM_PROTOCOL="$(echo $PAM_URL | sed -nr 's,^(.*)://.*,\1,p')"
+KIE_SERVER_PROTOCOL="$(echo $KIE_SERVER_URL | sed -nr 's,^(.*)://.*,\1,p')"
 
 # Extract the user (includes trailing "@").
-PAM_USER="$(echo $PAM_URL | sed -nr 's,^(.*@).*,\1,p')"
+KIE_SERVER_USER="$(echo $KIE_SERVER_URL | sed -nr 's,^(.*@).*,\1,p')"
 
 # Extract the port (includes leading ":").
-PAM_PORT="$(echo $PAM_URL | sed -nr 's,(.*:)([0-9]+)(.*),\2,p')"
+KIE_SERVER_PORT="$(echo $KIE_SERVER_URL | sed -nr 's,(.*:)([0-9]+)(.*),\2,p')"
 
 # Extract the path (includes leading "/" or ":").
-PAM_PATH="$(echo $PAM_URL| sed -nr 's,(^.*://)([^/]*)(/)(.*),\4,p')"
+KIE_SERVER_PATH="$(echo $KIE_SERVER_URL| sed -nr 's,(^.*://)([^/]*)(/)(.*),\4,p')"
 
 # Remove the path from the URL.
-PAM_HOST="$(echo $PAM_URL| sed -nr 's,(^.*://)([^/\:]*)([:/].*),\2,p')"
+KIE_SERVER_HOST="$(echo $KIE_SERVER_URL| sed -nr 's,(^.*://)([^/\:]*)([:/].*),\2,p')"
 
-echo "proto: $PAM_PROTOCOL"
-echo "host: $PAM_HOST"
-echo "port: $PAM_PORT"
-echo "path: $PAM_PATH"
+echo "proto: $KIE_SERVER_PROTOCOL"
+echo "host: $KIE_SERVER_HOST"
+echo "port: $KIE_SERVER_PORT"
+echo "path: $KIE_SERVER_PATH"

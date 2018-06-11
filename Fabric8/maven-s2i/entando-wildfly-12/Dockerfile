@@ -28,7 +28,7 @@ WORKDIR $HOME
 
 # Add wildfly customizations  e.g. two datasources
 USER root
-COPY ./contrib/wfcfg/standalone-ha.xml /wildfly/standalone/configuration/standalone-openshift.xml
+COPY ./contrib/wildfly-configuration/standalone-openshift.xml /wildfly/standalone/configuration/standalone-openshift.xml
 RUN chown 1001:0 /wildfly/standalone/configuration/standalone-openshift.xml && chmod ug+rw /wildfly/standalone/configuration/standalone-openshift.xml
 
 # Copy the S2I scripts customized for Entando to $STI_SCRIPTS_PATH

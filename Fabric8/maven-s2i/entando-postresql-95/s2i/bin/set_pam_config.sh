@@ -19,12 +19,12 @@ UPDATE_SQL="INSERT INTO sysconfig (version, item, descr, config) VALUES ('produc
             <active>true</active>
             <id>c2916181acd14071a9f2844a2dc0c5ff20180521T225803461</id>
             <name>localBPM</name>
-            <username>${PAM_USERNAME:-pamAdmin}</username>
-            <password>${PAM_PASSWORD:-bpmsuite1}</password>
-            <hostname>$PAM_HOST</hostname>
+            <username>${KIE_SERVER_USERNAME:-pamAdmin}</username>
+            <password>${KIE_SERVER_PASSWORD:-bpmsuite1}</password>
+            <hostname>$KIE_SERVER_HOST</hostname>
             <schema>http</schema>
-            <port>${PAM_PORT:-80}</port>
-            <webapp>$PAM_PATH</webapp>
+            <port>${KIE_SERVER_PORT:-80}</port>
+            <webapp>$KIE_SERVER_PATH</webapp>
          </value>
       </entry>
    </kieBpmConfigeMap>

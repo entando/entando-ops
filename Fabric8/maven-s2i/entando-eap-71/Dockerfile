@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/jboss-eap-7/eap71-openshift:latest
+FROM registry.connect.redhat.com/entando/entando-eap71-openshift-imagick:latest
 ENV ENTANDO_VERSION="5.0.0"
 
 MAINTAINER Ampie Barnard "<a.barnard@entando.com>"
@@ -33,7 +33,7 @@ WORKDIR $HOME
 USER root
 WORKDIR $HOME
 # Copy custom Entando JBoss config file
-COPY contrib/wfcfg/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
+COPY contrib/eap-configuration/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
 RUN chmod ug+rw /opt/eap/standalone/configuration/standalone-openshift.xml && chown 185:root /opt/eap/standalone/configuration/standalone-openshift.xml
 ENV STI_SCRIPTS_PATH="/usr/local/s2i"
 # Copy the S2I scripts customized for Entando to $STI_SCRIPTS_PATH
