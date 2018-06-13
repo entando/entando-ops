@@ -15,7 +15,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 #specify a subdirectory of the domain. Trailing slashes are not valid and it only vaildates up to 3rd level domains.
 #
 #All the following would be valid values:
-#
+#cd
 #http://my.entando.com
 #https://my.entando.com
 #//my.entando.com
@@ -33,18 +33,21 @@ RUN npm i -g npm \
 && git clone https://github.com/entando/app-builder.git \
 && cd /app-builder && git checkout v5.0.0 && cd .. \
 && git clone https://github.com/entando/entando-components.git \
-&& cd /entando-components && git checkout v5.0.0 && cd .. \
-&& chown -R node:0 /app-builder/ && chmod -R ug+w /app-builder/
+&& cd /entando-components && git checkout v5.0.0 && cd ..
 
 COPY plugins.json /app-builder/entando-plugins-config/plugins.json
 
 # Install entando plugins
 RUN cd /entando-components/plugins/entando-plugin-jpkiebpm/app-builder \
-&& npm install
+&& npm install \
+&& chown -R node:0 /app-builder/ && chmod -R ug+w /app-builder/ \
+&& chown -R node:0 /entando-components/ && chmod -R ug+w /entando-components/ \
+&& mkdir -p /usr/local/lib/node_modules/ \
+&& chown -R node:0 /usr/local/lib/node_modules/ && chmod -R ug+w /usr/local/lib/node_modules/
 
 USER node
 
 WORKDIR app-builder
 
-CMD /start.sh >> /dev/null
+CMD /start.sh
 EXPOSE 3000

@@ -27,15 +27,17 @@ ENV DOMAIN //localhost:8080/entando
 COPY start.sh /start.sh
 
 # Install and configure `serve`. Download project from entando repository
-RUN npm install -g serve \
+RUN npm i -g npm && npm i -g serve \
 && chmod a+x /start.sh \
 && git clone https://github.com/entando/mapp-engine-admin-app.git \
 && cd /mapp-engine-admin-app && git checkout v5.0.0 && cd .. \
-&& chown -R node:0 /mapp-engine-admin-app/ && chmod -R ug+w /mapp-engine-admin-app/
+&& chown -R node:0 /mapp-engine-admin-app/ && chmod -R ug+w /mapp-engine-admin-app/ \
+&& mkdir -p /usr/local/lib/node_modules/ \
+&& chown -R node:0 /usr/local/lib/node_modules/ && chmod -R ug+w /usr/local/lib/node_modules/
 
 USER node
 
 WORKDIR mapp-engine-admin-app
 
-CMD /start.sh >> /dev/null
+CMD /start.sh
 EXPOSE 3000

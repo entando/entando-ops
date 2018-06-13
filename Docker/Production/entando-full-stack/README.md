@@ -32,3 +32,9 @@ execute `./start.sh`
 ## How to stop
 
 execute `./stop.sh`
+
+## Prerequisites
+
+- Docker with privileges to run as normal user
+- curl
+- git
