@@ -21,6 +21,12 @@ WORKDIR ${PROJECT_HOME}
 # Install entando dependencies (archetypes) from v5.0.0 branch
 # Set local maven repository to /opt/entando/.m2/repository
 RUN cd ${PROJECT_HOME} \
+&& git clone https://github.com/entando/entando-core.git \
+&& cd ${PROJECT_HOME}/entando-core && git checkout ${ENTANDO_RELEASE} && mvn -Dmaven.repo.local=${MVN_HOME}/repository install -DskipTests \
+&& cd .. \
+&& git clone https://github.com/entando/entando-components.git \
+&& cd ${PROJECT_HOME}/entando-components && git checkout ${ENTANDO_RELEASE} && mvn -Dmaven.repo.local=${MVN_HOME}/repository install -DskipTests \
+&& cd .. \
 && git clone https://github.com/entando/entando-archetypes.git \
 && cd ${PROJECT_HOME}/entando-archetypes && git checkout ${ENTANDO_RELEASE} && mvn -Dmaven.repo.local=${MVN_HOME}/repository install \
 && chown -R 1001:0 ${MVN_HOME}/ && chmod -R ug+w ${MVN_HOME}/ \
