@@ -78,12 +78,12 @@ echo "Start running the containers"
 echo
 echo "Starting appbuilder container"
 echo
-docker run -it --rm -d --name=appbuilder -p ${APPBUILDER_PORT}:5000 entando/appbuilder
+docker run -it --rm -d --name=appbuilder -p ${APPBUILDER_PORT}:3000 entando/appbuilder
 echo
 line
 echo "Starting microengine container"
 echo
-docker run -it --rm -d --name=microengine -p ${MICROENGINE_PORT}:5000 entando/microengine
+docker run -it --rm -d --name=microengine -p ${MICROENGINE_PORT}:3000 entando/microengine
 echo
 line
 echo "Starting engine-api container"
