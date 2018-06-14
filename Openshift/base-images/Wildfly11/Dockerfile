@@ -34,18 +34,9 @@ RUN INSTALL_PKGS="tar git ImageMagick unzip bc which lsof java-1.8.0-openjdk jav
 # Add s2i wildfly customizations
 ADD ./contrib/wfmodules/ /wildfly/modules/
 ADD ./contrib/wfbin/standalone.conf /wildfly/bin/standalone.conf
-ADD ./contrib/wfcfg/standalone-ha.xml /wildfly/standalone/configuration/standalone-ha.xml
-#ADD ./contrib/wfcfg/standalone.xml /wildfly/standalone/configuration/standalone.xml
+ADD ./contrib/wfcfg/standalone.xml /wildfly/standalone/configuration/standalone.xml
 ADD ./contrib/settings.xml $HOME/.m2/
 
-# install All Entando dependencies on the EN-4.3.2-CloudNative tag
-#RUN git clone https://github.com/entando/entando-core.git && \
-#    git clone https://github.com/entando/entando-components.git && \
-#    git clone https://github.com/entando/entando-archetypes.git && \
-#    cd entando-core && git checkout EN-4.3.2-CloudNative && mvn -Dmaven.repo.local=/opt/s2i/destination/artifacts/.m2/repository install -DskipTests && mvn clean && \
-#    cd ../entando-components && git checkout EN-4.3.2-CloudNative && mvn -Dmaven.repo.local=/opt/s2i/destination/artifacts/.m2/repository install -DskipTests && mvn clean && \
-#    cd ../entando-archetypes && git checkout EN-4.3.2-CloudNative && mvn -Dmaven.repo.local=/opt/s2i/destination/artifacts/.m2/repository install -DskipTests && mvn clean && \
-#    rm -rf /opt/app-root/src/entando*
 
 # Copy the S2I scripts from the specific language image to $STI_SCRIPTS_PATH
 COPY ./s2i/bin/ $STI_SCRIPTS_PATH
