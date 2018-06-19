@@ -1,6 +1,6 @@
 # You should always specify a full version here to ensure all of your developers
 # are running the same version of Node.
-FROM node:9
+FROM node:8
 
 # Override the base log level (info).
 ENV NPM_CONFIG_LOGLEVEL warn
@@ -15,7 +15,7 @@ ENV NPM_CONFIG_LOGLEVEL warn
 #specify a subdirectory of the domain. Trailing slashes are not valid and it only vaildates up to 3rd level domains.
 #
 #All the following would be valid values:
-#cd
+#
 #http://my.entando.com
 #https://my.entando.com
 #//my.entando.com
