@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 # Install and build entando app
 npm install && npm run import-plugins && npm run build
