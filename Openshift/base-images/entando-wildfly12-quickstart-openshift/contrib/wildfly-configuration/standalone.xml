@@ -1,9 +1,8 @@
-<?xml version='1.0' encoding='UTF-8'?>
+<?xml version="1.0" ?>
 
 <server xmlns="urn:jboss:domain:5.0">
   <extensions>
     <extension module="org.jboss.as.clustering.infinispan"/>
-    <extension module="org.jboss.as.clustering.jgroups"/>
     <extension module="org.jboss.as.connector"/>
     <extension module="org.jboss.as.deployment-scanner"/>
     <extension module="org.jboss.as.ee"/>
@@ -15,7 +14,6 @@
     <extension module="org.jboss.as.jsf"/>
     <extension module="org.jboss.as.logging"/>
     <extension module="org.jboss.as.mail"/>
-    <extension module="org.jboss.as.modcluster"/>
     <extension module="org.jboss.as.naming"/>
     <extension module="org.jboss.as.pojo"/>
     <extension module="org.jboss.as.remoting"/>
@@ -26,7 +24,6 @@
     <extension module="org.jboss.as.weld"/>
     <extension module="org.wildfly.extension.batch.jberet"/>
     <extension module="org.wildfly.extension.bean-validation"/>
-    <extension module="org.wildfly.extension.clustering.singleton"/>
     <extension module="org.wildfly.extension.core-management"/>
     <extension module="org.wildfly.extension.elytron"/>
     <extension module="org.wildfly.extension.io"/>
@@ -46,11 +43,6 @@
         </authorization>
       </security-realm>
       <security-realm name="ApplicationRealm">
-        <server-identities>
-          <ssl>
-            <keystore path="application.keystore" relative-to="jboss.server.config.dir" keystore-password="password" alias="server" key-password="password" generate-self-signed-certificate-host="localhost"/>
-          </ssl>
-        </server-identities>
         <authentication>
           <local default-user="$local" allowed-users="*" skip-group-loading="true"/>
           <properties path="application-users.properties" relative-to="jboss.server.config.dir"/>
@@ -65,7 +57,7 @@
         <json-formatter name="json-formatter"/>
       </formatters>
       <handlers>
-        <file-handler name="file" formatter="json-formatter" path="audit-log.log" relative-to="jboss.server.data.dir"/>
+                <file-handler name="file" formatter="json-formatter" relative-to="jboss.server.data.dir" path="audit-log.log"/>
       </handlers>
       <logger log-boot="true" log-read-only="false" enabled="false">
         <handlers>
@@ -90,9 +82,9 @@
     </access-control>
   </management>
   <profile>
-    <subsystem xmlns="urn:jboss:domain:logging:3.0">
+        <subsystem xmlns="urn:jboss:domain:logging:3.0">
       <console-handler name="CONSOLE">
-        <level name="DEBUG"/>
+                <level name="INFO"/>
         <formatter>
           <named-formatter name="COLOR-PATTERN"/>
         </formatter>
@@ -106,13 +98,13 @@
         <append value="true"/>
       </periodic-rotating-file-handler>
       <logger category="com.arjuna">
-        <level name="DEBUG"/>
+                <level name="WARN"/>
       </logger>
       <logger category="org.jboss.as.config">
         <level name="DEBUG"/>
       </logger>
       <logger category="sun.rmi">
-        <level name="DEBUG"/>
+                <level name="WARN"/>
       </logger>
       <root-logger>
         <level name="INFO"/>
@@ -151,39 +143,21 @@
             <password>sa</password>
           </security>
         </datasource>
-        <datasource jndi-name="${env.PG_ENTANDO_PORT_DB_JNDI_NAME}" enabled="true" use-java-context="true" pool-name="entandoDbPortDataSource" use-ccm="true">
-                    <connection-url>jdbc:postgresql://${env.PG_ENTANDO_PORT_DB_CONNECTION_STRING}</connection-url>
-                    <driver>postgresql</driver>
+        <datasource jndi-name="java:jboss/datasources/entandoPortDataSource" enabled="true" use-java-context="true" pool-name="entandoDbPortDataSource" use-ccm="true">
+                    <connection-url>jdbc:derby:/wildfly/standalone/entando/entandoPort;create=false</connection-url>
+                    <driver>derby</driver>
                     <security>
-                      <user-name>${env.PG_USERNAME}</user-name>
-                      <password>${env.PG_PASSWORD}</password>
+                      <user-name>agile</user-name>
+                      <password>agile</password>
                     </security>
-                    <validation>
-                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
-                        <background-validation>true</background-validation>
-                        <background-validation-millis>60000</background-validation-millis>
-                        <!--<validate-on-match>true</validate-on-match>-->
-                    </validation>
-                    <pool>
-                        <flush-strategy>IdleConnections</flush-strategy>
-                    </pool>
                 </datasource>
-                <datasource jndi-name="${env.PG_ENTANDO_SERV_DB_JNDI_NAME}" enabled="true" use-java-context="true" pool-name="entandoDbServDataSource" use-ccm="true">
-                    <connection-url>jdbc:postgresql://${env.PG_ENTANDO_SERV_DB_CONNECTION_STRING}</connection-url>
-                    <driver>postgresql</driver>
+                <datasource jndi-name="java:jboss/datasources/entandoServDataSource" enabled="true" use-java-context="true" pool-name="entandoDbServDataSource" use-ccm="true">
+                  <connection-url>jdbc:derby:/wildfly/standalone/entando/entandoServ;create=false</connection-url>
+                    <driver>derby</driver>
                     <security>
-                      <user-name>${env.PG_USERNAME}</user-name>
-                      <password>${env.PG_PASSWORD}</password>
+                      <user-name>agile</user-name>
+                      <password>agile</password>
                     </security>
-                    <validation>
-                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
-                        <background-validation>true</background-validation>
-                        <background-validation-millis>60000</background-validation-millis>
-                        <!--<validate-on-match>true</validate-on-match>-->
-                    </validation>
-                    <pool>
-                        <flush-strategy>IdleConnections</flush-strategy>
-                    </pool>
                 </datasource>
         <drivers>
           <driver name="h2" module="com.h2database.h2">
@@ -192,6 +166,9 @@
           <driver name="mysql" module="com.mysql.jdbc">
             <xa-datasource-class>com.mysql.jdbc.jdbc2.optional.MysqlXADataSource</xa-datasource-class>
           </driver>
+          <driver name="derby" module="org.apache.derby.jdbc">
+            <xa-datasource-class>org.apache.derby.jdbc.EmbeddedXADataSource40</xa-datasource-class>
+          </driver>
           <driver name="postgresql" module="org.postgresql.jdbc">
             <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
           </driver>
@@ -199,10 +176,10 @@
       </datasources>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:deployment-scanner:2.0">
-      <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" runtime-failure-causes-rollback="${jboss.deployment.scanner.rollback.on.failure:false}"/>
+            <deployment-scanner path="deployments" relative-to="jboss.server.base.dir" scan-interval="5000" runtime-failure-causes-rollback="${jboss.deployment.scanner.rollback.on.failure:false}" auto-deploy-exploded="${env.OPENSHIFT_AUTO_DEPLOY_EXPLODED}"/>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:ee:4.0">
-      <spec-descriptor-property-replacement>false</spec-descriptor-property-replacement>
+            <spec-descriptor-property-replacement>true</spec-descriptor-property-replacement>
       <concurrent>
         <context-services>
           <context-service name="default" jndi-name="java:jboss/ee/concurrency/context/default" use-transaction-setup-provider="true"/>
@@ -217,25 +194,26 @@
           <managed-scheduled-executor-service name="default" jndi-name="java:jboss/ee/concurrency/scheduler/default" context-service="default" hung-task-threshold="60000" keepalive-time="3000"/>
         </managed-scheduled-executor-services>
       </concurrent>
-      <default-bindings context-service="java:jboss/ee/concurrency/context/default" datasource="java:jboss/datasources/ExampleDS" managed-executor-service="java:jboss/ee/concurrency/executor/default" managed-scheduled-executor-service="java:jboss/ee/concurrency/scheduler/default" managed-thread-factory="java:jboss/ee/concurrency/factory/default"/>
+            <default-bindings context-service="java:jboss/ee/concurrency/context/default" datasource="java:jboss/datasources/${env.OPENSHIFT_DEFAULT_DATASOURCE}" managed-executor-service="java:jboss/ee/concurrency/executor/default" managed-scheduled-executor-service="java:jboss/ee/concurrency/scheduler/default" managed-thread-factory="java:jboss/ee/concurrency/factory/default"/>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:ejb3:5.0">
       <session-bean>
+                <stateful default-access-timeout="5000" cache-ref="simple" passivation-disabled-cache-ref="simple"/>
         <stateless>
           <bean-instance-pool-ref pool-name="slsb-strict-max-pool"/>
         </stateless>
-        <stateful default-access-timeout="5000" cache-ref="distributable" passivation-disabled-cache-ref="simple"/>
         <singleton default-access-timeout="5000"/>
       </session-bean>
       <pools>
         <bean-instance-pools>
+                    <!-- Automatically configure pools. Alternatively, max-pool-size can be set to a specific value -->
           <strict-max-pool name="slsb-strict-max-pool" derive-size="from-worker-pools" instance-acquisition-timeout="5" instance-acquisition-timeout-unit="MINUTES"/>
           <strict-max-pool name="mdb-strict-max-pool" derive-size="from-cpu-count" instance-acquisition-timeout="5" instance-acquisition-timeout-unit="MINUTES"/>
         </bean-instance-pools>
       </pools>
       <caches>
         <cache name="simple"/>
-        <cache name="distributable" passivation-store-ref="infinispan" aliases="passivating clustered"/>
+                <cache name="distributable" aliases="passivating clustered" passivation-store-ref="infinispan"/>
       </caches>
       <passivation-stores>
         <passivation-store name="infinispan" cache-container="ejb" max-size="10000"/>
@@ -246,15 +224,10 @@
           <file-data-store name="default-file-store" path="timer-service-data" relative-to="jboss.server.data.dir"/>
         </data-stores>
       </timer-service>
-      <remote connector-ref="http-remoting-connector" thread-pool-name="default">
-        <channel-creation-options>
-          <option name="READ_TIMEOUT" value="${prop.remoting-connector.read.timeout:20}" type="xnio"/>
-          <option name="MAX_OUTBOUND_MESSAGES" value="1234" type="remoting"/>
-        </channel-creation-options>
-      </remote>
+            <remote connector-ref="http-remoting-connector" thread-pool-name="default"/>
       <thread-pools>
         <thread-pool name="default">
-          <max-threads count="30"/>
+          <max-threads count="10"/>
           <keepalive-time time="100" unit="milliseconds"/>
         </thread-pool>
       </thread-pools>
@@ -262,7 +235,7 @@
       <default-missing-method-permissions-deny-access value="true"/>
       <log-system-exceptions value="true"/>
     </subsystem>
-    <subsystem xmlns="urn:wildfly:elytron:1.2" final-providers="combined-providers" disallowed-providers="OracleUcrypto">
+        <subsystem xmlns="urn:wildfly:elytron:1.2" final-providers="combined-providers" disallowed-providers="OracleUcrypto">
       <providers>
         <aggregate-providers name="combined-providers">
           <providers name="elytron"/>
@@ -368,69 +341,53 @@
       <worker name="default"/>
       <buffer-pool name="default"/>
     </subsystem>
-    <subsystem xmlns="urn:jboss:domain:infinispan:4.0">
-      <cache-container name="server" aliases="singleton cluster" default-cache="default" module="org.wildfly.clustering.server">
-        <transport lock-timeout="60000"/>
-        <replicated-cache name="default">
+        <subsystem xmlns="urn:jboss:domain:infinispan:4.0">
+            <cache-container name="server" default-cache="default" module="org.wildfly.clustering.server">
+                <local-cache name="default">
           <transaction mode="BATCH"/>
-        </replicated-cache>
+                </local-cache>
       </cache-container>
-      <cache-container name="web" default-cache="dist" module="org.wildfly.clustering.web.infinispan">
-        <transport lock-timeout="60000"/>
-        <distributed-cache name="dist">
-          <locking isolation="REPEATABLE_READ"/>
-          <transaction mode="BATCH"/>
-          <file-store/>
-        </distributed-cache>
+            <cache-container name="web" default-cache="passivation" module="org.wildfly.clustering.web.infinispan">
+                <local-cache name="passivation">
+                    <locking isolation="REPEATABLE_READ"/>
+                    <transaction mode="BATCH"/>
+                    <file-store passivation="true" purge="false"/>
+                </local-cache>
+                <local-cache name="persistent">
+                    <locking isolation="REPEATABLE_READ"/>
+                    <transaction mode="BATCH"/>
+                    <file-store passivation="false" purge="false"/>
+                </local-cache>
       </cache-container>
-      <cache-container name="ejb" aliases="sfsb" default-cache="dist" module="org.wildfly.clustering.ejb.infinispan">
-        <transport lock-timeout="60000"/>
-        <distributed-cache name="dist">
-          <locking isolation="REPEATABLE_READ"/>
-          <transaction mode="BATCH"/>
-          <file-store/>
-        </distributed-cache>
+            <cache-container name="ejb" aliases="sfsb" default-cache="passivation" module="org.wildfly.clustering.ejb.infinispan">
+                <local-cache name="passivation">
+                    <locking isolation="REPEATABLE_READ"/>
+                    <transaction mode="BATCH"/>
+                    <file-store passivation="true" purge="false"/>
+                </local-cache>
+                <local-cache name="persistent">
+                    <locking isolation="REPEATABLE_READ"/>
+                    <transaction mode="BATCH"/>
+                    <file-store passivation="false" purge="false"/>
+                </local-cache>
       </cache-container>
-      <cache-container name="hibernate" default-cache="local-query" module="org.hibernate.infinispan">
-        <transport lock-timeout="60000"/>
-        <local-cache name="local-query">
-          <eviction strategy="LRU" max-entries="10000"/>
+            <cache-container name="hibernate" default-cache="local-query" module="org.hibernate.infinispan">
+                <local-cache name="entity">
+                    <transaction mode="NON_XA"/>
+                    <eviction strategy="LRU" max-entries="10000"/>
+                    <expiration max-idle="100000"/>
+                </local-cache>
+                <local-cache name="immutable-entity">
+                    <transaction mode="NON_XA"/>
+                    <eviction strategy="LRU" max-entries="10000"/>
+                    <expiration max-idle="100000"/>
+                </local-cache>
+                <local-cache name="local-query">
+                    <eviction strategy="LRU" max-entries="10000"/>
           <expiration max-idle="100000"/>
-        </local-cache>
-        <invalidation-cache name="entity">
-          <transaction mode="NON_XA"/>
-          <eviction strategy="LRU" max-entries="10000"/>
-          <expiration max-idle="100000"/>
-        </invalidation-cache>
-        <replicated-cache name="timestamps" mode="ASYNC"/>
+                </local-cache>
+                <local-cache name="timestamps"/>
       </cache-container>
-      <cache-container name="entando" default-cache="Entando_CategoryManager" jndi-name="infinispan/container/entando" statistics-enabled="false">
-                    <transport lock-timeout="60000"/>
-                    <replicated-cache name="Entando_CategoryManager" jndi-name="infinispan/cache/entando/Entando_CategoryManager">
-                        <transaction mode="BATCH"/>
-                    </replicated-cache>
-                    <replicated-cache name="Entando_Cache" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_PageManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_PageModelManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_WidgetTypeManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_ConfigManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_RoleManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_GroupManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_LangManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_CacheInfoManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_I18nManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_UserProfileManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_DataObjectManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_jacmsContentManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_InitializerManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_ApiCatalogManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_DataObjectModelManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_ContentModelManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_KeyGeneratorManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_ResourceManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_DataObjectPageMapperManager" statistics-enabled="false" mode="SYNC"/>
-                    <replicated-cache name="Entando_ContentPageMapperManager" statistics-enabled="false" mode="SYNC"/>
-                </cache-container>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>
     <subsystem xmlns="urn:jboss:domain:jca:5.0">
@@ -453,43 +410,6 @@
       <cached-connection-manager/>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:jdr:1.0"/>
-    <subsystem xmlns="urn:jboss:domain:jgroups:5.0">
-      <channels default="ee">
-        <channel name="ee" stack="udp" cluster="ejb"/>
-      </channels>
-      <stacks>
-        <stack name="udp">
-          <transport type="UDP" socket-binding="jgroups-udp"/>
-          <protocol type="PING"/>
-          <protocol type="MERGE3"/>
-          <protocol type="FD_SOCK"/>
-          <protocol type="FD_ALL"/>
-          <protocol type="VERIFY_SUSPECT"/>
-          <protocol type="pbcast.NAKACK2"/>
-          <protocol type="UNICAST3"/>
-          <protocol type="pbcast.STABLE"/>
-          <protocol type="pbcast.GMS"/>
-          <protocol type="UFC"/>
-          <protocol type="MFC"/>
-          <protocol type="FRAG2"/>
-        </stack>
-        <stack name="tcp">
-          <transport type="TCP" socket-binding="jgroups-tcp"/>
-          <!--<socket-protocol type="MPING" socket-binding="jgroups-mping"/>-->
-          <protocol type="PING"/>
-          <protocol type="MERGE3"/>
-          <protocol type="FD_SOCK"/>
-          <protocol type="FD_ALL"/>
-          <protocol type="VERIFY_SUSPECT"/>
-          <protocol type="pbcast.NAKACK2"/>
-          <protocol type="UNICAST3"/>
-          <protocol type="pbcast.STABLE"/>
-          <protocol type="pbcast.GMS"/>
-          <protocol type="MFC"/>
-          <protocol type="FRAG2"/>
-        </stack>
-      </stacks>
-    </subsystem>
     <subsystem xmlns="urn:jboss:domain:jmx:1.3">
       <expose-resolved-model/>
       <expose-expression-model/>
@@ -498,25 +418,18 @@
     <subsystem xmlns="urn:jboss:domain:jpa:1.1">
       <jpa default-datasource="" default-extended-persistence-inheritance="DEEP"/>
     </subsystem>
-    <subsystem xmlns="urn:jboss:domain:jsf:1.0"/>
+        <subsystem xmlns="urn:jboss:domain:jsf:1.0"/>
     <subsystem xmlns="urn:jboss:domain:mail:3.0">
       <mail-session name="default" jndi-name="java:jboss/mail/Default">
         <smtp-server outbound-socket-binding-ref="mail-smtp"/>
       </mail-session>
-    </subsystem>
-    <subsystem xmlns="urn:jboss:domain:modcluster:3.0">
-      <mod-cluster-config advertise-socket="modcluster" connector="ajp">
-        <dynamic-load-provider>
-          <load-metric type="cpu"/>
-        </dynamic-load-provider>
-      </mod-cluster-config>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:naming:2.0">
       <remote-naming/>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:pojo:1.0"/>
     <subsystem xmlns="urn:jboss:domain:remoting:4.0">
-      <endpoint/>
+            <endpoint/>
       <http-connector name="http-remoting-connector" connector-ref="default" security-realm="ApplicationRealm"/>
     </subsystem>
     <subsystem xmlns="urn:jboss:domain:resource-adapters:5.0"/>
@@ -560,14 +473,7 @@
           </authentication-jaspi>
         </security-domain>
       </security-domains>
-    </subsystem>
-    <subsystem xmlns="urn:jboss:domain:singleton:1.0">
-      <singleton-policies default="default">
-        <singleton-policy name="default" cache-container="server">
-          <simple-election-policy/>
-        </singleton-policy>
-      </singleton-policies>
-    </subsystem>
+        </subsystem>
     <subsystem xmlns="urn:jboss:domain:transactions:4.0">
       <core-environment>
         <process-id>
@@ -577,14 +483,12 @@
       <recovery-environment socket-binding="txn-recovery-environment" status-socket-binding="txn-status-manager"/>
       <object-store path="tx-object-store" relative-to="jboss.server.data.dir"/>
     </subsystem>
-    <subsystem xmlns="urn:jboss:domain:undertow:4.0">
+        <subsystem xmlns="urn:jboss:domain:undertow:4.0">
       <buffer-cache name="default"/>
       <server name="default-server">
-        <ajp-listener name="ajp" socket-binding="ajp"/>
-        <http-listener name="default" socket-binding="http" redirect-socket="https" enable-http2="true"/>
-        <https-listener name="https" socket-binding="https" security-realm="ApplicationRealm" enable-http2="true"/>
+                <http-listener name="default" socket-binding="http" redirect-socket="https"/>
         <host name="default-host" alias="localhost">
-          <location name="/" handler="welcome-content"/>
+                    <location name="/" handler="welcome-content"/>
           <filter-ref name="server-header"/>
           <filter-ref name="x-powered-by-header"/>
           <http-invoker security-realm="ApplicationRealm"/>
@@ -595,7 +499,7 @@
         <websockets/>
       </servlet-container>
       <handlers>
-        <file name="welcome-content" path="${jboss.home.dir}/welcome-content"/>
+                <file name="welcome-content" path="${jboss.home.dir}/welcome-content"/>
       </handlers>
       <filters>
         <response-header name="server-header" header-name="Server" header-value="WildFly/11"/>
@@ -620,10 +524,7 @@
     </interface>
     <interface name="public">
       <inet-address value="${jboss.bind.address:127.0.0.1}"/>
-    </interface>
-    <interface name="private">
-      <inet-address value="${jboss.bind.address.private:127.0.0.1}"/>
-    </interface>
+        </interface>
   </interfaces>
   <socket-binding-group name="standard-sockets" default-interface="public" port-offset="${jboss.socket.binding.port-offset:0}">
     <socket-binding name="management-http" interface="management" port="${jboss.management.http.port:9990}"/>
@@ -631,14 +532,10 @@
     <socket-binding name="ajp" port="${jboss.ajp.port:8009}"/>
     <socket-binding name="http" port="${jboss.http.port:8080}"/>
     <socket-binding name="https" port="${jboss.https.port:8443}"/>
-    <socket-binding name="jgroups-mping" interface="public" port="0" multicast-address="${jboss.default.multicast.address:230.0.0.4}" multicast-port="45700"/>
-    <socket-binding name="jgroups-tcp" interface="public" port="7600"/>
-    <socket-binding name="jgroups-udp" interface="public" port="55200" multicast-address="${jboss.default.multicast.address:230.0.0.4}" multicast-port="45688"/>
-    <socket-binding name="modcluster" port="0" multicast-address="${jboss.modcluster.multicast.address:224.0.1.105}" multicast-port="23364"/>
     <socket-binding name="txn-recovery-environment" port="4712"/>
     <socket-binding name="txn-status-manager" port="4713"/>
     <outbound-socket-binding name="mail-smtp">
-      <remote-destination host="localhost" port="25"/>
+            <remote-destination host="${env.OPENSHIFT_SMTP_HOST}" port="25"/>
     </outbound-socket-binding>
   </socket-binding-group>
 </server>

@@ -1,0 +1,542 @@
+{
+    "kind": "Template",
+    "apiVersion": "v1",
+    "metadata": {
+        "annotations": {
+            "iconClass": "icon-wildfly",
+            "tags": "wildfly,javaee,java,jboss",
+            "version": "1.4.12",
+            "openshift.io/display-name": "Entando in Wildfly 12",
+            "openshift.io/provider-display-name": "Entando",
+            "description": "An example Entando in Wildfly ",
+            "template.openshift.io/long-description": "This template defines resources needed to develop Entando applications based on Wildfly 12.",
+            "template.openshift.io/documentation-url": "https://central.entando.com/",
+            "template.openshift.io/support-url": "https://central.entando.com"
+        },
+        "name": "entando-wildfly-quickstart"
+    },
+    "labels": {
+        "template": "entando-wildfly-quickstart"
+    },
+    "message": "A new Entando Wildfly 12 has been created in your project.",
+    "parameters": [
+        {
+            "displayName": "Application Name",
+            "description": "The name for the application.",
+            "name": "APPLICATION_NAME",
+            "value": "entando-sample",
+            "required": false
+        },
+        {
+            "displayName": "Custom http Route Hostname for the AppBuilder",
+            "description": "Custom http Route Hostname for the AppBuilder. Leave blank for default hostname, e.g.: <service-name>-<project>.<default-domain-suffix>",
+            "name": "ENTANDO_APP_BUILDER_HOSTNAME_HTTP",
+            "value": "",
+            "required": false
+        },
+        {
+            "displayName": "Custom http Route Hostname for the Entando runtime and legacy screens",
+            "description": "Custom http Route Hostname for the Entando runtime and legacy screens. Leave blank for default hostname, e.g.: <service-name>-<project>.<default-domain-suffix>",
+            "name": "ENTANDO_RUNTIME_HOSTNAME_HTTP",
+            "value": "",
+            "required": true
+        },
+        {
+            "displayName": "KIE Server base url",
+            "description": "KIE Server base url",
+            "name": "KIE_SERVER_BASE_URL",
+            "value": "",
+            "required": false
+        },
+        {
+            "displayName": "KIE Server Username",
+            "description": "KIE Server Username",
+            "name": "KIE_SERVER_USERNAME",
+            "value": "",
+            "required": false
+        },
+        {
+            "displayName": "KIE Server Password",
+            "description": "KIE Server Password",
+            "name": "KIE_SERVER_PASSWORD",
+            "value": "",
+            "required": false
+        },
+        {
+            "displayName": "Git Repository URL",
+            "description": "Git source URI for application",
+            "name": "SOURCE_REPOSITORY_URL",
+            "value": "https://github.com/ampie/entando-sample.git",
+            "required": true
+        },
+        {
+            "displayName": "Git Reference",
+            "description": "Git branch/tag reference",
+            "name": "SOURCE_REPOSITORY_REF",
+            "value": "master",
+            "required": false
+        },
+        {
+            "displayName": "Context Directory",
+            "description": "Path within Git project to build; empty for root project directory.",
+            "name": "CONTEXT_DIR",
+            "value": "",
+            "required": false
+        },
+        {
+            "displayName": "Database Volume Capacity",
+            "description": "Size of persistent storage for database volume.",
+            "name": "VOLUME_CAPACITY",
+            "value": "1Gi",
+            "required": false
+        },
+        {
+            "displayName": "Github Webhook Secret",
+            "description": "GitHub trigger secret",
+            "name": "GITHUB_WEBHOOK_SECRET",
+            "from": "[a-zA-Z0-9]{8}",
+            "generate": "expression",
+            "required": true
+        },
+        {
+            "displayName": "Generic Webhook Secret",
+            "description": "Generic build trigger secret",
+            "name": "GENERIC_WEBHOOK_SECRET",
+            "from": "[a-zA-Z0-9]{8}",
+            "generate": "expression",
+            "required": true
+        },
+        {
+            "displayName": "ImageStream Namespace",
+            "description": "Namespace in which the ImageStreams for Red Hat Middleware images are installed. These ImageStreams are normally installed in the openshift namespace. You should only need to modify this if you've installed the ImageStreams in a different namespace/project.",
+            "name": "IMAGE_STREAM_NAMESPACE",
+            "value": "openshift",
+            "required": true
+        },
+        {
+            "displayName": "Maven mirror URL",
+            "description": "Maven mirror to use for S2I builds",
+            "name": "MAVEN_MIRROR_URL",
+            "value": "",
+            "required": false
+        },
+        {
+            "displayName": "Maven Additional Arguments",
+            "description": "Maven additional arguments to use for S2I builds",
+            "name": "MAVEN_ARGS_APPEND",
+            "value": "",
+            "required": false
+        },
+        {
+            "description": "List of directories from which archives will be copied into the deployment folder. If unspecified, all archives in /target will be copied.",
+            "name": "ARTIFACT_DIR",
+            "value": "",
+            "required": false
+        },
+        {
+            "description": "Container memory limit",
+            "name": "MEMORY_LIMIT",
+            "value": "2Gi",
+            "required": false
+        }
+    ],
+    "objects": [
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 8080,
+                        "targetPort": 8080
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}-runtime"
+                }
+            },
+            "metadata": {
+                "name": "${APPLICATION_NAME}-runtime",
+                "labels": {
+                    "application": "${APPLICATION_NAME}-runtime"
+                },
+                "annotations": {
+                    "description": "The Entando Runtime server's http port."
+                }
+            }
+        },
+        {
+            "kind": "Service",
+            "apiVersion": "v1",
+            "spec": {
+                "ports": [
+                    {
+                        "port": 5000,
+                        "targetPort": 5000
+                    }
+                ],
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}-app-builder"
+                }
+            },
+            "metadata": {
+                "name": "${APPLICATION_NAME}-app-builder",
+                "labels": {
+                    "application": "${APPLICATION_NAME}-app-builder"
+                },
+                "annotations": {
+                    "description": "The Entando AppBuilder http port."
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "id": "${APPLICATION_NAME}-runtime-http",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-runtime-http",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                },
+                "annotations": {
+                    "description": "Route for the Entando Runtime's http service."
+                }
+            },
+            "spec": {
+                "host": "${ENTANDO_RUNTIME_HOSTNAME_HTTP}",
+                "to": {
+                    "name": "${APPLICATION_NAME}-runtime"
+                }
+            }
+        },
+        {
+            "kind": "Route",
+            "apiVersion": "v1",
+            "id": "${APPLICATION_NAME}-app-builder",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-app-builder",
+                "labels": {
+                    "application": "${APPLICATION_NAME}-app-builder"
+                },
+                "annotations": {
+                    "description": "Route for application's http service."
+                }
+            },
+            "spec": {
+                "host": "${ENTANDO_APP_BUILDER_HOSTNAME_HTTP}",
+                "to": {
+                    "name": "${APPLICATION_NAME}-app-builder"
+                }
+            }
+        },
+        {
+            "kind": "ImageStream",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            }
+        },
+        {
+            "kind": "BuildConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-s2i",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "source": {
+                    "type": "Git",
+                    "git": {
+                        "uri": "${SOURCE_REPOSITORY_URL}",
+                        "ref": "${SOURCE_REPOSITORY_REF}"
+                    },
+                    "contextDir": "${CONTEXT_DIR}"
+                },
+                "strategy": {
+                    "type": "Source",
+                    "sourceStrategy": {
+                        "env": [
+                            {
+                                "name": "MAVEN_MIRROR_URL",
+                                "value": "${MAVEN_MIRROR_URL}"
+                            },
+                            {
+                                "name": "MAVEN_ARGS_APPEND",
+                                "value": "${MAVEN_ARGS_APPEND}"
+                            },
+                            {
+                                "name": "ARTIFACT_DIR",
+                                "value": "${ARTIFACT_DIR}"
+                            }
+                        ],
+                        "forcePull": true,
+                        "from": {
+                            "kind": "ImageStreamTag",
+                            "namespace": "${IMAGE_STREAM_NAMESPACE}",
+                            "name": "entando-wildfly12-quickstart-openshift:latest"
+                        }
+                    }
+                },
+                "output": {
+                    "to": {
+                        "kind": "ImageStreamTag",
+                        "name": "${APPLICATION_NAME}:latest"
+                    }
+                },
+                "triggers": [
+                    {
+                        "type": "GitHub",
+                        "github": {
+                            "secret": "${GITHUB_WEBHOOK_SECRET}"
+                        }
+                    },
+                    {
+                        "type": "Generic",
+                        "generic": {
+                            "secret": "${GENERIC_WEBHOOK_SECRET}"
+                        }
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChange": {}
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ]
+            }
+        },
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-runtime",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "triggers": [
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "${APPLICATION_NAME}-runtime"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "${APPLICATION_NAME}:latest"
+                            }
+                        }
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}-runtime"
+                },
+                "template": {
+                    "metadata": {
+                        "name": "${APPLICATION_NAME}-runtime",
+                        "labels": {
+                            "deploymentConfig": "${APPLICATION_NAME}-runtime",
+                            "application": "${APPLICATION_NAME}"
+                        }
+                    },
+                    "spec": {
+                        "terminationGracePeriodSeconds": 75,
+                        "containers": [
+                            {
+                                "name": "${APPLICATION_NAME}-runtime",
+                                "image": "${APPLICATION_NAME}",
+                                "imagePullPolicy": "Always",
+                                "resources": {
+                                    "limits": {
+                                        "memory": "${MEMORY_LIMIT}"
+                                    }
+                                },
+                                "livenessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/bin/bash",
+                                            "-c",
+                                            " /wildfly/bin/jboss-cli.sh --connect --commands=ls | grep 'server-state=running'"
+                                        ]
+                                    },
+                                    "initialDelaySeconds": 60
+                                },
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/bin/bash",
+                                            "-c",
+                                            "/wildfly/bin/jboss-cli.sh --connect --commands='ls deployment' | grep war"
+                                        ]
+                                    }
+                                },
+                                "ports": [
+                                    {
+                                        "name": "http",
+                                        "containerPort": 8080,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/wildfly/standalone/entando",
+                                        "name": "${APPLICATION_NAME}-derby-pvol"
+                                    }
+                                ],
+                                "env": [
+                                        {
+                                            "name": "KIE_SERVER_BASE_URL",
+                                            "value": "${KIE_SERVER_BASE_URL}"
+                                        },
+                                        {
+                                            "name": "KIE_SERVER_USERNAME",
+                                            "value": "${KIE_SERVER_USERNAME}"
+                                        },
+                                        {
+                                            "name": "KIE_SERVER_PASSWORD",
+                                            "value": "${KIE_SERVER_PASSWORD}"
+                                        },
+                                        {
+                                        "name": "POD_IP",
+                                        "valueFrom":
+                                        {
+                                            "fieldRef":
+                                            {
+                                                    "fieldPath": "status.podIP"
+                                            }
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        "volumes": [
+                            {
+                                "name": "${APPLICATION_NAME}-derby-pvol",
+                                "persistentVolumeClaim": {
+                                    "claimName": "${APPLICATION_NAME}-derby-claim"
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+
+        {
+            "kind": "DeploymentConfig",
+            "apiVersion": "v1",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-app-builder",
+                "generation": 1,
+                "creationTimestamp": null,
+                "labels": {
+                    "application": "${APPLICATION_NAME}-app-builder"
+                },
+                "annotations": {
+                }
+            },
+            "spec": {
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "type": "ImageChange",
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "${APPLICATION_NAME}-app-builder"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "namespace": "${IMAGE_STREAM_NAMESPACE}",
+                                "name": "app-builder-openshift:5.0.1"
+                            }
+                        }
+                    }
+                ],
+                "replicas": 1,
+                "selector": {
+                    "deploymentConfig": "${APPLICATION_NAME}-app-builder"
+                },
+                "template": {
+                    "metadata": {
+                        "creationTimestamp": null,
+                        "labels": {
+                            "deploymentConfig": "${APPLICATION_NAME}-app-builder"
+                        },
+                        "annotations": {
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "name": "${APPLICATION_NAME}-app-builder",
+                                "image": "${IMAGE_STREAM_NAMESPACE}/app-builder-openshift:5.0.1",
+                                "ports": [
+                                    {
+                                        "containerPort": 5000,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "env": [
+                                    {
+                                        "name": "DOMAIN",
+                                        "value": "http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/${APPLICATION_NAME}"
+                                    }
+                                ],
+                                "resources": {},
+                                "terminationMessagePath": "/dev/termination-log",
+                                "terminationMessagePolicy": "File",
+                                "imagePullPolicy": "IfNotPresent"
+                            }
+                        ],
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "dnsPolicy": "ClusterFirst",
+                        "securityContext": {},
+                        "schedulerName": "default-scheduler"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "PersistentVolumeClaim",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-derby-claim",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "${VOLUME_CAPACITY}"
+                    }
+                }
+            }
+        }
+    ]
+}

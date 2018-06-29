@@ -5,7 +5,7 @@
     "annotations": {
       "openshift.io/display-name": "Entando EAP 71"
     },
-    "name": "entando-wildfly12-openshift"
+    "name": "entando-wildfly12-quickstart-openshift"
   },
   "spec": {
     "tags": [
@@ -20,12 +20,12 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "openshift/wildfly-120-centos7:latest"
+          "name": "172.30.1.1:5000/entando/entando-wildfly12-quickstart-openshift:5.0.1"
         },
         "importPolicy": {
           "insecure": true
         },
-        "name": "5.0.1",
+        "name": "latest",
         "referencePolicy": {
           "type": "Source"
         }
