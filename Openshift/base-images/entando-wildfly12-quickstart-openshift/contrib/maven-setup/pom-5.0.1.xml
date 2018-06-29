@@ -9,7 +9,6 @@
     <name>entando-sample</name>
     <url>http://maven.apache.org/</url>
     <properties>
-        <maven.mirror.url>http://nexus.openshift.svc:8081/repository/maven-public/</maven.mirror.url>
         <stage>dev</stage>
         <env.db.environment>develop</env.db.environment>
         <server>jetty</server>
