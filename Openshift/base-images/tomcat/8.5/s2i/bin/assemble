@@ -13,7 +13,7 @@ function restore_saved_artifacts() {
 }
 
 # Source code provided to S2I is at ${HOME}
-LOCAL_SOURCE_DIR=${HOME}
+LOCAL_SOURCE_DIR=/opt/app-root/src
 mkdir -p $LOCAL_SOURCE_DIR
 
 # the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
