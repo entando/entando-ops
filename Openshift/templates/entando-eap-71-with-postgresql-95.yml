@@ -5,7 +5,7 @@
         "annotations": {
             "iconClass": "icon-eap",
             "tags": "eap,javaee,java,jboss",
-            "version": "1.4.12",
+            "version": "5.0.1",
             "openshift.io/display-name": "Entando in EAP 7.1 + PostgreSQL (Persistent with https)",
             "openshift.io/provider-display-name": "Entando",
             "description": "An example Entando application with a PostgreSQL database.",
