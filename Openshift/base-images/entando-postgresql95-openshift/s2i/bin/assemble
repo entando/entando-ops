@@ -28,8 +28,8 @@ cd $LOCAL_SOURCE_DIR
 pwd
 ls -al
 configure_mirrors
-if [ -d  $LOCAL_SOURCE_DIR/src/main/db/tar ]; then
-    ant PG-db-full-update-tar
+if [ -d  $LOCAL_SOURCE_DIR/src/main/db/tar ] && ! [ -d  $LOCAL_SOURCE_DIR/src/main/webapp/protected/databaseBackups/develop/portDataSource ]; then
+    ant PG-db-full-update-tar -Dpostgres.bin.path=/opt/rh/rh-postgresql95/root/usr/bin/
 else
     mvn_command="mvn jetty:run -Popenshift-postgresql $MAVEN_ARGS_APPEND"
     echo "executing $mvn_command "
