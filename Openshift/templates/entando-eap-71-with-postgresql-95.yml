@@ -70,6 +70,13 @@
             "required": false
         },
         {
+            "displayName": "Source Secret",
+            "description": "Source Secret containing the Username and Password for the source repository",
+            "name": "SOURCE_SECRET",
+            "value": "entando-source-secret",
+            "required": false
+        },
+        {
             "displayName": "Context Directory",
             "description": "Path within Git project to build; empty for root project directory.",
             "name": "CONTEXT_DIR",
@@ -518,7 +525,10 @@
                         "uri": "${SOURCE_REPOSITORY_URL}",
                         "ref": "${SOURCE_REPOSITORY_REF}"
                     },
-                    "contextDir": "${CONTEXT_DIR}"
+                    "contextDir": "${CONTEXT_DIR}",
+                    "sourceSecret":{
+                        "name": "${SOURCE_SECRET}"
+                    }
                 },
                 "strategy": {
                     "type": "Source",
@@ -590,7 +600,10 @@
                         "uri": "${SOURCE_REPOSITORY_URL}",
                         "ref": "${SOURCE_REPOSITORY_REF}"
                     },
-                    "contextDir": "${CONTEXT_DIR}"
+                    "contextDir": "${CONTEXT_DIR}",
+                    "sourceSecret":{
+                        "name": "${SOURCE_SECRET}"
+                    }
                 },
                 "strategy": {
                     "type": "Source",
