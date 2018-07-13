@@ -31,7 +31,7 @@ configure_mirrors
 if [ -d  $LOCAL_SOURCE_DIR/src/main/db/tar ] && ! [ -d  $LOCAL_SOURCE_DIR/src/main/webapp/protected/databaseBackups/develop/portDataSource ]; then
     ant PG-db-full-update-tar -Dpostgres.bin.path=/opt/rh/rh-postgresql95/root/usr/bin/
 else
-    mvn_command="mvn jetty:run -Popenshift-postgresql $MAVEN_ARGS_APPEND"
+    mvn_command="mvn jetty:run -Popenshift-postgresql $MAVEN_ARGS_APPEND -Dprofile.database.password=$POSTGRESQL_PASSWORD"
     echo "executing $mvn_command "
     log=db_creation.log
     $mvn_command 2>&1 | tee "$log" &
