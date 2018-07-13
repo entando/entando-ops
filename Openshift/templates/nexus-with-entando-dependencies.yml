@@ -46,8 +46,8 @@ objects:
               command:
               - echo
               - ok
-            failureThreshold: 3
-            initialDelaySeconds: 90
+            failureThreshold: 6
+            initialDelaySeconds: 120
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 10
@@ -56,12 +56,12 @@ objects:
           - containerPort: 8081
             protocol: TCP
           readinessProbe:
-            failureThreshold: 3
+            failureThreshold: 6
             httpGet:
               path: /
               port: 8081
               scheme: HTTP
-            initialDelaySeconds: 90
+            initialDelaySeconds: 120
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 10
@@ -69,7 +69,7 @@ objects:
             limits:
               memory: ${MAX_MEMORY}
             requests:
-              memory: 512Mi
+              memory: 1024Mi
           terminationMessagePath: /dev/termination-log
           volumeMounts:
           - mountPath: /nexus-data

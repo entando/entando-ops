@@ -762,6 +762,10 @@
                                         "name": "eap-jgroups-keystore-volume",
                                         "mountPath": "/etc/jgroups-encrypt-secret-volume",
                                         "readOnly": true
+                                    },
+                                    {
+                                        "mountPath": "/entando-resources",
+                                        "name": "${APPLICATION_NAME}-entando-resources-pvol"
                                     }
                                 ],
                                 "livenessProbe": {
@@ -817,6 +821,14 @@
                                     {
                                         "name": "PG_ENTANDO_SERV_DB_CONNECTION_STRING",
                                         "value": "jdbc:postgresql://${APPLICATION_NAME}-postgresql.${PROJECT_NAME}.svc:5432/${ENTANDO_SERV_DATABASE}"
+                                    },
+                                    {
+                                        "name": "PG_ENTANDO_PORT_DB_JNDI_NAME",
+                                        "value": "java:jboss/datasources/${APPLICATION_NAME}PortDataSource"
+                                    },
+                                    {
+                                        "name": "PG_ENTANDO_SERV_DB_JNDI_NAME",
+                                        "value": "java:jboss/datasources/${APPLICATION_NAME}ServDataSource"
                                     },
                                     {
                                       "name": "PG_PASSWORD",
@@ -968,6 +980,12 @@
                                 "name": "eap-jgroups-keystore-volume",
                                 "secret": {
                                     "secretName": "${JGROUPS_ENCRYPT_SECRET}"
+                                }
+                            },
+                            {
+                                "name": "${APPLICATION_NAME}-entando-resources-pvol",
+                                "persistentVolumeClaim": {
+                                    "claimName": "${APPLICATION_NAME}-entando-resources-claim"
                                 }
                             }
                         ]
@@ -1246,6 +1264,27 @@
                     }
                 }
             }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "PersistentVolumeClaim",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-entando-resources-claim",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "${VOLUME_CAPACITY}"
+                    }
+                }
+            }
         }
+
     ]
 }

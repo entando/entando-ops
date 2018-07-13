@@ -396,7 +396,12 @@
                                     {
                                         "mountPath": "/wildfly/standalone/entando",
                                         "name": "${APPLICATION_NAME}-derby-pvol"
+                                    },
+                                    {
+                                        "mountPath": "/entando-resources",
+                                        "name": "${APPLICATION_NAME}-entando-resources-pvol"
                                     }
+
                                 ],
                                 "env": [
                                         {
@@ -429,6 +434,12 @@
                                 "name": "${APPLICATION_NAME}-derby-pvol",
                                 "persistentVolumeClaim": {
                                     "claimName": "${APPLICATION_NAME}-derby-claim"
+                                }
+                            },
+                            {
+                                "name": "${APPLICATION_NAME}-entando-resources-pvol",
+                                "persistentVolumeClaim": {
+                                    "claimName": "${APPLICATION_NAME}-entando-resources-claim"
                                 }
                             }
                         ]
@@ -537,6 +548,27 @@
                     }
                 }
             }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "PersistentVolumeClaim",
+            "metadata": {
+                "name": "${APPLICATION_NAME}-entando-resources-claim",
+                "labels": {
+                    "application": "${APPLICATION_NAME}"
+                }
+            },
+            "spec": {
+                "accessModes": [
+                    "ReadWriteOnce"
+                ],
+                "resources": {
+                    "requests": {
+                        "storage": "${VOLUME_CAPACITY}"
+                    }
+                }
+            }
         }
+
     ]
 }
