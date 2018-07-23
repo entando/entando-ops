@@ -24,19 +24,10 @@ EXPOSE 8888
 
 USER 0
 
-<<<<<<< HEAD
-RUN yum repolist all && \
-yum-config-manager --enable rhel-server-rhscl-7-rpms && \
-yum-config-manager --enable rhel-7-server-optional-rpms && \
-yum makecache && \
-yum -y update-minimal --security --sec-severity=Important --sec-severity=Critical --setopt=tsflags=nodocs && \
-yum -y install ImageMagick libaio-devel && \
-=======
 RUN REPOLIST="rhel-7-server-rpms, rhel-7-server-optional-rpms" && \
 yum -y update-minimal --disablerepo "*" --enablerepo rhel-7-server-rpms --setopt=tsflags=nodocs \
 --security --sec-severity=Important --sec-severity=Critical && \
 yum -y install --disablerepo "*" --enablerepo ${REPOLIST} --setopt=tsflags=nodocs ImageMagick libaio-devel && \
->>>>>>> origin/master
 yum clean all && \
 rm -rf /var/cache/yum/* && \
 mkdir -p /licenses && \
