@@ -31,7 +31,7 @@ echo "---> Installing application source..."
 cp -Rf /tmp/src/. /opt/entando/
 
 # set permissions
-chmod -R ugo+rw /opt/entando/
+chmod -R ug+w /opt/entando/
 
 echo "---> Building application from source..."
 # TODO: Add build steps for your application, eg npm install, bundle install, pip install, etc.
