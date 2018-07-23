@@ -1,0 +1,264 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  annotations:
+    iconClass: icon-eap
+    tags: eap,javaee,java,jboss,hidden
+    version: 1.4.7
+    description: entando-eap
+  name: entando-eap
+labels:
+  template: entando-eap
+  xpaas: 1.4.7
+message: entando-eap
+parameters:
+- displayName: Application Name
+  description: The name for the application.
+  name: APPLICATION_NAME
+  value: app
+  required: true
+- displayName: Configuration Name
+  description: The name of the Config Map containing configuration properties.
+  name: CONFIGMAP_NAME
+  value: app-configmap
+  required: true
+- displayName: Configuration Secret Name
+  description: The name of the secret containing configuration properties.
+  name: SECRET_NAME
+  value: app-secret
+  required: true
+- displayName: Custom https Route Hostname
+  description: 'Custom hostname for http service route, e.g.: www.entando.com'
+  name: HOSTNAME_HTTPS
+  value: 'www.entando.com'
+  required: false
+- displayName: ImageStream Namespace
+  description: Namespace in which the ImageStreams for Red Hat Middleware images are
+    installed. These ImageStreams are normally installed in the openshift namespace.
+    You should only need to modify this if you've installed the ImageStreams in a
+    different namespace/project.
+  name: IMAGE_STREAM_NAMESPACE
+  value: openshift
+  required: true
+- description: List of directories from which archives will be copied into the deployment
+    folder. If unspecified, all archives in /target will be copied.
+  name: ARTIFACT_DIR
+  value: 'deployments'
+  required: true
+- displayName: "Context Directory"
+  description: "Path within Git project to build; empty for root project directory."
+  name: "CONTEXT_DIR"
+  value: "."
+  required: false
+- displayName: Debug
+  description: true/false
+  name: SCRIPT_DEBUG
+  value: 'true'
+  required: false
+- displayName: JGroups Cluster Password
+  description: JGroups cluster password
+  name: JGROUPS_CLUSTER_PASSWORD
+  from: "[a-zA-Z0-9]{16}"
+  generate: expression
+  required: true
+- description: The username used for the Jolokia endpoint authentication
+  name: JOLOKIA_USER
+  value: "jolokia"
+objects:
+- kind: Service
+  apiVersion: v1
+  spec:
+    ports:
+    - port: 8080
+      targetPort: 8080
+    selector:
+      deploymentConfig: "${APPLICATION_NAME}"
+  metadata:
+    name: "${APPLICATION_NAME}"
+    labels:
+      application: "${APPLICATION_NAME}"
+    annotations:
+      description: The web server's http port.
+- kind: Service
+  apiVersion: v1
+  spec:
+    clusterIP: None
+    ports:
+    - name: ping
+      port: 8888
+    selector:
+      deploymentConfig: "${APPLICATION_NAME}"
+  metadata:
+    name: "${APPLICATION_NAME}-ping"
+    labels:
+      application: "${APPLICATION_NAME}"
+    annotations:
+      service.alpha.kubernetes.io/tolerate-unready-endpoints: 'true'
+      description: The JGroups ping port for clustering.
+- kind: Route
+  apiVersion: v1
+  id: "${APPLICATION_NAME}-https"
+  metadata:
+    name: secure-${APPLICATION_NAME}
+    labels:
+      application: "${APPLICATION_NAME}"
+    annotations:
+      description: Route for application's https service.
+  spec:
+    host: "${HOSTNAME_HTTPS}"
+    port:
+      targetPort: 8080
+    to:
+      kind: Service
+      name: ${APPLICATION_NAME}
+      weigth: 100
+    tls:
+      caCertificate: |-
+      certificate: |-
+      key: |-
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}"
+    labels:
+      application: "${APPLICATION_NAME}"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    source:
+      type: Binary
+      contextDir: "${CONTEXT_DIR}"
+    strategy:
+      type: Source
+      sourceStrategy:
+        env: []
+        forcePull: true
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
+          name: entando-eap71-openshift-imagick:latest
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${APPLICATION_NAME}:latest"
+    triggers:
+    - type: "Generic"
+      generic:
+        secret: "${GENERIC_WEBHOOK_SECRET}"
+    - type: ImageChange
+      imageChange: {}
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${APPLICATION_NAME}"
+        from:
+          kind: ImageStreamTag
+          name: "${APPLICATION_NAME}:latest"
+    replicas: 2
+    selector:
+      deploymentConfig: "${APPLICATION_NAME}"
+    template:
+      metadata:
+        name: "${APPLICATION_NAME}"
+        labels:
+          deploymentConfig: "${APPLICATION_NAME}"
+          application: "${APPLICATION_NAME}"
+      spec:
+        terminationGracePeriodSeconds: 75
+        containers:
+        - name: "${APPLICATION_NAME}"
+          image: "${APPLICATION_NAME}"
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 300m
+              memory: 200Mi
+          replicas: 1
+          ports:
+          - name: jolokia
+            containerPort: 8778
+            protocol: TCP
+          - name: http
+            containerPort: 8080
+            protocol: TCP
+          - name: ping
+            containerPort: 8888
+            protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: "${CONFIGMAP_NAME}"
+            - secretRef:
+                name: "${SECRET_NAME}"
+          env:
+            - name: TZ
+              value: Europe/Rome
+#            - name: AB_JOLOKIA_PASSWORD
+#              valueFrom:
+#                secretKeyRef:
+#                  name: hosa-secret
+#                  key: password
+            - name: AB_JOLOKIA_USER
+              value: ${JOLOKIA_USER}
+            - name: AB_JOLOKIA_PASSWORD_RANDOM
+              value: "false"
+            - name: JGROUPS_PING_PROTOCOL
+              value: openshift.DNS_PING
+            - name: OPENSHIFT_DNS_PING_SERVICE_NAME
+              value: "${APPLICATION_NAME}-ping"
+            - name: OPENSHIFT_DNS_PING_SERVICE_PORT
+              value: '8888'
+            - name: JGROUPS_CLUSTER_PASSWORD
+              value: "${JGROUPS_CLUSTER_PASSWORD}"
+          volumeMounts:
+            - mountPath: "/entando-resources"
+              name: "entando-resources-volume"
+        volumes:
+          - name: "entando-volume"
+            persistentVolumeClaim:
+              claimName: "entando-volume-claim"
+- apiVersion: v1
+  kind: ConfigMap
+  metadata:
+    labels:
+      metrics-infra: agent
+    name: hawkular-openshift-agent
+  data:
+    hawkular-openshift-agent: |
+      endpoints:
+      - type: jolokia
+        protocol: https
+        port: 8778
+        path: /jolokia/
+        tls:
+          skip_certificate_validation: true
+        credentials:
+          username: ${JOLOKIA_USER}
+          password: secret:hosa-secret/password
+        collection_interval: 15s
+        metrics:
+        - name: java.lang:type=Memory#HeapMemoryUsage#used
+          type: gauge
+          description: Heap Memory Used
+          units: B
+        - name: java.lang:type=Threading#ThreadCount
+          type: counter
+          description: VM Thread Count

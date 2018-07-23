@@ -1,6 +1,6 @@
 # You should always specify a full version here to ensure all of your developers
 # are running the same version of Node.
-FROM node:9
+FROM node:8
 
 # Override the base log level (info).
 ENV NPM_CONFIG_LOGLEVEL warn
@@ -27,21 +27,27 @@ ENV DOMAIN //localhost:8080/entando
 COPY start.sh /start.sh
 
 # Install and configure `serve`. Download project from entando repository
-RUN npm install -g serve \
+RUN npm i -g npm \
+&& npm i -g serve \
 && chmod a+x /start.sh \
 && git clone https://github.com/entando/app-builder.git \
+&& cd /app-builder && git checkout v5.0.0 && cd .. \
 && git clone https://github.com/entando/entando-components.git \
-&& chown -R node:0 /app-builder/ && chmod -R ug+w /app-builder/
+&& cd /entando-components && git checkout v5.0.0 && cd ..
 
 COPY plugins.json /app-builder/entando-plugins-config/plugins.json
 
 # Install entando plugins
 RUN cd /entando-components/plugins/entando-plugin-jpkiebpm/app-builder \
-&& npm install
+&& npm install \
+&& chown -R node:0 /app-builder/ && chmod -R ug+w /app-builder/ \
+&& chown -R node:0 /entando-components/ && chmod -R ug+w /entando-components/ \
+&& mkdir -p /usr/local/lib/node_modules/ \
+&& chown -R node:0 /usr/local/lib/node_modules/ && chmod -R ug+w /usr/local/lib/node_modules/
 
 USER node
 
 WORKDIR app-builder
 
-CMD /start.sh >> /dev/null
-EXPOSE 5000
+CMD /start.sh
+EXPOSE 3000

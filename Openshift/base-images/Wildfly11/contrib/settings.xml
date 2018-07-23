@@ -3,14 +3,12 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
- <localRepository>/opt/app-root/src/.m2/repository</localRepository>
+  <mirrors>
+    <!-- ### configured mirrors ### -->
+  </mirrors>
 
- <mirrors>
-   <!-- ### configured mirrors ### -->
- </mirrors>
-
- <proxies>
-   <!-- ### configured http proxy ### -->
+  <proxies>
+    <!-- ### configured http proxy ### -->
   </proxies>
 
   <profiles>
@@ -182,29 +180,6 @@
         <pluginRepository>
           <id>central</id>
           <url>http://repo1.maven.org/maven2</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-        </pluginRepository>
-      </pluginRepositories>
-    </profile>
-
-    <!-- entando repository -->
-    <profile>
-      <id>nexus</id>
-      <repositories>
-        <repository>
-          <id>nexus</id>
-          <url>http://repository.entando.org/repository/maven-public/</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-        </repository>
-      </repositories>
-      <pluginRepositories>
-        <pluginRepository>
-          <id>nexus</id>
-          <url>http://repository.entando.org/repository/maven-public/</url>
           <releases>
             <enabled>true</enabled>
           </releases>

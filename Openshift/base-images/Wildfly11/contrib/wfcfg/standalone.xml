@@ -143,12 +143,12 @@
                         <password>sa</password>
                     </security>
                 </datasource>
-                <datasource jndi-name="java:jboss/datasources/${env.OPENSHIFT_MYSQL_DATASOURCE}" enabled="${mysql.enabled}" use-java-context="true" pool-name="${env.OPENSHIFT_MYSQL_DATASOURCE}" use-ccm="true">
-                    <connection-url>jdbc:mysql://${env.OPENSHIFT_MYSQL_DB_HOST}:${env.OPENSHIFT_MYSQL_DB_PORT}/${env.OPENSHIFT_MYSQL_DB_NAME}</connection-url>
-                    <driver>mysql</driver>
+                <datasource jndi-name="${env.DB_ENTANDO_PORT_DB_JNDI_NAME}" enabled="true" use-java-context="true" pool-name="entandoDbPortDataSource" use-ccm="true">
+                    <connection-url>jdbc:postgresql://${env.DB_ENTANDO_PORT_DB_CONNECTION_STRING}</connection-url>
+                    <driver>${env.DB_DRIVER}</driver>
                     <security>
-                      <user-name>${env.OPENSHIFT_MYSQL_DB_USERNAME}</user-name>
-                      <password>${env.OPENSHIFT_MYSQL_DB_PASSWORD}</password>
+                        <user-name>${env.DB_USERNAME}</user-name>
+                        <password>${env.DB_PASSWORD}</password>
                     </security>
                     <validation>
                         <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
@@ -160,29 +160,12 @@
                         <flush-strategy>IdleConnections</flush-strategy>
                     </pool>
                 </datasource>
-                <datasource jndi-name="java:jboss/datasources/entandoDbPort" enabled="true" use-java-context="true" pool-name="entandoDbPortDataSource" use-ccm="true">
-                    <connection-url>jdbc:postgresql://192.168.77.101:5432/entandoDbPort</connection-url>
-                    <driver>postgresql</driver>
+                <datasource jndi-name="${env.DB_ENTANDO_SERV_DB_JNDI_NAME}" enabled="true" use-java-context="true" pool-name="entandoDbServDataSource" use-ccm="true">
+                    <connection-url>jdbc:postgresql://${env.DB_ENTANDO_SERV_DB_CONNECTION_STRING}</connection-url>
+                    <driver>${env.DB_DRIVER}</driver>
                     <security>
-                      <user-name>entando</user-name>
-                      <password>entando</password>
-                    </security>
-                    <validation>
-                        <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
-                        <background-validation>true</background-validation>
-                        <background-validation-millis>60000</background-validation-millis>
-                        <!--<validate-on-match>true</validate-on-match>-->
-                    </validation>
-                    <pool>
-                        <flush-strategy>IdleConnections</flush-strategy>
-                    </pool>
-                </datasource>
-                <datasource jndi-name="java:jboss/datasources/entandoDbServ" enabled="true" use-java-context="true" pool-name="entandoDbServDataSource" use-ccm="true">
-                    <connection-url>jdbc:postgresql://192.168.77.101:5432/entandoDbServ</connection-url>
-                    <driver>postgresql</driver>
-                    <security>
-                      <user-name>entando</user-name>
-                      <password>entando</password>
+                        <user-name>${env.DB_USERNAME}</user-name>
+                        <password>${env.DB_PASSWORD}</password>
                     </security>
                     <validation>
                         <check-valid-connection-sql>SELECT 1</check-valid-connection-sql>
@@ -419,6 +402,75 @@
                     <expiration max-idle="100000"/>
                 </local-cache>
                 <local-cache name="timestamps"/>
+            </cache-container>
+            <cache-container name="entando" default-cache="Entando_Cache" jndi-name="infinispan/container/entando">
+                <transport lock-timeout="60000"/>
+                <replicated-cache name="Entando_Cache" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_CategoryManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_PageManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_PageModelManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_WidgetTypeManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_ConfigManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_RoleManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_GroupManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_LangManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_CacheInfoManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_I18nManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_UserProfileManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_DataObjectManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_jacmsContentManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_InitializerManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_ApiCatalogManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_DataObjectModelManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_ContentModelManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_KeyGeneratorManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_ResourceManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_DataObjectPageMapperManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
+                <replicated-cache name="Entando_ContentPageMapperManager" mode="ASYNC">
+                    <partition-handling enabled="true"/>
+                </replicated-cache>
             </cache-container>
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:jaxrs:1.0"/>

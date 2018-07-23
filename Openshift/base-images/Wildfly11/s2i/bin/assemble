@@ -209,7 +209,7 @@ function move_artifacts() {
 }
 
 ADMIN=admin
-PASSWORD=Password1!
+PASSWORD=passw0rd_
 
 # Source code provided to S2I is at ${HOME}
 LOCAL_SOURCE_DIR=${HOME}
@@ -298,7 +298,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   fi
 
   # When arguments such as max heap size are repeated, the JVM respects the last value provided,
-  # so by setting the user provided MAVEN_OPTS value last, we allow the user to override any 
+  # so by setting the user provided MAVEN_OPTS value last, we allow the user to override any
   # of the values we calculated above.
   MAVEN_OPTS=$JAVA_GC_OPTS $JAVA_HEAP_MAX $JAVA_CORE_LIMIT $JAVA_DIAGNOSTICS $MAVEN_OPTS
 
@@ -352,7 +352,7 @@ echo "...done"
 # at build time, so don't do this for now.
 
 # add admin user
-/wildfly/bin/add-user.sh $ADMIN $PASSWORD --silent
+#/wildfly/bin/add-user.sh $ADMIN $PASSWORD --silent
 
 #echo "Starting wildfly for deployment"
 #/wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 &

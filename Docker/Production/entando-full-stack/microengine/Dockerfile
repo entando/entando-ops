@@ -1,6 +1,6 @@
 # You should always specify a full version here to ensure all of your developers
 # are running the same version of Node.
-FROM node:9
+FROM node:8
 
 # Override the base log level (info).
 ENV NPM_CONFIG_LOGLEVEL warn
@@ -27,14 +27,17 @@ ENV DOMAIN //localhost:8080/entando
 COPY start.sh /start.sh
 
 # Install and configure `serve`. Download project from entando repository
-RUN npm install -g serve \
+RUN npm i -g npm && npm i -g serve \
 && chmod a+x /start.sh \
 && git clone https://github.com/entando/mapp-engine-admin-app.git \
-&& chown -R node:0 /mapp-engine-admin-app/ && chmod -R ug+w /mapp-engine-admin-app/
+&& cd /mapp-engine-admin-app && git checkout v5.0.0 && cd .. \
+&& chown -R node:0 /mapp-engine-admin-app/ && chmod -R ug+w /mapp-engine-admin-app/ \
+&& mkdir -p /usr/local/lib/node_modules/ \
+&& chown -R node:0 /usr/local/lib/node_modules/ && chmod -R ug+w /usr/local/lib/node_modules/
 
 USER node
 
 WORKDIR mapp-engine-admin-app
 
-CMD /start.sh >> /dev/null
-EXPOSE 5000
+CMD /start.sh
+EXPOSE 3000

@@ -49,9 +49,9 @@ function printInstructions {
 		echo "Appbuilder at ${APPBUILDER_URL}"
 		echo
 		line
-		echo "Microengine at ${MICROENGINE_URL}"
-		echo
-		line
+		# echo "Microengine at ${MICROENGINE_URL}"
+		# echo
+		# line
 		echo "Engine-api at ${ENGINE_API_URL}"
 		line
 		echo "To stop the images run stop.sh script"
@@ -69,7 +69,7 @@ echo "Ensuring we have the latest version of the images"
 echo
 
 docker pull entando/appbuilder
-docker pull entando/microengine
+# docker pull entando/microengine
 docker pull entando/engine-api
 
 # Start running the containers
@@ -78,14 +78,14 @@ echo "Start running the containers"
 echo
 echo "Starting appbuilder container"
 echo
-docker run -it --rm -d --name=appbuilder -p ${APPBUILDER_PORT}:5000 entando/appbuilder
+docker run -it --rm -d --name=appbuilder -p ${APPBUILDER_PORT}:3000 entando/appbuilder
 echo
 line
-echo "Starting microengine container"
-echo
-docker run -it --rm -d --name=microengine -p ${MICROENGINE_PORT}:5000 entando/microengine
-echo
-line
+# echo "Starting microengine container"
+# echo
+# docker run -it --rm -d --name=microengine -p ${MICROENGINE_PORT}:3000 entando/microengine
+# echo
+# line
 echo "Starting engine-api container"
 echo
 docker run -it --rm -d --name=engine-api -p ${ENGINE_PORT}:8080 entando/engine-api
