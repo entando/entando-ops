@@ -1,0 +1,6 @@
+#!/bin/bash
+if ! [ "$(ls -A /opt/eap/standalone/entando/)" ]; then
+  echo "New Entando instance detected. Copying Default Entando DB"
+  cp /opt/eap/standalone/entando-data-template/* /opt/eap/standalone/entando/ -rf
+fi
+exec $JBOSS_HOME/bin/openshift-launch.sh

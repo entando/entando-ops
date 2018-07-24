@@ -1,0 +1,6 @@
+#!/bin/bash
+if ! [ "$(ls -A /wildfly/standalone/entando/)" ]; then
+  echo "New Entando instance detected. Copying Default Entando DB"
+  cp /wildfly/standalone/entando-data-template/* /wildfly/standalone/entando/ -rf
+fi
+exec /wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0

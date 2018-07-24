@@ -1,0 +1,12 @@
+#!/bin/sh
+
+cat <<EOF
+This is an S2I Postgres 9.5 centos base image responsible for hosting the database for an Entando project
+and initializing its DB onto a local Postgres instance
+To use it, install S2I: https://github.com/openshift/source-to-image.
+
+Details:
+If a pom.xml is present in the source directory, the database is built with maven using the jetty plugin:
+mvn clean install jetty:run
+
+EOF

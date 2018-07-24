@@ -1,0 +1,15 @@
+#!/bin/bash
+if [ ! -d $HOME/data/userdata ]; then
+        echo "HOME information"
+        ls -al $HOME
+        whoami
+        groups
+        id
+        cp $HOME/data_template/* $HOME/data -rf
+fi
+$(dirname "$0")/start_pg_and_wait.sh
+if [ -n "$KIE_SERVER_URL" ]; then
+    $(dirname "$0")/set_pam_config.sh
+fi
+#keep the main thread busy TODO check if the fact that we do NOT run PG in the main thread could be problemetic
+tail -f pg_startup.log -n 0
