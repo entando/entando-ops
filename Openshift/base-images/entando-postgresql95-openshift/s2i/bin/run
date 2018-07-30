@@ -9,7 +9,8 @@ if [ ! -d $HOME/data/userdata ]; then
 fi
 $(dirname "$0")/start_pg_and_wait.sh
 if [ -n "$KIE_SERVER_URL" ]; then
-    $(dirname "$0")/set_pam_config.sh
+  echo "Please set the KIE_SERVER_URL on the Entando Server image instead"
+#    $(dirname "$0")/set_pam_config.sh we're dogin this from
 fi
 #keep the main thread busy TODO check if the fact that we do NOT run PG in the main thread could be problemetic
 tail -f pg_startup.log -n 0

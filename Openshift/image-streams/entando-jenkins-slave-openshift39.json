@@ -1,0 +1,37 @@
+{
+  "apiVersion": "v1",
+  "kind": "ImageStream",
+  "metadata": {
+    "annotations": {
+      "openshift.io/display-name": "Entando Jenkins Slave Builder Image"
+    },
+    "name": "entando-jenkins-slave-openshift39"
+  },
+  "spec": {
+    "tags": [
+      {
+        "annotations": {
+          "role": "jenkins-slave",
+          "slave-label":"entando-5.0.1",
+          "description": "Build Entando applications",
+          "openshift.io/display-name": "Entando Jenkins Slave Builder Image",
+          "openshift.io/provider-display-name": "Entando",
+          "sampleRepo": "https://github.com/ampie/entando-sample.git",
+          "supports": "maven,java",
+          "tags": "builder,java"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "172.30.1.1:5000/entando/entando-jenkins-slave-openshift39:5.0.1"
+        },
+        "importPolicy": {
+          "insecure": true
+        },
+        "name": "5.0.1",
+        "referencePolicy": {
+          "type": "Local"
+        }
+      }
+    ]
+  }
+}
