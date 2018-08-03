@@ -43,11 +43,18 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   # Add JVM default options
   export MAVEN_OPTS="${MAVEN_OPTS:-$(/opt/run-java/java-default-options)}"
   MAVEN_ARGS=${MAVEN_ARGS--e -Popenshift -DskipTests -Dcom.redhat.xpaas.repo.redhatga package}
-
+  # Entando: override filter properties
   # Use maven batch mode (CLOUD-579)
   # Always force IPv4 (CLOUD-188)
   # Append user-supplied arguments (CLOUD-412)
-  MAVEN_ARGS="$MAVEN_ARGS --batch-mode -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}"
+  MAVEN_ARGS="$MAVEN_ARGS --batch-mode \
+                -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
+                -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
+                -Dprofile.log.file.prefix=/entando-data/logs/log \
+                -Dprofile.resources.path=/entando-data/resources \
+                -Dprofile.resources.path.protected=/entando-data/protected \
+                -Dprofile.index.path=/entando-data/indexdir \
+                -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}"
 
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
   echo "Using MAVEN_OPTS '${MAVEN_OPTS}'"
@@ -91,7 +98,7 @@ fi
 # Copy (probably binary) artifacts from the deployments/
 # directory to the $JBOSS_HOME/standalone/deployments/
 # directory for later deployment
-copy_artifacts "$LOCAL_SOURCE_DIR/deployments" war ear rar jar
+copy_artifacts "$LOCAL_SOURCE_DIR/deployments" war # ear rar jar
 
 if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
   file_count=$(ls -1 $LOCAL_SOURCE_DIR/configuration | wc -l)

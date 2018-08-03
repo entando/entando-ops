@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-cp settings-entando.xml $HOME/.m2/settings.xml -f
+
+
+
 mvn archetype:generate -DgroupId=org.sample -DartifactId=sample \
   -DarchetypeGroupId=org.entando.entando -DarchetypeArtifactId=entando-archetype-webapp-generic -DarchetypeVersion=$1 \
-  -DinteractiveMode=false
+  -DinteractiveMode=false --settings settings.xml -Dmaven.repo.local=$HOME/.m2/repository
 cp pom-$1.xml sample/pom.xml -f
-cp filter-postgresql.properties sample/src/main/filters/filter-postgresql.properties
-cd sample
-mvn jetty:run -Ppostgresql 2>&1 > db_creation.log &
+cp -f *.properties sample/src/main/filters/
+pushd sample
+#reduce image size
+rm -rf $HOME/.m2/repository/*
+mvn jetty:run -Ppostgresql --settings ../settings.xml -Dmaven.repo.local=$HOME/.m2/repository  2>&1 > db_creation.log &
 jetty_pid=$!
 echo "jetty: $jetty_pid"
 for i in {1..900} ;
@@ -16,10 +20,11 @@ for i in {1..900} ;
     fi
     if fgrep --quiet "Started Jetty Server" db_creation.log; then
       echo "Jetty started" &&  kill $jetty_pid
-      cd ..  && rm sample -r
-      chmod -Rf ug+rw $HOME/.m2 && chown -Rf 26:root $HOME/.m2
+      popd
+      rm -rf sample
       find $HOME/.m2 -name "_remote.repositories" -type f -delete
-      cp settings-secure.xml $HOME/.m2/settings.xml -f
+      find $HOME/.m2 -name "*.lastUpdated" -type f -delete
+      chmod -Rf ug+rw $HOME/.m2 && chown -Rf 26:root $HOME/.m2
       exit 0
     fi;
 done;

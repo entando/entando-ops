@@ -59,9 +59,7 @@
             </resource>
         </resources>
         <filters>
-            <filter>src/main/filters/stage/${stage}.properties</filter>
-            <filter>src/main/filters/server/${server}.properties</filter>
-            <filter>src/main/filters/database/${database}.properties</filter>
+            <filter>src/main/filters/wildfly.properties</filter>
         </filters>
         <plugins>
             <plugin>

@@ -31,7 +31,21 @@ configure_mirrors
 if [ -d  $LOCAL_SOURCE_DIR/src/main/db/tar ] && ! [ -d  $LOCAL_SOURCE_DIR/src/main/webapp/protected/databaseBackups/develop/portDataSource ]; then
     ant PG-db-full-update-tar -Dpostgres.bin.path=/opt/rh/rh-postgresql95/root/usr/bin/
 else
-    mvn_command="mvn jetty:run -Popenshift-postgresql $MAVEN_ARGS_APPEND -Dprofile.database.password=$POSTGRESQL_PASSWORD"
+    mvn_command="mvn jetty:run --settings $HOME/.m2/settings.xml $MAVEN_ARGS_APPEND \
+    -Dmaven.repo.local=$HOME/.m2/repository \
+    -Dprofile.database.username=${POSTGRESQL_USER} \
+    -Dprofile.database.password=${POSTGRESQL_PASSWORD} \
+    -Dprofile.database.url.portdb=jdbc:postgresql://localhost:5432/${POSTGRESQL_DATABASE} \
+    -Dprofile.database.url.servdb=jdbc:postgresql://localhost:5432/${POSTGRESQL_DATABASE2} \
+    -Dprofile.database.driverClassName=org.postgresql.Driver \
+    -Dprofile.database.hostname=localhost \
+    -Dprofile.database.port=5432 \
+    -Dprofile.resources.path=./src/main/webapp/resources \
+    -Dprofile.resources.path.protected=./src/main/webapp/protected \
+    -Dprofile.index.path=./target/temp/indexdir \
+    -Dprofile.log.file.prefix=./target/build_log \
+    -DjettyScannedJars=none \
+    "
     echo "executing $mvn_command "
     log=db_creation.log
     $mvn_command 2>&1 | tee "$log" &

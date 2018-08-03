@@ -19,27 +19,23 @@ RUN INSTALL_PKGS="ant tar curl java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
   mkdir -p /var/lib/pgsql/.m2 && chmod ug+rw /var/lib/pgsql/.m2 && chown 26:root /var/lib/pgsql/.m2
 
 #stay in root to ensure chmod works
-#COPY ./contrib/maven-setup /tmp/maven-setup
-#RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf 26:root /tmp/maven-setup
+COPY ./contrib/maven-setup /tmp/maven-setup
+RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf 26:root /tmp/maven-setup
+
 #The user 'postgres' is 26, and openshift requires the numeric:
 #Run all of this as postgres as this will be the user under which the S2I build takes place
-#USER 26
-#WORKDIR /tmp/maven-setup/
-#RUN ./prepare_m2_repo.sh $ENTANDO_VERSION
-#WORKDIR $HOME
-#Add Maven Settings
-COPY contrib/maven-setup/settings-secure.xml /var/lib/pgsql/.m2/settings.xml
-RUN  chmod ug+rw /var/lib/pgsql/.m2 && chown 26:root /var/lib/pgsql/.m2
+USER 26
+RUN cd /tmp/maven-setup/ && ./prepare_m2_repo.sh $ENTANDO_VERSION
 
 #use root to ensure chmod works
-#USER root
-#Add scripts
-
+USER root
 COPY ./contrib/common.sh /usr/share/container-scripts/postgresql/common.sh
-RUN chmod -Rf ug+rw /usr/share/container-scripts/postgresql/common.sh && chown -Rf postgres:root /usr/share/container-scripts/postgresql/common.sh
+COPY ./contrib/settings.xml $HOME/.m2/settings.xml
 COPY ./s2i/bin/ $STI_SCRIPTS_PATH
-RUN chmod -Rf ug+rxw $STI_SCRIPTS_PATH && chown -Rf postgres:root $STI_SCRIPTS_PATH
-RUN mkdir -p /opt/s2i/destination && chmod -R ug+rw /opt/s2i/destination && chown -R postgres:root /opt/s2i/destination
+RUN chmod -Rf ug+rw $HOME/.m2/settings.xml && chown -Rf postgres:root $HOME/.m2/settings.xml && \
+    chmod -Rf ug+rw /usr/share/container-scripts/postgresql/common.sh && chown -Rf postgres:root /usr/share/container-scripts/postgresql/common.sh && \
+    chmod -Rf ug+rxw $STI_SCRIPTS_PATH && chown -Rf 26:root $STI_SCRIPTS_PATH && \
+    mkdir -p /opt/s2i/destination && chmod -R ug+rw /opt/s2i/destination && chown -R 26:root /opt/s2i/destination
 
 #And end by making the user postgres again
 USER 26

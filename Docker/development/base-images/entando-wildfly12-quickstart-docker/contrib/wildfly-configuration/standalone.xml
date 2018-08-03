@@ -143,22 +143,22 @@
             <password>sa</password>
           </security>
         </datasource>
-        <datasource jndi-name="java:jboss/datasources/entandoPortDataSource" enabled="true" use-java-context="true" pool-name="entandoDbPortDataSource" use-ccm="true">
-                    <connection-url>jdbc:derby:/entando-data/databases/entandoPort;create=false</connection-url>
-                    <driver>derby</driver>
-                    <security>
-                      <user-name>agile</user-name>
-                      <password>agile</password>
-                    </security>
-                </datasource>
-                <datasource jndi-name="java:jboss/datasources/entandoServDataSource" enabled="true" use-java-context="true" pool-name="entandoDbServDataSource" use-ccm="true">
-                  <connection-url>jdbc:derby:/entando-data/databases/entandoServ;create=false</connection-url>
-                    <driver>derby</driver>
-                    <security>
-                      <user-name>agile</user-name>
-                      <password>agile</password>
-                    </security>
-                </datasource>
+        <datasource jndi-name="${env.PORTDB_JNDI}" enabled="true" use-java-context="true" pool-name="entandoDbPortDataSource" use-ccm="true">
+          <connection-url>${env.PORTDB_URL}</connection-url>
+          <driver>${env.PORTDB_DRIVER}</driver>
+          <security>
+            <user-name>${env.PORTDB_USERNAME}</user-name>
+            <password>${env.PORTDB_PASSWORD}</password>
+          </security>
+        </datasource>
+        <datasource jndi-name="${env.SERVDB_JNDI}" enabled="true" use-java-context="true" pool-name="entandoDbServDataSource" use-ccm="true">
+          <connection-url>${env.SERVDB_URL}</connection-url>
+          <driver>${env.SERVDB_DRIVER}</driver>
+          <security>
+            <user-name>${env.SERVDB_USERNAME}</user-name>
+            <password>${env.SERVDB_PASSWORD}</password>
+          </security>
+        </datasource>
         <drivers>
           <driver name="h2" module="com.h2database.h2">
             <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>

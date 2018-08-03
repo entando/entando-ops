@@ -184,7 +184,7 @@ objects:
       dockerfile: |-
          FROM 172.30.1.1:5000/entando/entando-eap71-quickstart-openshift:5.0.1
          COPY ${APPLICATION_NAME}.war  /opt/eap/standalone/deployments/${APPLICATION_NAME}.war
-         CMD "/usr/libexec/s2i/run"
+         CMD "/usr/local/s2i/run"
       binary:
         asFile: "${APPLICATION_NAME}.war"
     output:
@@ -264,8 +264,8 @@ objects:
             containerPort: 8080
             protocol: TCP
           volumeMounts:
-          - mountPath: "/opt/eap/standalone/entando"
-            name: "${APPLICATION_NAME}-derby-pvol"
+          - mountPath: "/entando-data"
+            name: "${APPLICATION_NAME}-entando-pvol"
           env:
           - name: KIE_SERVER_BASE_URL
             value: "${KIE_SERVER_BASE_URL}"
@@ -278,9 +278,9 @@ objects:
               fieldRef:
                 fieldPath: status.podIP
         volumes:
-        - name: "${APPLICATION_NAME}-derby-pvol"
+        - name: "${APPLICATION_NAME}-entando-pvol"
           persistentVolumeClaim:
-            claimName: "${APPLICATION_NAME}-derby-claim"
+            claimName: "${APPLICATION_NAME}-entando-claim"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -335,7 +335,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: "${APPLICATION_NAME}-derby-claim"
+    name: "${APPLICATION_NAME}-entando-claim"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -344,28 +344,3 @@ objects:
     resources:
       requests:
         storage: "${VOLUME_CAPACITY}"
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    annotations:
-      openshift.io/display-name: Entando Jenkins Slave Builder Image
-    name: entando-jenkins-slave-openshift39
-  spec:
-    tags:
-    - annotations:
-        role: jenkins-slave
-        slave-label: entando-5.0.1
-        description: Build Entando applications
-        openshift.io/display-name: Entando Jenkins Slave Builder Image
-        openshift.io/provider-display-name: Entando
-        sampleRepo: https://github.com/ampie/entando-sample.git
-        supports: maven,java
-        tags: builder,java
-      from:
-        kind: DockerImage
-        name: 172.30.1.1:5000/entando/entando-jenkins-slave-openshift39:5.0.1
-      importPolicy:
-        insecure: true
-      name: 5.0.1
-      referencePolicy:
-        type: Local
