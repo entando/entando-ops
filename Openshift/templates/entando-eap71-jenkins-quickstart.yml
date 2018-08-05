@@ -13,9 +13,9 @@ metadata:
       to develop Entando applications based on EAP 7.1.
     template.openshift.io/documentation-url: https://central.entando.com/
     template.openshift.io/support-url: https://central.entando.com
-  name: entando-eap71-jenkins-quickstart
+  name: entando-eap-quickstart
 labels:
-  template: entando-eap71-jenkins-quickstart
+  template: entando-eap-quickstart
 message: A new Entando EAP 7.1 has been created in your project.
 parameters:
 - displayName: Application Name
@@ -203,12 +203,20 @@ objects:
           node("entando-5.0.1") {
             sh """git clone --branch ${SOURCE_REPOSITORY_REF} ${SOURCE_REPOSITORY_URL} .
                   #cd ${CONTEXT_DIR}
-                  mvn -Popenshift package
+                  mvn -Popenshift package --settings $HOME/.m2/settings.xml \
+                    -Dmaven.repo.local=$HOME/.m2/repository \
+                    -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
+                    -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
+                    -Dprofile.log.file.prefix=/entando-data/logs/log \
+                    -Dprofile.resources.path=/entando-data/resources \
+                    -Dprofile.resources.path.protected=/entando-data/protected \
+                    -Dprofile.index.path=/entando-data/indexdir
                   oc start-build -F ${APPLICATION_NAME}-docker-build --from-file=target/${APPLICATION_NAME}.war
                """
           }
     triggers:
     - type: ConfigChange
+
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -332,6 +340,29 @@ objects:
         dnsPolicy: ClusterFirst
         securityContext: {}
         schedulerName: default-scheduler
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/display-name: Entando EAP Quickstart Image
+    name: entando-eap71-quickstart-openshift
+  spec:
+    tags:
+    - annotations:
+        description: Build and host Entando EAP applications on JBoss EAP
+        openshift.io/display-name: Entando EAP Quickstart Image
+        openshift.io/provider-display-name: Entando
+        sampleRepo: https://github.com/ampie/entando-sample.git
+        supports: maven,jee, java
+        tags: builder,java,jee
+      from:
+        kind: DockerImage
+        name: 172.30.1.1:5000/entando/entando-eap71-quickstart-openshift:5.0.1
+      importPolicy:
+        insecure: true
+      name: latest
+      referencePolicy:
+        type: Local
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
