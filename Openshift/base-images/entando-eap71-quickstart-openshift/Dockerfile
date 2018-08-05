@@ -29,7 +29,8 @@ RUN mkdir /entando-database-templates/ && \
     chown -Rf 185:0 /entando-database-templates/  && chmod -Rf ug+rw /entando-database-templates/ && \
     chown -Rf 185:0 /usr/local/s2i  && chmod -Rf ug+rwx /usr/local/s2i && \
     chown 185:0 /opt/eap/standalone/configuration/standalone-openshift.xml && chmod ug+rw /opt/eap/standalone/configuration/standalone-openshift.xml && \
-    chown -Rf 185:0 /opt/eap/modules/org/apache/derby && chmod -Rf ug+rw /opt/eap/modules/org/apache/derby
+    chown -Rf 185:0 /opt/eap/modules/org/apache/derby && chmod -Rf ug+rw /opt/eap/modules/org/apache/derby && \
+    chown -Rf 185:0 /entando-database-templates && chmod -Rf ug+rw /entando-database-templates
 USER 185
 
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
