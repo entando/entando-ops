@@ -1,3 +1,4 @@
+#Legacy file - may not ever be used again
 DELETE_SQL="DELETE FROM sysconfig WHERE version='production' AND item='jpkiebpm_config';"
 for i in {1..20}
 do

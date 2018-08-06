@@ -134,30 +134,7 @@
     <subsystem xmlns="urn:jboss:domain:bean-validation:1.0"/>
     <subsystem xmlns="urn:jboss:domain:datasources:5.0">
       <datasources>
-        <datasource jndi-name="java:jboss/datasources/ExampleDS" pool-name="ExampleDS" enabled="true" use-java-context="true">
-          <connection-url>jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE</connection-url>
-          <driver>h2</driver>
-          <security>
-            <user-name>sa</user-name>
-            <password>sa</password>
-          </security>
-        </datasource>
-        <datasource jndi-name="java:jboss/datasources/entandoPortDataSource" enabled="true" use-java-context="true" pool-name="entandoDbPortDataSource" use-ccm="true">
-                    <connection-url>jdbc:derby:/opt/eap/standalone/entando/entandoPort;create=false</connection-url>
-                    <driver>derby</driver>
-                    <security>
-                      <user-name>agile</user-name>
-                      <password>agile</password>
-                    </security>
-                </datasource>
-                <datasource jndi-name="java:jboss/datasources/entandoServDataSource" enabled="true" use-java-context="true" pool-name="entandoDbServDataSource" use-ccm="true">
-                  <connection-url>jdbc:derby:/opt/eap/standalone/entando/entandoServ;create=false</connection-url>
-                    <driver>derby</driver>
-                    <security>
-                      <user-name>agile</user-name>
-                      <password>agile</password>
-                    </security>
-                </datasource>
+          <!-- ##DATASOURCES## -->
         <drivers>
           <driver name="h2" module="com.h2database.h2">
             <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>

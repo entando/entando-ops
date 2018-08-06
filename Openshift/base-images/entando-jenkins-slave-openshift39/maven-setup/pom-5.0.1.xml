@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.sample</groupId>
-    <artifactId>sample${fabric8.suffix}</artifactId>
+    <artifactId>sample</artifactId>
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
     <name>sample</name>
@@ -55,6 +55,19 @@
                 <env.db.environment>production</env.db.environment>
             </properties>
         </profile>
+        <profile>
+            <id>development-windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <env>development-windows</env>
+                <env.db.environment>develop</env.db.environment>
+            </properties>
+        </profile>
+
         <!-- Added for jboss -->
         <profile>
             <id>production-jboss</id>
@@ -72,6 +85,22 @@
         </profile>
 
         <profile>
+            <id>openshift</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <read.properties.phase>process-resources</read.properties.phase>
+                <env>openshift</env>
+                <env.db.environment>production</env.db.environment>
+                <jboss>jboss</jboss>
+            </properties>
+            <build>
+                <plugins>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
             <id>postgresql</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
@@ -79,15 +108,36 @@
 
             <properties>
                 <read.properties.phase>process-resources</read.properties.phase>
-                <fabric8.suffix>-db</fabric8.suffix>
                 <env>postgresql</env>
                 <env.db.environment>production</env.db.environment>
                 <jboss></jboss>
             </properties>
+            <build>
+                <plugins>
+                </plugins>
+            </build>
         </profile>
 
     </profiles>
     <properties>
+        <!--
+        <test.database.driver>org.postgresql.Driver</test.database.driver>
+        <test.database.hostname>localhost</test.database.hostname>
+        <test.database.port>5432</test.database.port>
+        <test.database.username>agile</test.database.username>
+        <test.database.password>agile</test.database.password>
+        <test.database.port.url>jdbc:postgresql://${test.database.hostname}:${test.database.port}/${project.artifactId}testPort</test.database.port.url>
+        <test.database.serv.url>jdbc:postgresql://${test.database.hostname}:${test.database.port}/${project.artifactId}testServ</test.database.serv.url>
+        -->
+        <!--
+        <test.database.driver>com.mysql.jdbc.Driver</test.database.driver>
+        <test.database.hostname>localhost</test.database.hostname>
+        <test.database.port>3306</test.database.port>
+        <test.database.username>root</test.database.username>
+        <test.database.password>agile</test.database.password>
+        <test.database.port.url>jdbc:mysql://${test.database.hostname}:${test.database.port}/${project.artifactId}testPort</test.database.port.url>
+        <test.database.serv.url>jdbc:mysql://${test.database.hostname}:${test.database.port}/${project.artifactId}testServ</test.database.serv.url>
+        -->
         <test.database.driver>org.apache.derby.jdbc.EmbeddedDriver</test.database.driver>
         <test.database.hostname>localhost</test.database.hostname>
         <test.database.port>1527</test.database.port>
@@ -102,8 +152,6 @@
         <spring.version>5.0.5.RELEASE</spring.version>
         <struts2.version>2.5.10.1</struts2.version>
         <cxf.version>3.0.4</cxf.version>
-        <maven.mirror.url>http://nexus-openshift.192.168.42.8.nip.io/repository/maven-public/</maven.mirror.url>
-        <fabric8.suffix></fabric8.suffix>
         <read.properties.phase>none</read.properties.phase>
 
     </properties>
@@ -133,6 +181,24 @@
             <filter>src/main/filters/filter-${env}.properties</filter>
         </filters>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <executions>
+                    <execution>
+                        <phase>${read.properties.phase}</phase><!--Because there is a bug in the plugin that fails with circular property definition in other profiles-->
+                        <goals>
+                            <goal>read-project-properties</goal>
+                        </goals>
+                        <configuration>
+                            <files>
+                                <file>src/main/filters/filter-${env}.properties</file>
+                            </files>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -201,6 +267,29 @@
                             <includes>WEB-INF/aps/jsp/internalservlet/api/**/*.jsp</includes>
                         </configuration>
                     </execution>
+                    <!--					<execution>
+                            <id>unpack-dependencies-bootstrap</id>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                    <goal>unpack</goal>
+                            </goals>
+                            <configuration>
+                                    <verbose>true</verbose>
+                                    <overWriteReleases>false</overWriteReleases>
+                                    <overWriteSnapshots>false</overWriteSnapshots>
+                                    <overWriteIfNewer>false</overWriteIfNewer>
+                                    <artifactItems>
+                                            <artifactItem>
+                                                    <groupId>org.entando.entando.bundles.misc</groupId>
+                                                    <artifactId>entando-misc-bootstrap</artifactId>
+                                                    <type>war</type>
+                                                    <outputDirectory>${project.build.directory}/entando-misc-bootstrap</outputDirectory>
+                                                    <overWrite>false</overWrite>
+                                            </artifactItem>
+                                    </artifactItems>
+                                    <includes>resources/static/entando-misc-bootstrap/bootstrap/bootstrap/**</includes>
+                            </configuration>
+                    </execution>-->
                 </executions>
             </plugin>
             <plugin>
@@ -431,6 +520,28 @@
                             </resources>
                         </configuration>
                     </execution>
+                    <!--
+                              <execution>
+                                  <id>lesscss-include-in-pagemodels</id>
+                                  <phase>process-resources</phase>
+                                  <goals>
+                                      <goal>copy-resources</goal>
+                                  </goals>
+                                  <configuration>
+                                      <outputDirectory>${project.basedir}/src/main/webapp/WEB-INF/aps/jsp/models/inc/lesscss-active</outputDirectory>
+                                      <encoding>UTF-8</encoding>
+                                      <overwrite>true</overwrite>
+                                      <resources>
+                                          <resource>
+                                              <directory>${project.basedir}/src/main/webapp/WEB-INF/aps/jsp/models/inc/lesscss-available/${env}</directory>
+                                              <includes>
+                                                  <include>lesscss.jsp</include>
+                                              </includes>
+                                          </resource>
+                                      </resources>
+                                  </configuration>
+                              </execution>
+                    -->
                 </executions>
             </plugin>
             <plugin>
@@ -521,6 +632,14 @@
                         <artifactId>postgresql</artifactId>
                         <version>9.1-901.jdbc4</version>
                     </dependency>
+                    <!-- uncomment if you need -->
+                    <!--
+                    <dependency>
+                            <groupId>mysql</groupId>
+                            <artifactId>mysql-connector-java</artifactId>
+                            <version>5.1.18</version>
+                    </dependency>
+                    -->
                     <dependency>
                         <groupId>org.apache.derby</groupId>
                         <artifactId>derby</artifactId>

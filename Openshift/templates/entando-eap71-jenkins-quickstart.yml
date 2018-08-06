@@ -13,9 +13,9 @@ metadata:
       to develop Entando applications based on EAP 7.1.
     template.openshift.io/documentation-url: https://central.entando.com/
     template.openshift.io/support-url: https://central.entando.com
-  name: entando-eap-quickstart
+  name: entando-eap71-jenkins-quickstart
 labels:
-  template: entando-eap-quickstart
+  template: entando-eap71-jenkins-quickstart
 message: A new Entando EAP 7.1 has been created in your project.
 parameters:
 - displayName: Application Name
@@ -173,45 +173,41 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-s2i"
+    name: "${APPLICATION_NAME}-docker-build"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
-    source:
-      type: Git
-      git:
-        uri: "${SOURCE_REPOSITORY_URL}"
-        ref: "${SOURCE_REPOSITORY_REF}"
-      contextDir: "${CONTEXT_DIR}"
     strategy:
-      type: Source
-      sourceStrategy:
-        env:
-        - name: MAVEN_MIRROR_URL
-          value: "${MAVEN_MIRROR_URL}"
-        - name: MAVEN_ARGS_APPEND
-          value: "${MAVEN_ARGS_APPEND}"
-        - name: ARTIFACT_DIR
-          value: "${ARTIFACT_DIR}"
-        forcePull: false
-        from:
-          kind: ImageStreamTag
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:latest
-        incremental: false
+      type: Docker
+    source:
+      type: Docker
+      dockerfile: |-
+         FROM 172.30.1.1:5000/entando/entando-eap71-quickstart-openshift:5.0.1
+         COPY ${APPLICATION_NAME}.war  /opt/eap/standalone/deployments/${APPLICATION_NAME}.war
+         CMD "/usr/local/s2i/run"
+      binary:
+        asFile: "${APPLICATION_NAME}.war"
     output:
       to:
         kind: ImageStreamTag
         name: "${APPLICATION_NAME}:latest"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-jenkins-pipeline"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          node("entando-5.0.1") {
+            sh """git clone --branch ${SOURCE_REPOSITORY_REF} ${SOURCE_REPOSITORY_URL} .
+                  #cd ${CONTEXT_DIR}
+                  mvn -Popenshift package
+                  oc start-build -F ${APPLICATION_NAME}-docker-build --from-file=target/${APPLICATION_NAME}.war
+               """
+          }
     triggers:
-    - type: GitHub
-      github:
-        secret: "${GITHUB_WEBHOOK_SECRET}"
-    - type: Generic
-      generic:
-        secret: "${GENERIC_WEBHOOK_SECRET}"
-    - type: ImageChange
-      imageChange: {}
     - type: ConfigChange
 - kind: DeploymentConfig
   apiVersion: v1
@@ -336,29 +332,6 @@ objects:
         dnsPolicy: ClusterFirst
         securityContext: {}
         schedulerName: default-scheduler
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    annotations:
-      openshift.io/display-name: Entando EAP Quickstart Image
-    name: entando-eap71-quickstart-openshift
-  spec:
-    tags:
-    - annotations:
-        description: Build and host Entando EAP applications on JBoss EAP
-        openshift.io/display-name: Entando EAP Quickstart Image
-        openshift.io/provider-display-name: Entando
-        sampleRepo: https://github.com/ampie/entando-sample.git
-        supports: maven,jee, java
-        tags: builder,java,jee
-      from:
-        kind: DockerImage
-        name: 172.30.1.1:5000/entando/entando-eap71-quickstart-openshift:5.0.1
-      importPolicy:
-        insecure: true
-      name: latest
-      referencePolicy:
-        type: Local
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
