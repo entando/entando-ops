@@ -6,7 +6,8 @@ FROM openshift/wildfly-120-centos7:latest
 LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando quickstart applications on WildFly 12.0.0.Final" \
       io.k8s.display-name="Entando on WildFly 12.0.0.Final"
-ENV ENTANDO_VERSION="5.0.1-SNAPSHOT"
+ARG ENTANDO_VERSION
+ENV ENTANDO_VERSION="$ENTANDO_VERSION"
 USER root
 COPY ./contrib/wfmodules/ /wildfly/modules
 COPY ./contrib/wildfly-configuration/standalone.xml /wildfly/standalone/configuration/standalone.xml
