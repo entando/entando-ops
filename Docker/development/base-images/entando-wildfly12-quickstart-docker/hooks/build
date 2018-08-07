@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "CACHE_TAG=$CACHE_TAG"
-if [ -n ${CACHE_TAG} ];
+if [ -n ${CACHE_TAG} ]; then
     docker build --build-arg ENTANDO_VERSION_TO_BUILD=$CACHE_TAG -f $DOCKERFILE_PATH -t $IMAGE_NAME .
 else
     echo "CACHE_TAG NOT SET!!!!"
