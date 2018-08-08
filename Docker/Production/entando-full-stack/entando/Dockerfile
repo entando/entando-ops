@@ -1,11 +1,12 @@
-FROM entando/entando-wildfly12-quickstart-docker
+ARG ENTANDO_VERSION_TO_BUILD
+FROM entando/entando-wildfly12-quickstart-docker:$ENTANDO_VERSION_TO_BUILD
 
 COPY settings.xml /tmp/settings.xml
 RUN cd /tmp && mvn archetype:generate -B --settings settings.xml\
         -Dfilter=entando \
         -DarchetypeGroupId=org.entando.entando \
         -DarchetypeArtifactId=entando-archetype-web-app-BPM \
-        -DarchetypeVersion="5.0.1" \
+        -DarchetypeVersion="${ENTANDO_VERSION}" \
         -DgroupId=org.entando \
         -DartifactId=entando \
         -Dversion=1.0 \
