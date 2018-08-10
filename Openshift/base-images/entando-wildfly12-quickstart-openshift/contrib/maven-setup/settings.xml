@@ -3,18 +3,18 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
- <mirrors>
-   <!-- ### configured mirrors ### -->
-   <mirror>
-     <id>mirror.default</id>
-     <mirrorOf>*</mirrorOf>
-     <name>An internal openshift mirror</name>
-     <url>http://nexus-openshift.192.168.42.117.nip.io/repository/maven-public/</url>
-   </mirror>
- </mirrors>
+  <mirrors>
+    <!-- ### configured mirrors ### -->
+    <mirror>
+    <id>mirror.default</id>
+    <mirrorOf>*</mirrorOf>
+    <name>An internal openshift mirror</name>
+    <url>http://nexus-openshift.192.168.42.118.nip.io/repository/maven-public/</url>
+    </mirror>
+  </mirrors>
 
- <proxies>
-   <!-- ### configured http proxy ### -->
+  <proxies>
+    <!-- ### configured http proxy ### -->
   </proxies>
 
   <profiles>
@@ -208,27 +208,15 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <repositories>
-        <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Gets removed from Dockerfile-->
-        <!--<repository>-->
-          <!--<id>entando-snapshots</id>-->
-          <!--<url>http://repository.entando.org/repository/maven-snapshots/</url>-->
-          <!--<layout>default</layout>-->
-          <!--<releases>-->
-            <!--<enabled>false</enabled>-->
-          <!--</releases>-->
-          <!--<snapshots>-->
-            <!--<enabled>true</enabled>-->
-          <!--</snapshots>-->
-        <!--</repository>-->
         <repository>
-          <id>entando-releases</id>
-          <url>http://repository.entando.org/repository/maven-releases/</url>
-          <layout>default</layout>
+          <id>snapshots-repo</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
           <releases>
-            <enabled>true</enabled>
+            <enabled>false</enabled>
           </releases>
           <snapshots>
-            <enabled>false</enabled>
+            <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
           </snapshots>
         </repository>
       </repositories>

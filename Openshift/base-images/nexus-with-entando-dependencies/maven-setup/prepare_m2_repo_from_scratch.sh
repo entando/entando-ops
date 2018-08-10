@@ -14,12 +14,28 @@ done;
 popd
 cp settings.xml $HOME/.m2/settings.xml -f
 
+git clone --branch v$1-ampie https://github.com/ampie/entando-core.git
+pushd entando-core
+mvn clean deploy -DskipTests -Dmaven-repository-url-release=http://localhost:8081/repository/maven-releases
+popd
+
+git clone --branch v$1-ampie https://github.com/ampie/entando-components.git
+pushd entando-components
+mvn clean deploy -DskipTests -Dmaven-repository-url-release=http://localhost:8081/repository/maven-releases
+popd
+
+git clone --branch v$1-ampie https://github.com/ampie/entando-archetypes.git
+pushd entando-archetypes
+mvn clean deploy -DskipTests
+popd
+
 mvn archetype:generate -DgroupId=org.sample -DartifactId=sample \
-  -DarchetypeGroupId=org.entando.entando -DarchetypeArtifactId=entando-archetype-web-app-BPM -DarchetypeVersion=$1 \
+  -DarchetypeGroupId=org.entando.entando -DarchetypeArtifactId=entando-archetype-webapp-generic -DarchetypeVersion=$1 \
   -DinteractiveMode=false
-#cp filter-openshift.properties sample/src/main/filters/filter-openshift.properties
+cp pom-$1.xml sample/pom.xml -f
+cp filter-openshift.properties sample/src/main/filters/filter-openshift.properties
 pushd sample
-mvn package jetty:run 2>&1 > db_creation.log &
+mvn package jetty:run -Popenshift  2>&1 > db_creation.log &
 jetty_pid=$!
 echo "jetty: $jetty_pid"
 for i in {1..900} ;

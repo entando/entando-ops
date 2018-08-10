@@ -1,5 +1,5 @@
 FROM sonatype/nexus3:3.12.1
-ENV MAVEN_VERSION="3.5.3" \
+ENV MAVEN_VERSION="3.5.4" \
     ENTANDO_VERSION="5.0.1"
 
 MAINTAINER Ampie Barnard "<a.barnard@entando.com>"
@@ -31,10 +31,10 @@ RUN mkdir /nexus-data-template && chmod -Rf ug+rw /nexus-data-template && chown 
 #Prepare the Maven repo as 200
 USER 200
 WORKDIR /tmp/maven-setup/
-RUN ./prepare_m2_repo.sh $ENTANDO_VERSION
+#RUN ./prepare_m2_repo.sh  5.0.1-SNAPSHOT && ./prepare_m2_repo.sh 5.1.0-SNAPSHOT
 WORKDIR /opt/sonatype/nexus/
 
-CMD ["./start.sh"]
+#CMD ["./start.sh"]
 USER root
 COPY start.sh /opt/sonatype/nexus/
 RUN chmod ug+x /opt/sonatype/nexus/start.sh && chown 200:root /opt/sonatype/nexus/start.sh
