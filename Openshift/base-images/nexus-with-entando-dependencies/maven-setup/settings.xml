@@ -19,7 +19,7 @@
    <!-- ### configured mirrors ### -->
    <mirror>
      <id>mirror.default</id>
-     <mirrorOf>*</mirrorOf>
+     <mirrorOf>central</mirrorOf>
      <name>An internal openshift mirror</name>
      <url>http://localhost:8081/repository/maven-public/</url>
    </mirror>
@@ -222,27 +222,16 @@
       <repositories>
         <!--development workaround to get snapshots. NOT FOR RELEASE TO CUSTOMERS!!!. Gets removed from Dockerfile-->
         <repository>
-          <id>entando-snapshots</id>
-          <url>http://repository.entando.org/repository/maven-snapshots/</url>
-          <layout>default</layout>
+          <id>snapshots-repo</id>
+          <url>https://oss.sonatype.org/content/repositories/snapshots</url>
           <releases>
             <enabled>false</enabled>
           </releases>
           <snapshots>
             <enabled>true</enabled>
+            <updatePolicy>never</updatePolicy>
           </snapshots>
         </repository>
-        <!--<repository>-->
-          <!--<id>entando-releases</id>-->
-          <!--<url>http://repository.entando.org/repository/maven-releases/</url>-->
-          <!--<layout>default</layout>-->
-          <!--<releases>-->
-            <!--<enabled>true</enabled>-->
-          <!--</releases>-->
-          <!--<snapshots>-->
-            <!--<enabled>false</enabled>-->
-          <!--</snapshots>-->
-        <!--</repository>-->
       </repositories>
     </profile>
   </profiles>

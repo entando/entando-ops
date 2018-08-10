@@ -20,12 +20,33 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "172.30.1.1:5000/entando/entando-wildfly12-quickstart-openshift:5.0.1"
+          "name": "docker.io/entando/entando-wildfly12-quickstart-openshift:5.0.1-SNAPSHOT"
         },
         "importPolicy": {
           "insecure": true
         },
         "name": "latest",
+        "referencePolicy": {
+          "type": "Source"
+        }
+      }
+      {
+        "annotations": {
+          "description": "Build and run Entando applications on Wildfly 12/CentOS 7. ",
+          "openshift.io/display-name": "Entando EAP",
+          "openshift.io/provider-display-name": "Entando",
+          "sampleRepo": "https://github.com/ampie/entando-sample.git",
+          "supports": "jee,java",
+          "tags": "builder,wildfly,java"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-wildfly12-quickstart-openshift:5.1.0-SNAPSHOT"
+        },
+        "importPolicy": {
+          "insecure": true
+        },
+        "name": "5.1.0-SNAPSHOT",
         "referencePolicy": {
           "type": "Source"
         }

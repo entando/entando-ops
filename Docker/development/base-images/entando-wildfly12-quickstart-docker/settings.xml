@@ -7,7 +7,7 @@
         <!-- ### configured mirrors ### -->
         <mirror>
         <id>mirror.default</id>
-        <mirrorOf>*</mirrorOf>
+        <mirrorOf>central</mirrorOf>
         <name>An internal openshift mirror</name>
         <url>http://nexus-openshift.192.168.42.118.nip.io/repository/maven-public/</url>
         </mirror>
@@ -210,7 +210,7 @@
             <repositories>
                 <repository>
                     <id>snapshots-repo</id>
-                    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+                    <url>https://repository.entando.org/repository/maven-snapshots/</url>
                     <releases>
                         <enabled>false</enabled>
                     </releases>
