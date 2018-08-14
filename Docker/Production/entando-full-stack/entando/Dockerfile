@@ -1,6 +1,6 @@
 ARG ENTANDO_VERSION_TO_BUILD
 #FROM entando/entando-wildfly12-quickstart-docker:5.0.1-SNAPSHOT
-FROM entando/entando-wildfly12-quickstart-docker:$ENTANDO_VERSION_TO_BUILD
+FROM entando/entando-wildfly12-base:$ENTANDO_VERSION_TO_BUILD
 
 COPY settings.xml /tmp/settings.xml
 RUN cd /tmp && mvn archetype:generate -B --settings settings.xml\

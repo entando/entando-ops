@@ -1,0 +1,7 @@
+#!/bin/bash
+MASTER_VERSION=$(cat $(dirname $BASH_SOURCE)/master-version)
+#If we are building from master, tag as latest
+if [ "$DOCKER_TAG" = "$MASTER_VERSION" ]; then
+    docker tag $IMAGE_NAME $DOCKER_REPO:latest
+    docker push $DOCKER_REPO:latest
+fi
