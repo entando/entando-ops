@@ -1,8 +1,7 @@
 #!/bin/bash
 MASTER_VERSION=$(cat $(dirname $BASH_SOURCE)/master-version)
 if [ -n "${DOCKER_TAG}" ]; then
-    ENTANDO_VERSION=${DOCKER_TAG%-*}
-    if [ "$ENTANDO_VERSION" = "$MASTER_VERSION" ]; then
+    if [ "$DOCKER_TAG" = "$MASTER_VERSION" ]; then
         APP_BUILDER_BRANCH="master"
         ENTANDO_COMPONENTS_BRANCH="master"
     else
@@ -11,6 +10,7 @@ if [ -n "${DOCKER_TAG}" ]; then
         else
             BRANCH_SUFFIX="release"
         fi
+        ENTANDO_VERSION=${DOCKER_TAG%-*}
         APP_BUILDER_BRANCH="v${ENTANDO_VERSION}-release"
         ENTANDO_COMPONENTS_BRANCH="v${ENTANDO_VERSION}-${BRANCH_SUFFIX}"
     fi

@@ -1,17 +1,11 @@
-#!/bin/bashe
+#!/bin/bash
 echo "BASH_SOURCE=$BASH_SOURCE"
 MASTER_VERSION=$(cat $(dirname $BASH_SOURCE)/master-version)
 if [ -n "${DOCKER_TAG}" ]; then
-    ENTANDO_VERSION=${DOCKER_TAG%-*}
-    if [ "$ENTANDO_VERSION" = "$MASTER_VERSION" ]; then
+    if [ "$DOCKER_TAG" = "$MASTER_VERSION" ]; then
         MAPP_ENGINE_BRANCH="master"
     else
-        if [[ "$DOCKER_TAG" = *"-SNAPSHOT" ]]; then
-            BRANCH_SUFFIX="dev"
-        else
-            BRANCH_SUFFIX="release"
-        fi
-        MAPP_ENGINE_BRANCH="v${ENTANDO_VERSION}-release"
+        MAPP_ENGINE_BRANCH="v${DOCKER_TAG%-*}-release"
     fi
     echo "MAPP_ENGINE_BRANCH=${MAPP_ENGINE_BRANCH}"
     echo "DOCKERFILE_PATH=${DOCKERFILE_PATH}"
