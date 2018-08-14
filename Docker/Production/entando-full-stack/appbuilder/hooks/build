@@ -15,7 +15,7 @@ if [ -n "${DOCKER_TAG}" ]; then
         echo "REPO_NAME=${REPO_NAME}"
         docker build --build-arg APP_BUILDER_BRANCH=${APP_BUILDER_BRANCH} \
              --build-arg ENTANDO_COMPONENTS_BRANCH=${ENTANDO_COMPONENTS_BRANCH}  \
-            -f $DOCKERFILE_PATH -t $IMAGE_NAME -t "$REPO_NAME:latest".
+            -f $DOCKERFILE_PATH -t $IMAGE_NAME -t "$REPO_NAME:latest" .
     else
         if [[ "$DOCKER_TAG" = *"-SNAPSHOT" ]]; then
             BRANCH_SUFFIX="dev"
