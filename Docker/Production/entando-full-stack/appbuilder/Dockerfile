@@ -11,8 +11,7 @@ RUN chmod ug+rw /opt
 
 USER 1001
 # Install and configure `serve`. Download project from entando repository
-RUN  mkdir /opt/testing && \
-  source /opt/rh/rh-nodejs8/enable && \
+RUN  source /opt/rh/rh-nodejs8/enable && \
   npm install -g serve && \
   git clone --branch $APP_BUILDER_BRANCH https://github.com/entando/app-builder.git && \
   git clone --branch $ENTANDO_COMPONENTS_BRANCH https://github.com/entando/entando-components.git && \

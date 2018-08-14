@@ -1,43 +1,29 @@
-# You should always specify a full version here to ensure all of your developers
-# are running the same version of Node.
-FROM node:8
+FROM centos/nodejs-8-centos7:latest
+ARG MAPP_ENGINE_BRANCH
 
-# Override the base log level (info).
-ENV NPM_CONFIG_LOGLEVEL warn
+ENV NPM_CONFIG_LOGLEVEL=warn \
+    USE_MOCKS=false \
+    DOMAIN_MARKER=SOME_ARB_STRING_TO_REPLACE_LATER_81231
+ENV DOMAIN=$DOMAIN_MARKER
 
-# Set entando Instance to query
-#USE_MOCKS (boolean, default: true)
-#a boolean used to determine whether the API calls will be against a real Entando Core or if they are just being mocked
-#internally.
-#
-#DOMAIN (string, default: null)
-#a string representing the domain name of the Entando Core instance. The protocol is optional and it is possible to
-#specify a subdirectory of the domain. Trailing slashes are not valid and it only vaildates up to 3rd level domains.
-#
-#All the following would be valid values:
-#
-#http://my.entando.com
-#https://my.entando.com
-#//my.entando.com
-#//my.entando.com/entando-sample
+USER root
+RUN chmod ug+rw /opt
 
-ENV USE_MOCKS false
-ENV DOMAIN //localhost:8080/entando
-
-COPY start.sh /start.sh
-
+USER 1001
 # Install and configure `serve`. Download project from entando repository
-RUN npm i -g npm && npm i -g serve \
-&& chmod a+x /start.sh \
-&& git clone https://github.com/entando/mapp-engine-admin-app.git \
-&& cd /mapp-engine-admin-app && git checkout v5.0.0 && cd .. \
-&& chown -R node:0 /mapp-engine-admin-app/ && chmod -R ug+w /mapp-engine-admin-app/ \
-&& mkdir -p /usr/local/lib/node_modules/ \
-&& chown -R node:0 /usr/local/lib/node_modules/ && chmod -R ug+w /usr/local/lib/node_modules/
+RUN source /opt/rh/rh-nodejs8/enable && \
+  npm install -g serve && \
+  git clone --branch $MAPP_ENGINE_BRANCH https://github.com/entando/mapp-engine-admin-app.git && \
+  cd /opt/app-root/src/mapp-engine-admin-app && npm install && \
+  npm run import-plugins && npm run build && \
+  cd /opt/app-root/src && mv mapp-engine-admin-app/build /opt/mapp-engine-admin-app && rm -rf mapp-engine-admin-app && \
+  chmod -R ug+rw /opt/mapp-engine-admin-app
 
-USER node
+COPY start.sh /opt/mapp-engine-admin-app/start.sh
+USER root
+RUN chmod a+x /opt/mapp-engine-admin-app/start.sh
+USER 1001
 
-WORKDIR mapp-engine-admin-app
-
-CMD /start.sh
-EXPOSE 3000
+WORKDIR /opt/mapp-engine-admin-app
+CMD /opt/mapp-engine-admin-app/start.sh
+EXPOSE 3000 5000
