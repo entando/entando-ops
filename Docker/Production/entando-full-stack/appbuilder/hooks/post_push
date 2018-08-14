@@ -1,0 +1,8 @@
+#!/bin/bash
+MASTER_VERSION="$(cat master-version)"
+ENTANDO_VERSION=${DOCKER_TAG%-*}
+#If we are building from master, tag as latest
+if [ "$ENTANDO_VERSION" = "$MASTER_VERSION" ]; then
+    docker tag $IMAGE_NAME $DOCKER_REPO:latest
+    docker push $DOCKER_REPO:latest
+fi
