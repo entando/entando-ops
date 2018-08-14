@@ -1,0 +1,16 @@
+version: '2'
+services:
+  engine-api:
+    image: entando/engine-api:latest
+    ports:
+     - "8080:8080"
+    volumes:
+     - entando-volume:/entando-data
+  appbuilder:
+    image: entando/appbuilder:latest
+    ports:
+     - "5000:5000"
+    environment:
+      DOMAIN: http://localhost:8080/entando
+volumes:
+  entando-volume:
