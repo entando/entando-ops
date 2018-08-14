@@ -9,7 +9,7 @@
     <id>mirror.default</id>
     <mirrorOf>*</mirrorOf>
     <name>An internal openshift mirror</name>
-    <url>http://nexus-openshift.192.168.42.118.nip.io/repository/maven-public/</url>
+    <url>http://nexus-openshift.192.168.42.235.nip.io/repository/maven-public/</url>
     </mirror>
   </mirrors>
 
@@ -208,6 +208,7 @@
         <activeByDefault>false</activeByDefault>
       </activation>
       <repositories>
+        
         <repository>
           <id>snapshots-repo</id>
           <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -218,6 +219,17 @@
             <enabled>true</enabled>
             <updatePolicy>never</updatePolicy>
           </snapshots>
+        </repository>
+        <repository>
+          <id>entando-snapshots</id>
+          <url>http://repository.entando.org/repository/maven-snapshots/</url>
+          <layout>default</layout>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+         </snapshots>
         </repository>
       </repositories>
     </profile>

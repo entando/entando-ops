@@ -5,12 +5,12 @@
 
     <mirrors>
         <!-- ### configured mirrors ### -->
-        <mirror>
-        <id>mirror.default</id>
-        <mirrorOf>*</mirrorOf>
-        <name>An internal openshift mirror</name>
-        <url>http://nexus-openshift.192.168.42.118.nip.io/repository/maven-public/</url>
-        </mirror>
+        <!--<mirror>-->
+        <!--<id>mirror.default</id>-->
+        <!--<mirrorOf>*</mirrorOf>-->
+        <!--<name>An internal openshift mirror</name>-->
+        <!--<url>http://nexus-openshift.192.168.42.118.nip.io/repository/maven-public/</url>-->
+        <!--</mirror>-->
     </mirrors>
 
     <proxies>

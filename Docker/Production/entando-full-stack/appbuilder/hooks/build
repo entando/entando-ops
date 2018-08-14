@@ -1,0 +1,29 @@
+#!/bin/bash
+MASTER_VERSION="5.1.0"
+echo "DOCKER_TAG=${DOCKER_TAG}"
+if [ -n "${DOCKER_TAG}" ]; then
+    ENTANDO_VERSION=${DOCKER_TAG%-*}
+    if [ "$ENTANDO_VERSION" = "$MASTER_VERSION" ]; then
+        APP_BUILDER_BRANCH="master"
+        ENTANDO_COMPONENTS_BRANCH="master"
+    else
+        if [[ "$DOCKER_TAG" = *"-SNAPSHOT" ]]; then
+            BRANCH_SUFFIX="dev"
+        else
+            BRANCH_SUFFIX="release"
+        fi
+        APP_BUILDER_BRANCH="v${ENTANDO_VERSION}-release"
+        ENTANDO_COMPONENTS_BRANCH="v${ENTANDO_VERSION}-${BRANCH_SUFFIX}"
+    fi
+    echo "APP_BUILDER_BRANCH=${APP_BUILDER_BRANCH}"
+    echo "ENTANDO_COMPONENTS_BRANCH=${ENTANDO_COMPONENTS_BRANCH}"
+    echo "DOCKERFILE_PATH=${DOCKERFILE_PATH}"
+    echo "IMAGE_NAME=${IMAGE_NAME}"
+    docker build --build-arg APP_BUILDER_BRANCH=${APP_BUILDER_BRANCH} \
+        --build-arg ENTANDO_COMPONENTS_BRANCH=${ENTANDO_COMPONENTS_BRANCH}  \
+        -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+else
+    env
+    echo "DOCKER_TAG NOT SET!!!!"
+    exit 1
+fi
