@@ -45,6 +45,6 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     SERVDB_PASSWORD="agile" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527"
-ENTRYPOINT "/usr/libexec/s2i/run"
+CMD "/usr/libexec/s2i/run"
 #NB!!! Place the VOLUME declaration AFTER the state (permissions, ownership, content) of the volume has been set
 VOLUME /entando-data
