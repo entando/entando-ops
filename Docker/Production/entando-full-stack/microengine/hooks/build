@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "BASH_SOURCE=$BASH_SOURCE"
-MASTER_VERSION=$(cat $(dirname $BASH_SOURCE)/master-version)
+MASTER_VERSION="5.1.0-SNAPSHOT"
 if [ -n "${DOCKER_TAG}" ]; then
     if [ "$DOCKER_TAG" = "$MASTER_VERSION" ]; then
         MAPP_ENGINE_BRANCH="master"
