@@ -5,12 +5,12 @@
 
     <mirrors>
         <!-- ### configured mirrors ### -->
-        <!--<mirror>-->
-            <!--<id>mirror.default</id>-->
-            <!--<mirrorOf>central</mirrorOf>-->
-            <!--<name>An internal openshift mirror</name>-->
-            <!--<url>http://nexus-openshift.192.168.42.235.nip.io/repository/maven-public/</url>-->
-        <!--</mirror>-->
+        <mirror>
+            <id>mirror.default</id>
+            <mirrorOf>*</mirrorOf>
+            <name>An internal openshift mirror</name>
+            <url>http://172.17.0.3:8081/repository/maven-public/</url>
+        </mirror>
     </mirrors>
 
     <proxies>
@@ -212,12 +212,12 @@
                     <id>snapshots-repo</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
                     <releases>
-                      <enabled>false</enabled>
+                        <enabled>false</enabled>
                     </releases>
-                   <snapshots>
-                     <enabled>true</enabled>
-                     <updatePolicy>never</updatePolicy>
-                   </snapshots>
+                    <snapshots>
+                        <enabled>true</enabled>
+                        <updatePolicy>never</updatePolicy>
+                    </snapshots>
                 </repository>
                 <repository>
                     <id>snapshots-repo</id>
@@ -232,9 +232,13 @@
                 </repository>
             </repositories>
         </profile>
+        <!-- ### configured profiles ### -->
+
     </profiles>
     <activeProfiles>
         <activeProfile>securecentral</activeProfile>
+        <activeProfile>securecentral</activeProfile>
         <activeProfile>entando</activeProfile>
+        <!-- ### active profiles ### -->
     </activeProfiles>
 </settings>

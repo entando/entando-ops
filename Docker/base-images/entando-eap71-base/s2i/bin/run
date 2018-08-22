@@ -1,0 +1,8 @@
+#!/bin/bash
+if ! [ -d /entando-data/databases/entandoPort ]; then
+  echo "New Entando instance detected. Copying Default Entando Derby DB for optional use."
+  mkdir -p /entando-data/databases/ > /dev/null 2>&1
+  cp /entando-database-templates/* /entando-data/databases/ -rf
+fi
+
+exec $JBOSS_HOME/bin/openshift-launch.sh

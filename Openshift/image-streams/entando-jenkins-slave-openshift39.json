@@ -12,7 +12,7 @@
       {
         "annotations": {
           "role": "jenkins-slave",
-          "slave-label":"entando-5.0.1",
+          "slave-label":"entando-5.0.1-SNAPSHOT",
           "description": "Build Entando applications",
           "openshift.io/display-name": "Entando Jenkins Slave Builder Image",
           "openshift.io/provider-display-name": "Entando",
@@ -22,12 +22,12 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "172.30.1.1:5000/entando/entando-jenkins-slave-openshift39:5.0.1"
+          "name": "172.30.1.1:5000/entando/entando-jenkins-slave-openshift39:5.0.1-SNAPSHOT"
         },
         "importPolicy": {
           "insecure": true
         },
-        "name": "5.0.1",
+        "name": "5.0.1-SNAPSHOT",
         "referencePolicy": {
           "type": "Local"
         }

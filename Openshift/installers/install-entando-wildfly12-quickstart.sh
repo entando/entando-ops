@@ -2,7 +2,7 @@
 source $(dirname $0)/common.sh
 echo "This script installs the Entando Sample project on the Wildfly 12 QuickStart image with a persistent embedded Derby database"
 oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-wildfly12-quickstart-openshift.json
-oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/app-builder-openshift.json
+oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-wildfly12-quickstart.yml \
   -p APPLICATION_NAME="entando-sample" \
   -p IMAGE_STREAM_NAMESPACE="$(oc project -q)" \
