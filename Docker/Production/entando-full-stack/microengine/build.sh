@@ -6,4 +6,12 @@ export DOCKER_TAG=$VERSION
 export IMAGE_NAME="entando/microengine:$VERSION"
 export DOCKERFILE_PATH="$(dirname $0)/Dockerfile"
 source hooks/build
-#docker push 172.30.1.1:5000/entando/microengine:$VERSION
+if [ $? -eq 0 ]; then
+    docker login -u $(oc whoami) -p $(oc whoami -t) 127.0.0.1:5000
+    docker tag $IMAGE_NAME 127.0.0.1:5000/$IMAGE_NAME
+    docker push 127.0.0.1:5000/$IMAGE_NAME
+else
+    echo "Docker build failed"
+fi
+
+
