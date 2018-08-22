@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 export VERSION=${1:-5.0.1}
 echo $VERSION
-#docker build --build-arg ENTANDO_VERSION=$VERSION ...
-docker build -t entando/nexus-with-entando-dependencies:$VERSION -t 172.30.1.1:5000/entando/nexus-with-entando-dependencies:$VERSION .
-docker push 172.30.1.1:5000/entando/nexus-with-entando-dependencies:$VERSION
+export DOCKER_TAG=$VERSION
+export IMAGE_NAME="entando/nexus-with-entando-dependencies:$VERSION"
+export DOCKERFILE_PATH="$(dirname $0)/Dockerfile"
+source hooks/build
+if [ $? -eq 0 ]; then
+    docker login -u $(oc whoami) -p $(oc whoami -t) 127.0.0.1:5000
+    docker tag $IMAGE_NAME 127.0.0.1:5000/$IMAGE_NAME
+    docker push 127.0.0.1:5000/$IMAGE_NAME
+else
+    echo "Docker build failed"
+fi
