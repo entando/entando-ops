@@ -1,13 +1,13 @@
 version: '2'
 services:
   engine-api:
-    image: entando/engine-api:latest
+    image: entando/engine-api:5.0.1-SNAPSHOT
     ports:
      - "8080:8080"
     volumes:
      - entando-volume:/entando-data
   appbuilder:
-    image: entando/appbuilder:latest
+    image: entando/appbuilder:5.0.1-SNAPSHOT
     ports:
      - "5000:5000"
     environment:

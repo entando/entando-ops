@@ -1,7 +1,0 @@
-#!/bin/bash
-if ! [ "$(ls -A /entando-data/)" ]; then
-  #Unfortunately Openshift volumes do not come pre-populated like Docker volumes
-  echo "New Entando instance detected. Copying Default Entando DB"
-  cp /entando-database-templates/* /entando-data/databases/ -rf
-fi
-exec $JBOSS_HOME/bin/openshift-launch.sh
