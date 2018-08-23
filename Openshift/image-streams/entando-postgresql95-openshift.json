@@ -20,7 +20,7 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "172.30.1.1:5000/entando/entando-postgresql95-openshift:5.0.1-SNAPSHOT"
+          "name": "docker.io/entando/entando-postgresql95-openshift:5.0.1-SNAPSHOT"
         },
         "importPolicy": {
           "insecure": true

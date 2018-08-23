@@ -69,6 +69,7 @@ else
             echo "Jetty started and database created"
             kill $jetty_pid
             cp $HOME/data $HOME/data_template -rf
+            rm $HOME/data_template/userdata/postmaster.pid
             /usr/libexec/fix-permissions $HOME/data_template
             /usr/libexec/fix-permissions $HOME/openshift-custom-postgresql.conf
             /usr/libexec/fix-permissions $HOME/passwd
