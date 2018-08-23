@@ -337,29 +337,6 @@ objects:
         securityContext: {}
         schedulerName: default-scheduler
 - apiVersion: v1
-  kind: ImageStream
-  metadata:
-    annotations:
-      openshift.io/display-name: Entando EAP Quickstart Image
-    name: entando-eap71-quickstart-openshift
-  spec:
-    tags:
-    - annotations:
-        description: Build and host Entando EAP applications on JBoss EAP
-        openshift.io/display-name: Entando EAP Quickstart Image
-        openshift.io/provider-display-name: Entando
-        sampleRepo: https://github.com/ampie/entando-sample.git
-        supports: maven,jee, java
-        tags: builder,java,jee
-      from:
-        kind: DockerImage
-        name: 172.30.1.1:5000/entando/entando-eap71-quickstart-openshift:5.0.1-SNAPSHOT
-      importPolicy:
-        insecure: true
-      name: latest
-      referencePolicy:
-        type: Local
-- apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
     name: "${APPLICATION_NAME}-entando-claim"

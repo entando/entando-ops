@@ -6,8 +6,14 @@ LABEL io.openshift.s2i.destination="/opt/s2i/destination" \
 ARG ENTANDO_VERSION_TO_BUILD
 ENV MAVEN_VERSION="3.5.4" \
     JAVA_HOME="/usr/lib/jvm/java-1.8.0" \
-    ENTANDO_VERSION=$ENTANDO_VERSION_TO_BUILD
-
+    ENTANDO_VERSION=$ENTANDO_VERSION_TO_BUILD \
+    POSTGRESQL_USER=agile \
+    POSTGRESQL_PASSWORD=agile \
+    POSTGRESQL_ADMIN_PASSWORD=postgres \
+    POSTGRESQL_DATABASE=entandoPort \
+    POSTGRESQL_DATABASE2=entandoServ \
+    POSTGRESQL_MAX_PREPARED_TRANSACTIONS=0 \
+    POSTGRESQL_SHARED_BUFFERS=32MB
 #Change to root for installation operations
 USER root
 RUN INSTALL_PKGS="ant tar curl java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
