@@ -29,5 +29,5 @@ USER 1001
 WORKDIR /opt/app-builder
 CMD /opt/app-builder/start.sh
 #because the npm serve package cannot make up its mind
-EXPOSE 3000 5000
+EXPOSE 5000
 
