@@ -7,5 +7,5 @@ This is a demo image to let you test the entando framework
 This image exposes port `8080`
 
 ## How to run
-`docker volume crate entando` 
+`docker volume create entando` 
 `docker run -it --rm -d -p 8080:8080 -v entando:/entando-data entando/engine-api:5.0.1-SNAPSHOT`
