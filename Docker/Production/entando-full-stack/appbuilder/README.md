@@ -22,7 +22,7 @@ All the following would be valid values:
 
 ## Exposed ports
 
-`3000`
+`5000`
 
 ## How to run in Openshift after installation of the Entando Service ENTANDO_SERVICE_URL=$(oc describe route <<name of your entando service>>|grep -oP "(?<=Requested\sHost:\t\t)[^ ]+")
 
