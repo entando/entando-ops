@@ -28,9 +28,15 @@ cd $LOCAL_SOURCE_DIR
 pwd
 ls -al
 configure_mirrors
+#Did the develop package a PostgreSQL tar backup and NOT a SQL file based backup (which takes precedence)?
 if [ -d  $LOCAL_SOURCE_DIR/src/main/db/tar ] && ! [ -d  $LOCAL_SOURCE_DIR/src/main/webapp/protected/databaseBackups/develop/portDataSource ]; then
+#Restore from binary TAR backup
     ant PG-db-full-update-tar -Dpostgres.bin.path=/opt/rh/rh-postgresql95/root/usr/bin/
 else
+#Build the empty database and let 'mvn jetty:run' take care of any SQL file backups where they may exist.
+
+#Hack into the pom to avoid the annotation scanning timeout that we tend to get in Docker builds. By default
+#we scan all jar files but when building the DB only we don't have to scan any jar file
     sed -i  '/\<webApp>/a <webInfIncludeJarPattern>nothing</webInfIncludeJarPattern>' pom.xml
 
     mvn_command="mvn jetty:run --settings $HOME/.m2/settings.xml \
