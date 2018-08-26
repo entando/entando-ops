@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 source $(dirname $0)/common.sh
-source $(dirname $0)/install-nexus-with-entando-dependencies.sh
+source $(dirname $0)/install-nexus.sh
 echo "This script installs the Entando Sample project on Entando, EAP 7.1  and PostgreSQL 9.5"
 #potential parameters:
 export APPLICATION_NAME=entando-sample
@@ -108,7 +108,7 @@ function recreate_secrets_and_linked_service_accounts() {
 function recreate_entando_application(){
     echo_header "Recreating Entando 5 Application config." 2> /dev/null
     NEXUS_URL=$(calculate_mirror_url)
-    ENTANDO_BASEURL="https://$HOSTNAME_HTTPS/${APPLICATION_NAME}"
+    ENTANDO_BASEURL="http://$HOSTNAME_HTTP/${APPLICATION_NAME}"
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-with-postgresql95.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p KIE_SERVER_SECRET="${APPLICATION_NAME}-kieserver-secret" \
@@ -129,7 +129,7 @@ function recreate_entando_application(){
             -p MAVEN_MIRROR_URL="$NEXUS_URL" \
             |  oc replace --force --grace-period 60  -f -
 }
-oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/app-builder-openshift.json
+oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json
 oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-quickstart-openshift.json
 oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql95-openshift.json
 

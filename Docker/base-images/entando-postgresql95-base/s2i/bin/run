@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ ! -d $HOME/data/userdata ]; then
+        echo "New Entando PosgreSQL instance detected. Copy previously built database across."
+        cp $HOME/data_template/* $HOME/data -rf
+fi
+run-postgresql

@@ -1,0 +1,19 @@
+#!/bin/bash
+echo "BASH_SOURCE=$BASH_SOURCE"
+MASTER_VERSION="5.1.0-SNAPSHOT"
+if [ -n "${DOCKER_TAG}" ]; then
+    if [ "$DOCKER_TAG" = "$MASTER_VERSION" ]; then
+        MAPP_ENGINE_BRANCH="master"
+    else
+        MAPP_ENGINE_BRANCH="v${DOCKER_TAG%-*}-release"
+    fi
+    echo "MAPP_ENGINE_BRANCH=${MAPP_ENGINE_BRANCH}"
+    echo "DOCKERFILE_PATH=${DOCKERFILE_PATH}"
+    echo "IMAGE_NAME=${IMAGE_NAME}"
+    docker build --build-arg MAPP_ENGINE_BRANCH=${MAPP_ENGINE_BRANCH} \
+        -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+else
+    env
+    echo "DOCKER_TAG NOT SET!!!!"
+    exit 1
+fi

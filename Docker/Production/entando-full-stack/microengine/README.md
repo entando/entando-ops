@@ -22,4 +22,15 @@ All the following would be valid values:
 
 ## Exposed ports
 
-`3000`
+`5000`
+
+## How to run in Openshift after installation of the Entando Service 
+```
+ENTANDO_SERVICE_URL=$(oc describe route <<name of your entando service>> \ 
+    |grep -oP "(?<=Requested\sHost:\t\t)[^ ]+")
+oc new-app --name my-micro-engine --docker-image entando/micro-engine:5.0.1-SNAPSHOT \
+    -e USE_MOCKS=false -e DOMAIN=$ENTANDO_SERVICE_URL
+
+oc expose svc my-app-builder
+```
+
