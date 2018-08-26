@@ -24,9 +24,14 @@ All the following would be valid values:
 
 `5000`
 
-## How to run in Openshift after installation of the Entando Service ENTANDO_SERVICE_URL=$(oc describe route <<name of your entando service>>|grep -oP "(?<=Requested\sHost:\t\t)[^ ]+")
+## How to run in Openshift after installation of the Entando Service
 
-oc new-app --name my-app-builder --docker-image entando/app-builder-openshift:5.0.0 -e USE_MOCKS=false -e DOMAIN=$ENTANDO_SERVICE_URL
-
+```
+ENTANDO_SERVICE_URL=$(oc describe route <<name of your entando service>> \ 
+    |grep -oP "(?<=Requested\sHost:\t\t)[^ ]+")
+oc new-app --name my-app-builder --docker-image entando/app-builder-openshift:5.0.1-SNAPSHOT \
+    -e USE_MOCKS=false  -e DOMAIN=$ENTANDO_SERVICE_URL
 oc expose svc my-app-builder
+```
+
 
