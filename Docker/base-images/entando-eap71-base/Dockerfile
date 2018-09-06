@@ -8,7 +8,7 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.display-name="Entando on EAP 7.1" \
       authoritative-source-url="docker.io" \
       description="Platform for building and running Entando quickstart applications on EAP 7.1" \
-      name="entando/etnando-eap71-base" \
+      name="entando/entando-eap71-base" \
       vendor="Entando" \
       summary="Platform for building and running Entando quickstart applications on EAP 7.1" \
       url="https://github.com/entando/entando-ops/tree/master/Docker/base-images/entando-eap71-base"
@@ -20,10 +20,6 @@ COPY --chown=185:0 ./contrib/wfmodules /opt/eap/modules
 COPY --chown=185:0 ./contrib/wildfly-configuration/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
 COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=185:0 ./contrib/settings.xml $HOME/.m2/settings.xml
-USER root
-RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
-    mkdir -p /entando-database-templates && chown -Rf $USERID_TO_USE:0 /entando-database-templates/ && chmod -Rf ug+rw /entando-database-templates/
-USER $USERID_TO_USE
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
@@ -44,6 +40,12 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
     PREPARE_DB="true"
+USER root
+RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
+    mkdir -p /entando-database-templates && chown -Rf $USERID_TO_USE:0 /entando-database-templates/ && chmod -Rf ug+rw /entando-database-templates/ && \
+    source /opt/rh/rh-maven35/enable && ${STI_SCRIPTS_PATH}/init-default-db.sh
+USER $USERID_TO_USE
+
 CMD "${STI_SCRIPTS_PATH}/run"
 #NB!!! Place the VOLUME declaration AFTER the state (permissions, ownership, content) of the volume has been set
 VOLUME /entando-data

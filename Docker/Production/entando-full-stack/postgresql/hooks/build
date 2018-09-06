@@ -1,9 +1,0 @@
-#!/bin/bash
-echo "DOCKER_TAG=${DOCKER_TAG}"
-if [ -n "${DOCKER_TAG}" ]; then
-    docker build --build-arg ENTANDO_VERSION_TO_BUILD=${DOCKER_TAG} -f $DOCKERFILE_PATH -t $IMAGE_NAME .
-else
-    env
-    echo "DOCKER_TAG NOT SET!!!!"
-    exit 1
-fi

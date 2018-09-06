@@ -53,6 +53,9 @@ do
         if [ "$PORTDB_DRIVER" = "derby" ]; then
    #Copy the new database across, overwriting the old database entirely. This ensures a full restore can be effected
             cp -Rf /entando-data/databases/* /entando-database-templates/
+            rm -Rf /entando-data/databases/*
+            chmod -Rf ug+rw /entando-database-templates/
+            chown -Rf $USERID_TO_USE:0 /entando-database-templates/
         fi
         exit 0
     fi

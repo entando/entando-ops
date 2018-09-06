@@ -43,7 +43,8 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   # Add JVM default options
   export MAVEN_OPTS="${MAVEN_OPTS:-$(/opt/run-java/java-default-options)}"
   if [ "$PREPARE_DB" = "true" ]; then
-    if ! $($(dirname ${BASH_SOURCE[0]})/init-db.sh; then
+    echo "Begin DB preparation"
+    if ! $(dirname ${BASH_SOURCE[0]})/init-db.sh; then
         echo "DB Preparation failed!"
         exit 1
     fi
@@ -55,11 +56,13 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   # Append user-supplied arguments (CLOUD-412)
 
   # Entando: override filter properties
-  MAVEN_ARGS="$MAVEN_ARGS --batch-mode \
+  MAVEN_ARGS="$MAVEN_ARGS --batch-mode --settings $HOME/.m2/settings.xml\
                 -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
                 -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
                 -Djboss=jboss \
                 -Denv.db.environment=production \
+                -Dprofile.config.version=production \
+                -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
                 -Dprofile.log.file.prefix=/entando-data/logs/log \
@@ -156,5 +159,6 @@ fi
 
 # Remove java tmp perf data dir owned by 185
 rm -rf /tmp/hsperfdata_jboss
-
+#Entando: we don't support incremental builds so we can make the image lean
+rm -Rf $LOCAL_SOURCE_DIR
 exit 0

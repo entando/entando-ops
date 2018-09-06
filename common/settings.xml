@@ -220,7 +220,7 @@
                    </snapshots>
                 </repository>
                 <repository>
-                    <id>snapshots-repo</id>
+                    <id>entando-snapshots-repo</id>
                     <url>https://repository.entando.org/repository/maven-snapshots/</url>
                     <releases>
                         <enabled>false</enabled>
@@ -236,7 +236,6 @@
 
     </profiles>
     <activeProfiles>
-        <activeProfile>securecentral</activeProfile>
         <activeProfile>securecentral</activeProfile>
         <activeProfile>entando</activeProfile>
         <!-- ### active profiles ### -->

@@ -14,14 +14,10 @@ COPY --chown=1001:0 ./contrib/wfmodules /wildfly/modules
 COPY --chown=1001:0 ./contrib/wildfly-configuration/standalone.xml /wildfly/standalone/configuration/standalone.xml
 COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 ./contrib/settings.xml $HOME/.m2/settings.xml
-USER root
-RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
-    mkdir -p /entando-database-templates  && chown -Rf $USERID_TO_USE:0 /entando-database-templates/ && chmod -Rf ug+rw /entando-database-templates/
-USER $USERID_TO_USE
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
-    PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort" \
+    PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \
     PORTDB_DRIVER="derby" \
     PORTDB_USERNAME="agile" \
@@ -30,7 +26,7 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_SERVICE_PORT="1527" \
     SERVDB_NONXA="true" \
     SERVDB_JTA="false" \
-    SERVDB_URL="jdbc:derby:/entando-data/databases/entandoServ" \
+    SERVDB_URL="jdbc:derby:/entando-data/databases/entandoServ;create=true" \
     SERVDB_JNDI="java:jboss/datasources/entandoServDataSource" \
     SERVDB_DRIVER="derby" \
     SERVDB_USERNAME="agile" \
@@ -38,6 +34,12 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
     PREPARE_DB="true"
+USER root
+RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
+    mkdir -p /entando-database-templates && chown -Rf $USERID_TO_USE:0 /entando-database-templates/ && chmod -Rf ug+rw /entando-database-templates/ && \
+    ${STI_SCRIPTS_PATH}/init-default-db.sh
+USER $USERID_TO_USE
+
 CMD "${STI_SCRIPTS_PATH}/run"
 #NB!!! Place the VOLUME declaration AFTER the state (permissions, ownership, content) of the volume has been set
 VOLUME /entando-data

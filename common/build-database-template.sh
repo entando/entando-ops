@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+###DEPRECATED !!!! TENDS TO GET OUT OF SYNC WITH THE VERSION BUILT IN THE DOCKERFILE
 export VERSION=${1:-5.0.1-SNAPSHOT}
 cd /tmp
 rm -Rf entando

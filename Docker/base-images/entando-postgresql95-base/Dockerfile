@@ -25,11 +25,11 @@ RUN INSTALL_PKGS="ant tar curl java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
   ln -sf /usr/local/apache-maven-$MAVEN_VERSION/bin/mvn /usr/local/bin/mvn && \
   mkdir -p $HOME/.m2 && chmod ug+rw $HOME/.m2 && chown $USERID_TO_USE:0 $HOME/.m2
 
-COPY --chown=$USERID_TO_USE:0 ./common.sh /usr/share/container-scripts/postgresql/common.sh
-COPY --chown=$USERID_TO_USE:0 ./settings.xml $HOME/.m2/settings.xml
-COPY --chown=$USERID_TO_USE:0 ./s2i/bin/ $STI_SCRIPTS_PATH
+COPY --chown=26:0 ./common.sh /usr/share/container-scripts/postgresql/common.sh
+COPY --chown=26:0 ./contrib/settings.xml $HOME/.m2/settings.xml
+COPY --chown=26:0 ./s2i/bin/ $STI_SCRIPTS_PATH
 RUN mkdir -p /opt/s2i/destination && chmod -R ug+rw /opt/s2i/destination && chown -R $USERID_TO_USE:0 /opt/s2i/destination
-
-#And end by making the user postgres again
 USER $USERID_TO_USE
+RUN  $STI_SCRIPTS_PATH/init-default-postgresql-db.sh
+#And end by making the user postgres again
 CMD "${STI_SCRIPTS_PATH}/run"

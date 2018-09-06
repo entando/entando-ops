@@ -212,8 +212,8 @@ function move_artifacts() {
 ADMIN=admin
 PASSWORD=passw0rd_
 
-# Source code provided to S2I is at ${HOME}
-LOCAL_SOURCE_DIR=${HOME}
+# Source code provided to S2I
+LOCAL_SOURCE_DIR=/tmp/src
 mkdir -p $LOCAL_SOURCE_DIR
 
 # the subdirectory within LOCAL_SOURCE_DIR from where we should copy build
@@ -277,14 +277,21 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   if [ -n "$MAVEN_ARGS_APPEND" ]; then
     export MAVEN_ARGS="$MAVEN_ARGS $MAVEN_ARGS_APPEND"
   fi
-  MAVEN_ARGS="$MAVEN_ARGS --batch-mode \
-                --no-snapshot-updates \
+  MAVEN_ARGS="$MAVEN_ARGS --batch-mode --settings $HOME/.m2/settings.xml \
+                -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
+                -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
+                -Djboss=jboss \
+                -Denv.db.environment=production \
+                -Dprofile.config.version=production \
+                -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
                 -Dprofile.log.file.prefix=/entando-data/logs/log \
                 -Dprofile.resources.path=/entando-data/resources \
                 -Dprofile.resources.path.protected=/entando-data/protected \
-                -Dprofile.index.path=/entando-data/indexdir"
+                -Dprofile.index.path=/entando-data/indexdir \
+                -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}"
+
 
   CONTAINER_HEAP_PERCENT=${CONTAINER_HEAP_PERCENT:-0.50}
   CONTAINER_MEMORY_IN_BYTES=`cat /sys/fs/cgroup/memory/memory.limit_in_bytes`
@@ -312,15 +319,17 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   # of the values we calculated above.
   MAVEN_OPTS=$JAVA_GC_OPTS $JAVA_HEAP_MAX $JAVA_CORE_LIMIT $JAVA_DIAGNOSTICS $MAVEN_OPTS
 
-  echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
-
-  mvn --version
   if [ "$PREPARE_DB" = "true" ]; then
-    if ! $($(dirname ${BASH_SOURCE[0]})/init-db.sh; then
+    echo "Begin DB preparation"
+    if ! $(dirname ${BASH_SOURCE[0]})/init-db.sh; then
         echo "DB Preparation failed!"
         exit 1
     fi
   fi
+
+  echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
+
+  mvn --version
 
   mvn $MAVEN_ARGS
 
@@ -364,6 +373,8 @@ if [ -d $LOCAL_SOURCE_DIR/modules ]; then
   chgrp -R 0 /wildfly/provided_modules
   chmod -R g+rw /wildfly/provided_modules
 fi
+#Entando: we don't support incremental builds so we can make the image lean
+rm -Rf $LOCAL_SOURCE_DIR
 echo "...done"
 
 # This logic is intended to deploy the app as part of assemble

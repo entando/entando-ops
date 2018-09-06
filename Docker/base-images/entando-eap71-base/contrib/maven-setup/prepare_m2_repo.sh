@@ -9,7 +9,7 @@ pushd sample
 #reduce image size
 rm -rf $HOME/.m2/repository/*
 sed -i  '/\<webApp>/a <webInfIncludeJarPattern>nothing</webInfIncludeJarPattern>' pom.xml
-mvn jetty:run --settings $HOME/.m2/settings.xml -Dmaven.repo.local=$HOME/.m2/repository  2>&1 > db_creation.log &
+mvn package jetty:run --settings $HOME/.m2/settings.xml -DskipTests -Dmaven.repo.local=$HOME/.m2/repository  2>&1 > db_creation.log &
 jetty_pid=$!
 echo "jetty: $jetty_pid"
 for i in {1..900} ;
@@ -24,7 +24,7 @@ for i in {1..900} ;
       find $HOME/.m2 -name "_remote.repositories" -type f -delete
       find $HOME/.m2 -name "*.lastUpdated" -type f -delete
       find $HOME/.m2 -name "resolver-status.properties" -type f -delete
-      chmod -Rf ug+rw $HOME/.m2 && chown -Rf 26:root $HOME/.m2
+      chmod -Rf ug+rw $HOME/.m2 && chown -Rf $USERID_TO_USE:root $HOME/.m2
       exit 0
     fi;
 done;
