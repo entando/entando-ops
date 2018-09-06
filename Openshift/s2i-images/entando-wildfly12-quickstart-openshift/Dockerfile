@@ -11,17 +11,17 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
 #stay in root to ensure chmod works
 USER root
 COPY ./contrib/maven-setup /tmp/maven-setup
-RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf 1001:root /tmp/maven-setup
+RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf $USERID_TO_USE:root /tmp/maven-setup
 
-#Prepare M2 cachess. Run all of this as 1001 as this will be the user under which the S2I build takes place
-USER 1001
+#Prepare M2 cachess. Run all of this as $USERID_TO_USE as this will be the user under which the S2I build takes place
+USER $USERID_TO_USE
 RUN cd /tmp/maven-setup && ./prepare_m2_repo.sh $ENTANDO_VERSION
 
 # Add s2i optimizationss
 COPY ./s2i/bin/ /usr/libexec/s2i/
 USER root
-RUN chown -Rf 1001:0 /usr/libexec/s2i/ && chmod -Rf ug+rwx /usr/libexec/s2i/
-USER 1001
+RUN chown -Rf $USERID_TO_USE:0 /usr/libexec/s2i/ && chmod -Rf ug+rwx /usr/libexec/s2i/
+USER $USERID_TO_USE
 CMD "${STI_SCRIPTS_PATH}/usage"
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \

@@ -7,9 +7,9 @@
         <!-- ### configured mirrors ### -->
         <mirror>
             <id>mirror.default</id>
-            <mirrorOf>nothing</mirrorOf>
+            <mirrorOf>*</mirrorOf>
             <name>An internal openshift mirror</name>
-            <url>http://172.17.0.3:8081/repository/maven-public/</url>
+            <url>http://192.168.0.107:8081/repository/maven-public/</url>
         </mirror>
     </mirrors>
 

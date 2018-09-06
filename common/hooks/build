@@ -1,0 +1,23 @@
+#!/bin/bash
+DOCKER_ROOT=$(dirname $(realpath $(dirname ${BASH_SOURCE})))
+COMMON_ROOT=$(dirname $(dirname $(realpath ${BASH_SOURCE})))
+
+echo $DOCKER_ROOT
+echo $COMMON_ROOT
+echo "DOCKER_TAG=${DOCKER_TAG}"
+if [ -n "${DOCKER_TAG}" ]; then
+    if [ -d $DOCKER_ROOT/contrib ]; then
+        #Image that supports standard contributions
+        cp -f $COMMON_ROOT/settings.xml $DOCKER_ROOT/contrib/settings.xml
+        cp -Rf $COMMON_ROOT/wfmodules $DOCKER_ROOT/contrib/
+    fi
+    if [ -d $DOCKER_ROOT/s2i/bin ]; then
+        #S2I image
+        cp -Rf $COMMON_ROOT/s2i/* $DOCKER_ROOT/s2i/bin/
+    fi
+    docker build --build-arg ENTANDO_VERSION_TO_BUILD=${DOCKER_TAG} -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+else
+    env
+    echo "DOCKER_TAG NOT SET!!!!"
+    exit 1
+fi

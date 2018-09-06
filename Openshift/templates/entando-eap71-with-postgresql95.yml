@@ -385,6 +385,8 @@ objects:
           value: "${MAVEN_ARGS_APPEND}"
         - name: ARTIFACT_DIR
           value: "${ARTIFACT_DIR}"
+        - name: PREPARE_DB
+          value: "false"
         forcePull: true
         from:
           kind: ImageStreamTag

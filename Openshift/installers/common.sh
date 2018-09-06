@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-#export ENTANDO_OPS_HOME=/home/ampie/Code/entando/entando-ops
-export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/EN-1847"
+export ENTANDO_OPS_HOME=/home/ampie/Code/entando/entando-ops
+#export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/master"
 
 function get_openshift_subdomain(){
   if [ -x $(command  -v minishift) ]; then

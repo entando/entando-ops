@@ -54,8 +54,7 @@ else
     -Dprofile.resources.path=./src/main/webapp/resources \
     -Dprofile.resources.path.protected=./src/main/webapp/protected \
     -Dprofile.index.path=./target/temp/indexdir \
-    -Dprofile.log.file.prefix=./target/build_log \
-    -DjettyScannedJars=none \
+    -Dprofile.log.file.prefix=./target/build_log
     "
     echo "executing $mvn_command "
     log=db_creation.log

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-
-
 mvn archetype:generate -DgroupId=org.sample -DartifactId=sample \
   -DarchetypeGroupId=org.entando.entando \
   -DarchetypeArtifactId=entando-archetype-web-app-BPM \

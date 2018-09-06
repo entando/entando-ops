@@ -42,13 +42,21 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   # Add JVM default options
   export MAVEN_OPTS="${MAVEN_OPTS:-$(/opt/run-java/java-default-options)}"
-  MAVEN_ARGS="${MAVEN_ARGS} --e -Popenshift -DskipTests -Dcom.redhat.xpaas.repo.redhatga package"
-  # Entando: override filter properties
+  if [ "$PREPARE_DB" = "true" ]; then
+    $(dirname ${BASH_SOURCE[0]})/init-db.sh
+  fi
+
+  MAVEN_ARGS="${MAVEN_ARGS} --e -Popenshift -DskipTests -Dcom.redhat.xpaas.repo.redhatga clean package"
   # Use maven batch mode (CLOUD-579)
   # Always force IPv4 (CLOUD-188)
   # Append user-supplied arguments (CLOUD-412)
+
+  # Entando: override filter properties
   MAVEN_ARGS="$MAVEN_ARGS --batch-mode \
-                --no-snapshot-updates \
+                -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
+                -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
+                -Djboss=jboss \
+                -Denv.db.environment=production \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
                 -Dprofile.log.file.prefix=/entando-data/logs/log \

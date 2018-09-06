@@ -7,26 +7,22 @@ FROM entando/entando-eap71-base:${ENTANDO_VERSION_TO_BUILD}
 LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando quickstart applications on EAP 7.1" \
       io.k8s.display-name="Entando on EAP 7.1"
-
+ENV  USERID_TO_USE=185
 #stay in root to ensure chmod works
 USER root
-COPY ./contrib/maven-setup /tmp/maven-setup
-RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf 185:root /tmp/maven-setup
+COPY --chown=185:0 ./contrib/maven-setup /tmp/maven-setup
+#Run all of this as $USERID_TO_USE as this will be the user under which the S2I build takes place
+USER $USERID_TO_USE
+RUN source /opt/rh/rh-maven35/enable && cd /tmp/maven-setup && ./prepare_m2_repo.sh $ENTANDO_VERSION
 
-#Run all of this as 185 as this will be the user under which the S2I build takes place
-USER 185
-RUN cd /tmp/maven-setup && ./prepare_m2_repo.sh $ENTANDO_VERSION
 
-# Add s2i optimizationss
-COPY ./s2i/bin/ /usr/local/s2i/
 USER root
-RUN chown -Rf 185:0 /usr/local/s2i/ && chmod -Rf ug+rwx /usr/local/s2i/
-USER 185
+USER $USERID_TO_USE
 CMD "${STI_SCRIPTS_PATH}/usage"
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
-    PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort" \
+    PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \
     PORTDB_DRIVER="derby" \
     PORTDB_USERNAME="agile" \
@@ -35,10 +31,12 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_SERVICE_PORT="1527" \
     SERVDB_NONXA="true" \
     SERVDB_JTA="false" \
-    SERVDB_URL="jdbc:derby:/entando-data/databases/entandoServ" \
+    SERVDB_URL="jdbc:derby:/entando-data/databases/entandoServ;create=true" \
     SERVDB_JNDI="java:jboss/datasources/entandoServDataSource" \
     SERVDB_DRIVER="derby" \
     SERVDB_USERNAME="agile" \
     SERVDB_PASSWORD="agile" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527"
+COPY --chown=185:0 ./settings.xml $HOME/.m2/settings.xml
+COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
