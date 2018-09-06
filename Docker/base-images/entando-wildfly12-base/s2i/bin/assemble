@@ -315,6 +315,13 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
 
   mvn --version
+  if [ "$PREPARE_DB" = "true" ]; then
+    if ! $($(dirname ${BASH_SOURCE[0]})/init-db.sh; then
+        echo "DB Preparation failed!"
+        exit 1
+    fi
+  fi
+
   mvn $MAVEN_ARGS
 
   ERR=$?
