@@ -21,15 +21,8 @@ COPY --chown=185:0 ./contrib/wildfly-configuration/standalone-openshift.xml /opt
 COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=185:0 ./contrib/settings.xml $HOME/.m2/settings.xml
 USER root
-RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rwx /entando-data/ && \
-    mkdir -p /entando-database-templates && \
-    source /opt/rh/rh-maven35/enable && \
-    mvn dependency:get -s $HOME/.m2/settings.xml -Dartifact=org.entando:entando-derby-template:$ENTANDO_VERSION \
-        -Dpackaging=tar.gz -DrepoUrl=https://repository.entando.org/repository/maven-snapshots/ \
-        -Ddest=/entando-database-templates/entando-derby-template.tar.gz && \
-    rm -Rf $HOME/.m2/repository && \
-    cd /entando-database-templates/ && tar xvf entando-derby-template.tar.gz && rm entando-derby-template.tar.gz && \
-    chown -Rf $USERID_TO_USE:0 /entando-database-templates/ && chmod -Rf ug+rw /entando-database-templates/
+RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
+    mkdir -p /entando-database-templates && chown -Rf $USERID_TO_USE:0 /entando-database-templates/ && chmod -Rf ug+rw /entando-database-templates/
 USER $USERID_TO_USE
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
