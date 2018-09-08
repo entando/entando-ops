@@ -11,7 +11,6 @@ mvn archetype:generate -B --settings $HOME/.m2/settings.xml \
         -Dversion=1.0 \
         -Dpackage=org.entando
 cd entando
-$(dirname ${BASH_SOURCE[0]})/start-pg-and-wait.sh
 ${STI_SCRIPTS_PATH}/init-postgresql-db.sh
 if [ $? -eq 0 ]; then
     cd /tmp

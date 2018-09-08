@@ -2,27 +2,19 @@
 DOCKER_ROOT=$(dirname $(realpath $(dirname ${BASH_SOURCE})))
 COMMON_ROOT=$(dirname $(dirname $(realpath ${BASH_SOURCE})))
 
-echo $DOCKER_ROOT
-echo $COMMON_ROOT
+echo "Running Docker build from $DOCKER_ROOT"
+echo "Using common files in $COMMON_ROOT"
 echo "DOCKER_TAG=${DOCKER_TAG}"
 if [ -n "${DOCKER_TAG}" ]; then
-    if [ -d $DOCKER_ROOT/contrib ]; then
-        #Image that supports standard contributions
-        rm  $DOCKER_ROOT/contrib/settings.xml
-        rm -Rf $DOCKER_ROOT/contrib/wfmodules
-        rm -Rf $DOCKER_ROOT/contrib/maven-setup
-        cp -f $COMMON_ROOT/settings.xml $DOCKER_ROOT/contrib/settings.xml
-        cp -Rf $COMMON_ROOT/wfmodules $DOCKER_ROOT/contrib/
-        cp -Rf $COMMON_ROOT/maven-setup $DOCKER_ROOT/contrib/
-    fi
+#TODO put this in the dependencies image as well
     if [ -d $DOCKER_ROOT/s2i/bin ]; then
         #S2I image
-        rm $DOCKER_ROOT/s2i/bin/determine-driver.sh
-        rm $DOCKER_ROOT/s2i/bin/init-db.sh
-        rm $DOCKER_ROOT/s2i/bin/init-default.sh
+        rm $DOCKER_ROOT/s2i/bin/determine-driver.sh 2>/dev/null
+        rm $DOCKER_ROOT/s2i/bin/init-db.sh 2>/dev/null
+        rm $DOCKER_ROOT/s2i/bin/init-default.sh 2>/dev/null
         cp -Rf $COMMON_ROOT/s2i/* $DOCKER_ROOT/s2i/bin/
     fi
-    docker build --build-arg ENTANDO_VERSION_TO_BUILD=${DOCKER_TAG} -f $DOCKERFILE_PATH -t $IMAGE_NAME .
+    docker build --build-arg ENTANDO_VERSION=${DOCKER_TAG} --build-arg ENTANDO_IMAGE_VERSION=${DOCKER_TAG} -f $DOCKERFILE_PATH -t $IMAGE_NAME .
 else
     env
     echo "DOCKER_TAG NOT SET!!!!"

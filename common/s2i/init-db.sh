@@ -14,7 +14,7 @@ if [ "$PORTDB_DRIVER" = "derby" ]; then
    fi
 fi
 export MAVEN_OPTS="$MAVEN_OPTS -XX:MaxMetaspaceSize=350m"
-mvn_command="mvn clean jetty:run --settings $HOME/.m2/settings.xml \
+mvn_command="mvn clean package jetty:run --settings $HOME/.m2/settings.xml \
     --batch-mode \
     $MAVEN_ARGS_APPEND \
     -DskipTests \

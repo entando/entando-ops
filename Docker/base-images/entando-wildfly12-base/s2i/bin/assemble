@@ -255,7 +255,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   JAVA_HOME=/etc/alternatives/java_sdk
 
   if [ -z "$MAVEN_ARGS" ]; then
-    export MAVEN_ARGS="package -Popenshift -DskipTests"
+    export MAVEN_ARGS="clean package -Popenshift -DskipTests"
   fi
 
   # If MAVEN_SETTINGS specified will always add to MAVEN_ARGS
@@ -283,6 +283,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Djboss=jboss \
                 -Denv.db.environment=production \
                 -Dprofile.config.version=production \
+                -Dprofile.application.name=entando \
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
@@ -375,6 +376,10 @@ if [ -d $LOCAL_SOURCE_DIR/modules ]; then
 fi
 #Entando: we don't support incremental builds so we can make the image lean
 rm -Rf $LOCAL_SOURCE_DIR
+#Entando: standardise to a war named 'entando.war' TODO make ROOT.war
+cd /wildfly/standalone/deployments
+mv *.war entando.war
+
 echo "...done"
 
 # This logic is intended to deploy the app as part of assemble

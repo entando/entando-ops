@@ -20,12 +20,12 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-wildfly12-quickstart-openshift:5.0.1-SNAPSHOT"
+          "name": "172.30.1.1:5000/entando/entando-wildfly12-quickstart-openshift:5.0.1-SNAPSHOT"
         },
         "importPolicy": {
           "insecure": true
         },
-        "name": "latest",
+        "name": "5.0.1-SNAPSHOT",
         "referencePolicy": {
           "type": "Source"
         }

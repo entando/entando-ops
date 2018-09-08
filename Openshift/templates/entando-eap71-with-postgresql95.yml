@@ -30,6 +30,11 @@ parameters:
   name: APPLICATION_NAME
   value: entando-sample
   required: false
+- displayName: Entando Image Stream Tag
+  description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
+  name: IMAGE_STREAM_TAG
+  value: 5.0.1-SNAPSHOT
+  required: false
 - displayName: Custom http Route Hostname
   description: 'Custom hostname for http service route.  Leave blank for default hostname,
     e.g.: <application-name>-<project>.<default-domain-suffix>'
@@ -391,7 +396,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:latest
+          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
     output:
       to:
         kind: ImageStreamTag
@@ -455,7 +460,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-postgresql95-openshift:5.0.1-SNAPSHOT
+          name: entando-postgresql95-openshift:${IMAGE_STREAM_TAG}
     output:
       to:
         kind: ImageStreamTag
@@ -747,7 +752,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:5.0.1-SNAPSHOT
+          name: appbuilder:${IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -760,7 +765,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:5.0.1-SNAPSHOT"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP
