@@ -60,6 +60,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
                 -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
                 -Djboss=jboss \
+                -Dproject.build.sourceEncoding=UTF-8 \
                 -Denv.db.environment=production \
                 -Dprofile.config.version=production \
                 -Dprofile.application.name=entando \
