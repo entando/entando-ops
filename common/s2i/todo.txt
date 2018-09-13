@@ -1,0 +1,1 @@
+move all of these fukes to the entando/entando-dependencies-base image
