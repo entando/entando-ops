@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-wildfly
     tags: wildfly,javaee,java,jboss
-    version: 1.4.12
+    version: 5.0.1-SNAPSHOT
     openshift.io/display-name: Entando in Wildfly 12
     openshift.io/provider-display-name: Entando
     description: 'An example Entando in Wildfly '
@@ -23,6 +23,12 @@ parameters:
   name: APPLICATION_NAME
   value: entando-sample
   required: false
+- displayName: Entando Image Stream Tag
+  description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
+  name: IMAGE_STREAM_TAG
+  value: 5.0.1-SNAPSHOT
+  required: false
+
 - displayName: Custom http Route Hostname for the AppBuilder
   description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
     hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
@@ -197,7 +203,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-wildfly12-quickstart-openshift:latest
+          name: entando-wildfly12-quickstart-openshift:${IMAGE_STREAM_TAG}
         incremental: false
     output:
       to:
@@ -308,7 +314,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:5.0.1-SNAPSHOT
+          name: appbuilder:${IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -321,13 +327,13 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:5.0.1-SNAPSHOT"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/${APPLICATION_NAME}
+            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/entando
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File

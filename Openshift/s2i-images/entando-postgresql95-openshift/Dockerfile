@@ -1,18 +1,15 @@
+ARG ENTANDO_IMAGE_VERSION
+FROM entando/entando-dependencies-base:${ENTANDO_IMAGE_VERSION} AS dependencies
 
-ARG ENTANDO_VERSION_TO_BUILD
-FROM entando/entando-postgresql95-base:$ENTANDO_VERSION_TO_BUILD
+FROM entando/entando-postgresql95-base:$ENTANDO_IMAGE_VERSION
 LABEL io.openshift.s2i.destination="/opt/s2i/destination" \
       maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Postgresql Database Image for building and running Entando applications" \
       io.k8s.display-name="Postgresql Database Image for Entando 5"
-#Change to root for installation operations
-USER root
-COPY ./contrib/maven-setup /tmp/maven-setup
-RUN chmod -Rf ug+rw /tmp/maven-setup && chown -Rf 26:root /tmp/maven-setup
-
-#The user 'postgres' is 26, and openshift requires the numeric:
-#Run all of this as postgres as this will be the user under which the S2I build takes place
-USER 26
-RUN cd /tmp/maven-setup/ && ./prepare_m2_repo.sh $ENTANDO_VERSION
+ARG ENTANDO_VERSION
+ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
+    USERID_TO_USE=26
+COPY --chown=185:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
 CMD "$STI_SCRIPTS_PATH/usage"
+
 

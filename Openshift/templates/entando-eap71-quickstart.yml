@@ -6,9 +6,9 @@ metadata:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
     version: 5.0.1-SNAPSHOT
-    openshift.io/display-name: Entando in EAP 7.1
+    openshift.io/display-name: Entando Quickstart on EAP 7.1
     openshift.io/provider-display-name: Entando
-    description: An example Entando in EAP 7.1
+    description: An example illustrating how to get Entando up and running on EAP 7.1
     template.openshift.io/long-description: This template defines resources needed
       to develop Entando applications based on EAP 7.1.
     template.openshift.io/documentation-url: https://central.entando.com/
@@ -16,12 +16,17 @@ metadata:
   name: entando-eap-quickstart
 labels:
   template: entando-eap-quickstart
-message: A new Entando EAP 7.1 has been created in your project.
+message: A new Entando EAP 7.1 Quickstart has been created in your project.
 parameters:
 - displayName: Application Name
   description: The name for the application.
   name: APPLICATION_NAME
   value: entando-sample
+  required: false
+- displayName: Entando Image Stream Tag
+  description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
+  name: IMAGE_STREAM_TAG
+  value: 5.0.1-SNAPSHOT
   required: false
 - displayName: Custom http Route Hostname for the AppBuilder
   description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
@@ -197,7 +202,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:latest
+          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
         incremental: false
     output:
       to:
@@ -307,7 +312,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:5.0.1-SNAPSHOT
+          name: appbuilder:${IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -320,13 +325,13 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:5.0.1-SNAPSHOT"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/${APPLICATION_NAME}
+            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/entando
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File

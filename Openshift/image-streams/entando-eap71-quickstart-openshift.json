@@ -21,12 +21,11 @@
         "from": {
           "kind": "DockerImage",
           "name": "docker.io/entando/entando-eap71-quickstart-openshift:5.0.1-SNAPSHOT"
-
         },
         "importPolicy": {
-          "insecure": false
+          "insecure": true
         },
-        "name": "latest",
+        "name": "5.0.1-SNAPSHOT",
         "referencePolicy": {
           "type": "Source"
         }

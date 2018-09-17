@@ -7,4 +7,5 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml
   -p APPLICATION_NAME="entando-sample" \
   -p IMAGE_STREAM_NAMESPACE="$(oc project -q)" \
   -p ENTANDO_RUNTIME_HOSTNAME_HTTP="entando-core.$(get_openshift_subdomain)" \
+  -p SOURCE_REPOSITORY_URL="https://github.com/ampie/entando-sample.git" \
   | oc replace --force -f -

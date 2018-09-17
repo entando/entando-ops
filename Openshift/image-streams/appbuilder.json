@@ -23,7 +23,7 @@
           "name": "docker.io/entando/appbuilder:5.0.1-SNAPSHOT"
         },
         "importPolicy": {
-          "insecure": false
+          "insecure": true
         },
         "name": "5.0.1-SNAPSHOT",
         "referencePolicy": {
