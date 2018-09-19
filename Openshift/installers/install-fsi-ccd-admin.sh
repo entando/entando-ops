@@ -38,6 +38,6 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml
     -p SOURCE_REPOSITORY_REF=v5.0.1-SNAPSHOT \
     -p IMAGE_STREAM_NAMESPACE="entando" \
     -p ENTANDO_RUNTIME_HOSTNAME_HTTP="entando-core.$(get_openshift_subdomain)" \
-    -p SOURCE_REPOSITORY_URL="https://github.com/entando/fsi-cc-dispute-customer.git" \
-    -p ENTANDO_WEB_CONTEXT="fsi-credit-card-dispute-customer" \
+    -p SOURCE_REPOSITORY_URL="https://github.com/entando/fsi-cc-dispute-admin.git" \
+    -p ENTANDO_WEB_CONTEXT="fsi-credit-card-dispute-backoffice" \
   | oc replace --force -f -

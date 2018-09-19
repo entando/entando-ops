@@ -162,7 +162,4 @@ fi
 rm -rf /tmp/hsperfdata_jboss
 #Entando: we don't support incremental builds so we can make the image lean
 rm -Rf $LOCAL_SOURCE_DIR
-cd /opt/eap/standalone/deployments
-#Entando: standardise to a war named 'entando.war' TODO make ROOT.war
-mv *.war entando.war
 exit 0

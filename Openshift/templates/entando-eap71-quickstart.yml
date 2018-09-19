@@ -40,6 +40,11 @@ parameters:
   name: ENTANDO_RUNTIME_HOSTNAME_HTTP
   value: ''
   required: true
+- displayName: Context root of the Entando Runtime web app
+  description: 'Context root of the Entando Runtime web app'
+  name: ENTANDO_WEB_CONTEXT
+  value: ''
+  required: true
 - displayName: KIE Server base url
   description: KIE Server base url
   name: KIE_SERVER_BASE_URL
@@ -178,7 +183,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-s2i"
+    name: "${APPLICATION_NAME}-s2i-dbrebuild"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -199,7 +204,7 @@ objects:
         - name: ARTIFACT_DIR
           value: "${ARTIFACT_DIR}"
         - name: PREPARE_DB
-          value: "false"
+          value: "true"
         forcePull: false
         from:
           kind: ImageStreamTag
@@ -223,7 +228,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-dbrebuild-s2i"
+    name: "${APPLICATION_NAME}-s2i-fast"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -244,7 +249,7 @@ objects:
         - name: ARTIFACT_DIR
           value: "${ARTIFACT_DIR}"
         - name: PREPARE_DB
-          value: "true"
+          value: "false"
         forcePull: false
         from:
           kind: ImageStreamTag
@@ -368,7 +373,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/entando
+            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/${ENTANDO_WEB_CONTEXT}
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File
