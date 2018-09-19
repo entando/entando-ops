@@ -63,7 +63,6 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dproject.build.sourceEncoding=UTF-8 \
                 -Denv.db.environment=production \
                 -Dprofile.config.version=production \
-                -Dprofile.application.name=entando \
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \

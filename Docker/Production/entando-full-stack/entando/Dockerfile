@@ -21,7 +21,6 @@ RUN mkdir  -p /tmp/entando-init && \
             -Djboss=jboss \
             -Denv.db.environment=production \
             -Dprofile.config.version=production \
-            -Dprofile.application.name=entando \
             -Dprofile.application.baseurl.protocol=http \
             -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
             -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \

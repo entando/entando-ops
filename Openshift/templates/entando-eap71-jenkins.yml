@@ -422,7 +422,6 @@ objects:
                     -Dproject.build.sourceEncoding=UTF-8 \
                     -Denv.db.environment=production \
                     -Dprofile.config.version=production \
-                    -Dprofile.application.name=entando \
                     -Dprofile.application.baseurl.protocol=http \
                     -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoPortDataSource" \
                     -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoServDataSource" \
