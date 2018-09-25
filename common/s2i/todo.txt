@@ -1,1 +1,1 @@
-move all of these fukes to the entando/entando-dependencies-base image
+move all of these files to the entando/entando-dependencies-base image
