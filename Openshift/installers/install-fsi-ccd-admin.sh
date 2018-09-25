@@ -32,8 +32,8 @@ echo "This script installs the Entando Sample project on the EAP 7.1 QuickStart 
 #oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml \
     -p APPLICATION_NAME="entando-bla-bla" \
-    -p KIE_SERVER_BASE_URL="aaaric-ccd-rhpam701-entando-kieserver.apps.dev.ldcloud.com.au" \
-    -p KIE_SERVER_USERNAME=kieUser \
+    -p KIE_SERVER_BASE_URL="http://aaaric-ccd-rhpam701-entando-kieserver.apps.dev.ldcloud.com.au" \
+    -p KIE_SERVER_USERNAME="kieUser" \
     -p KIE_SERVER_PASSWORD="kieUser!23" \
     -p SOURCE_REPOSITORY_REF=v5.0.1-SNAPSHOT \
     -p IMAGE_STREAM_NAMESPACE="entando" \
