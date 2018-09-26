@@ -1,1 +1,0 @@
-move all of these files to the entando/entando-dependencies-base image
