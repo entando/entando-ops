@@ -12,6 +12,7 @@ if [ -n "${DOCKER_TAG}" ]; then
         rm $DOCKER_ROOT/s2i/bin/determine-driver.sh 2>/dev/null
         rm $DOCKER_ROOT/s2i/bin/init-db.sh 2>/dev/null
         rm $DOCKER_ROOT/s2i/bin/init-default.sh 2>/dev/null
+        rm $DOCKER_ROOT/s2i/bin/prepare-db.sh 2>/dev/null
         cp -Rf $COMMON_ROOT/s2i/* $DOCKER_ROOT/s2i/bin/
     fi
     docker build --build-arg ENTANDO_VERSION=${DOCKER_TAG} --build-arg ENTANDO_IMAGE_VERSION=${DOCKER_TAG} -f $DOCKERFILE_PATH -t $IMAGE_NAME .
