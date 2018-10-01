@@ -18,9 +18,10 @@ metadata:
   name: entando-eap71-postgresql95-persistent-s2i
 labels:
   template: entando-eap71-postgresql95-persistent-s2i
-message: 'A new Entando EAP 12 and PostgreSQL 9.5 persistent based application with
-  SSL support has been created in your project. The username/password for accessing
-  the PostgreSQL databases "${ENTANDO_PORT_DATABASE}" and "${ENTANDO_SERV_DATABASE}" is specifed in the ${DB_SECRET} secret.
+message: 'A new Entando EAP 12 persistent based application connecting to an external PostgreSQL
+  database. It has SSL support created in your project. The username/password for accessing
+  the PostgreSQL databases is specifed in the ${DB_SECRET} secret, as well as their their
+  connection strings.
   Please be sure to create the following secrets: "${HTTPS_SECRET}" containing the
   ${HTTPS_KEYSTORE} file used for serving secure content; "${JGROUPS_ENCRYPT_SECRET}"
   containing the ${JGROUPS_ENCRYPT_KEYSTORE} file used for securing JGroups communications.'
@@ -34,6 +35,12 @@ parameters:
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
   name: IMAGE_STREAM_TAG
   value: 5.0.1-SNAPSHOT
+  required: false
+- displayName: Entando Base Image Name
+  description: The Name of the Docker Image to use for the Docker build. It needs to be an child image of the official
+  EAP 7.1 image
+  name: BASE_IMAGE_NAME
+  value: registry.connect.redhat.com/entando/entando-eap71-openshift-imagick
   required: false
 - displayName: Custom http Route Hostname
   description: 'Custom hostname for http service route.  Leave blank for default hostname,
@@ -73,22 +80,46 @@ parameters:
   name: CONTEXT_DIR
   value: ''
   required: false
-- displayName: Entando Port Database Name
-  description: Entando Port Database name
-  name: ENTANDO_PORT_DATABASE
-  value: entandoPort
-  required: false
-- displayName: Entando Port Database Name
-  description: Entando Port Database name
-  name: ENTANDO_SERV_DATABASE
-  value: entandoServ
-  required: false
-- displayName: Database Secret
+- displayName: Entando Database Secret
   description: The name of the secret containing the 'username' and 'password' of
-    the user that will access the Postgresql databases.
+    the user that will access the Postgresql databases, as well as the 'portDbUrl' as well
+    as the 'servDbUrl' connectiong strings.
   name: DB_SECRET
   value: entando-db-secret
   required: true
+- displayName: Target Registry Secret
+  description: The name of the secret containing the 'username' and 'password' of
+    the user that will access the target Docker registry that the image will be promoted
+    to.
+  name: TARGET_REGISTRY_SECRET
+  value: entando-registry-secret
+  required: false
+- displayName: Activate OIDC Connector
+  description: 'true' if the OIDC Connector should be activated.
+  name: ENTANDO_OIDC_ACTIVE
+  value: 'false'
+  required: false
+- displayName: OIDC Authorization Location
+  description: The URL that OIDC can redirect to in order to authorize the user.
+  name: ENTANDO_OIDC_AUTH_LOCATION
+  value: ''
+  required: false
+- displayName: OIDC Token Location
+  description: The URL from which Entando can retrieve the OIDC token after user authorization.
+  name: ENTANDO_OIDC_TOKEN_LOCATION
+  value: ''
+  required: false
+- displayName: OIDC Client ID
+  description: The CLient ID uniquely identifying this Entando instance with the identity provider
+  name: ENTANDO_OIDC_CLIENT_ID
+  value: ''
+  required: false
+- displayName: OIDC Redirect Base URL
+  description: The base url of all possible acceptable redirect URL's that could be sent to the identity
+    provider. Optional - calculated from the received url.
+  name: ENTANDO_OIDC_REDIRECT_BASE_URL
+  value: ''
+  required: false
 - displayName: RedHat Process Automation Manager KIE Server Secret
   description: The secret containing the 'username', 'password', 'url' that would
     provide access to a RedHat Process Automation Manager instance
@@ -137,29 +168,6 @@ parameters:
   description: Sets transaction-isolation for the configured datasource.
   name: DB_TX_ISOLATION
   required: false
-- displayName: PostgreSQL Maximum number of connections
-  description: The maximum number of client connections allowed. This also sets the
-    maximum number of prepared transactions.
-  name: POSTGRESQL_MAX_CONNECTIONS
-  value: '100'
-  required: false
-- displayName: PostgreSQL Shared Buffers
-  description: Configures how much memory is dedicated to PostgreSQL for caching data.
-  name: POSTGRESQL_SHARED_BUFFERS
-  value: 32MB
-  required: false
-- displayName: Github Webhook Secret
-  description: GitHub trigger secret
-  name: GITHUB_WEBHOOK_SECRET
-  from: "[a-zA-Z0-9]{8}"
-  generate: expression
-  required: true
-- displayName: Generic Webhook Secret
-  description: Generic build trigger secret
-  name: GENERIC_WEBHOOK_SECRET
-  from: "[a-zA-Z0-9]{8}"
-  generate: expression
-  required: true
 - displayName: ImageStream Namespace
   description: Namespace in which the ImageStreams for Red Hat Middleware images are
     installed. These ImageStreams are normally installed in the openshift namespace.
@@ -368,112 +376,68 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-s2i"
+    name: "${APPLICATION_NAME}-docker-build"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
-    source:
-      type: Git
-      git:
-        uri: "${SOURCE_REPOSITORY_URL}"
-        ref: "${SOURCE_REPOSITORY_REF}"
-      contextDir: "${CONTEXT_DIR}"
-      sourceSecret:
-        name: "${SOURCE_SECRET}"
     strategy:
-      type: Source
-      sourceStrategy:
-        env:
-        - name: MAVEN_MIRROR_URL
-          value: "${MAVEN_MIRROR_URL}"
-        - name: MAVEN_ARGS_APPEND
-          value: "${MAVEN_ARGS_APPEND}"
-        - name: ARTIFACT_DIR
-          value: "${ARTIFACT_DIR}"
-        - name: PREPARE_DB
-          value: "false"
-        forcePull: true
-        from:
-          kind: ImageStreamTag
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
+      type: Docker
+    source:
+      type: Docker
+      dockerfile: |-
+         FROM ${BASE_IMAGE_NAME}:${IMAGE_STREAM_TAG}
+         COPY entando.war  /opt/eap/standalone/deployments/entando.war
+         CMD "/usr/local/s2i/run"
+      binary:
+        asFile: "entando.war"
     output:
       to:
         kind: ImageStreamTag
         name: "${APPLICATION_NAME}:latest"
-    triggers:
-    - type: GitHub
-      github:
-        secret: "${GITHUB_WEBHOOK_SECRET}"
-    - type: Generic
-      generic:
-        secret: "${GENERIC_WEBHOOK_SECRET}"
-    - type: ImageChange
-      imageChange: {}
-    - type: ConfigChange
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-postgresql-s2i"
-    labels:
-      application: "${APPLICATION_NAME}"
+    name: "${APPLICATION_NAME}-jenkins-pipeline"
   spec:
-    source:
-      type: Git
-      git:
-        uri: "${SOURCE_REPOSITORY_URL}"
-        ref: "${SOURCE_REPOSITORY_REF}"
-      contextDir: "${CONTEXT_DIR}"
-      sourceSecret:
-        name: "${SOURCE_SECRET}"
     strategy:
-      type: Source
-      sourceStrategy:
-        env:
-        - name: MAVEN_MIRROR_URL
-          value: "${MAVEN_MIRROR_URL}"
-        - name: MAVEN_ARGS_APPEND
-          value: "${MAVEN_ARGS_APPEND}"
-        - name: POSTGRESQL_DATABASE
-          value: "${ENTANDO_PORT_DATABASE}"
-        - name: POSTGRESQL_DATABASE2
-          value: "${ENTANDO_SERV_DATABASE}"
-        - name: POSTGRESQL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              key: password
-              name: "${DB_SECRET}"
-        - name: POSTGRESQL_USER
-          valueFrom:
-            secretKeyRef:
-              key: username
-              name: "${DB_SECRET}"
-        - name: POSTGRESQL_MAX_CONNECTIONS
-          value: "${POSTGRESQL_MAX_CONNECTIONS}"
-        - name: POSTGRESQL_MAX_PREPARED_TRANSACTIONS
-          value: "${POSTGRESQL_MAX_CONNECTIONS}"
-        - name: POSTGRESQL_SHARED_BUFFERS
-          value: "${POSTGRESQL_SHARED_BUFFERS}"
-        - name: POSTGRESQL_EFFECTIVE_CACHE_SIZE
-          value: 128MB
-        forcePull: true
-        from:
-          kind: ImageStreamTag
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-postgresql95-openshift:${IMAGE_STREAM_TAG}
-    output:
-      to:
-        kind: ImageStreamTag
-        name: "${APPLICATION_NAME}-postgresql:latest"
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          node("entando-${IMAGE_STREAM_TAG}") {
+            stage("Checkout") {
+              git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${SOURCE_SECRET}"
+            }
+            stage("Build WAR") {
+              sh """
+                  if [ -n "${CONTEXT_DIR}" ]; then
+                    cd "${CONTEXT_DIR}"
+                  fi
+                  mvn -Popenshift package \
+                    -B \
+                    --settings $HOME/.m2/settings.xml \
+                    -Dmaven.repo.local=$HOME/.m2/repository \
+                    -Dprofile.portDataSourceClassName="org.postgresql.Driver" \
+                    -Dprofile.servDataSourceClassName="org.postgresql.Driver" \
+                    -Djboss=jboss \
+                    -Dproject.build.sourceEncoding=UTF-8 \
+                    -Denv.db.environment=production \
+                    -Dprofile.config.version=production \
+                    -Dprofile.application.baseurl.protocol=http \
+                    -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoPortDataSource" \
+                    -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoServDataSource" \
+                    -Dprofile.log.file.prefix=/entando-data/logs/log \
+                    -Dprofile.resources.path=/entando-data/resources \
+                    -Dprofile.resources.path.protected=/entando-data/protected \
+                    -Dprofile.index.path=/entando-data/indexdir \
+                    -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}
+                  oc start-build -F ${APPLICATION_NAME}-docker-build --from-file=target/${APPLICATION_NAME}.war
+               """
+            }
+            stage("Build Image") {
+
+            }
+          }
     triggers:
-    - type: GitHub
-      github:
-        secret: "${GITHUB_WEBHOOK_SECRET}"
-    - type: Generic
-      generic:
-        secret: "${GENERIC_WEBHOOK_SECRET}"
-    - type: ImageChange
-      imageChange: {}
     - type: ConfigChange
 - kind: DeploymentConfig
   apiVersion: v1
@@ -559,9 +523,15 @@ objects:
           - name: SERVDB_DRIVER
             value: postgresql
           - name: PORTDB_URL
-            value: jdbc:postgresql://${APPLICATION_NAME}-portdb:5432/${ENTANDO_PORT_DATABASE}
+            valueFrom:
+              secretKeyRef:
+                key: portDbUrl
+                name: "${DB_SECRET}"
           - name: SERVDB_URL
-            value: jdbc:postgresql://${APPLICATION_NAME}-servdb:5432/${ENTANDO_SERV_DATABASE}
+            valueFrom:
+              secretKeyRef:
+                key: servDbUrl
+                name: "${DB_SECRET}"
           - name: PORTDB_PASSWORD
             valueFrom:
               secretKeyRef:
@@ -582,10 +552,6 @@ objects:
               secretKeyRef:
                 key: username
                 name: "${DB_SECRET}"
-          - name: PORTDB_DATABASE
-            value: "${ENTANDO_PORT_DATABASE}"
-          - name: SERVDB_DATABASE
-            value: "${ENTANDO_SERV_DATABASE}"
           - name: SERVDB_MIN_POOL_SIZE
             value: "${DB_MIN_POOL_SIZE}"
           - name: PORTDB_MIN_POOL_SIZE
@@ -632,6 +598,16 @@ objects:
             value: "${APPLICATION_NAME}-postgresql"
           - name: TIMER_SERVICE_DATA_STORE
             value: "${APPLICATION_NAME}-postgresql"
+          - name: ENTANDO_OIDC_ACTIVE
+            value: "${ENTANDO_OIDC_ACTIVE}"
+          - name: ENTANDO_OIDC_AUTH_LOCATION
+            value: "${ENTANDO_OIDC_AUTH_LOCATION}"
+          - name: ENTANDO_OIDC_TOKEN_LOCATION
+            value: "${ENTANDO_OIDC_TOKEN_LOCATION}"
+          - name: ENTANDO_OIDC_CLIENT_ID
+            value: "${ENTANDO_OIDC_CLIENT_ID}"
+          - name: ENTANDO_OIDC_REDIRECT_BASE_URL
+            value: "${ENTANDO_OIDC_REDIRECT_BASE_URL}"
           - name: KIE_SERVER_BASE_URL
             valueFrom:
               secretKeyRef:
@@ -657,86 +633,6 @@ objects:
         - name: "${APPLICATION_NAME}-entando-pvol"
           persistentVolumeClaim:
             claimName: "${APPLICATION_NAME}-entando-claim"
-- kind: DeploymentConfig
-  apiVersion: v1
-  metadata:
-    name: "${APPLICATION_NAME}-postgresql"
-    labels:
-      application: "${APPLICATION_NAME}"
-  spec:
-    strategy:
-      type: Recreate
-    triggers:
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "${APPLICATION_NAME}-postgresql"
-        from:
-          kind: ImageStreamTag
-          name: "${APPLICATION_NAME}-postgresql:latest"
-    - type: ConfigChange
-    replicas: 1
-    selector:
-      deploymentConfig: "${APPLICATION_NAME}-postgresql"
-    template:
-      metadata:
-        name: "${APPLICATION_NAME}-postgresql"
-        labels:
-          deploymentConfig: "${APPLICATION_NAME}-postgresql"
-          application: "${APPLICATION_NAME}"
-      spec:
-        terminationGracePeriodSeconds: 60
-        containers:
-        - name: "${APPLICATION_NAME}-postgresql"
-          image: "${APPLICATION_NAME}-postgresql"
-          imagePullPolicy: Always
-          ports:
-          - containerPort: 5432
-            protocol: TCP
-          readinessProbe:
-            timeoutSeconds: 1
-            initialDelaySeconds: 5
-            exec:
-              command:
-              - "/bin/sh"
-              - "-i"
-              - "-c"
-              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
-                'SELECT 1'
-          livenessProbe:
-            timeoutSeconds: 1
-            initialDelaySeconds: 30
-            tcpSocket:
-              port: 5432
-          volumeMounts:
-          - mountPath: "/var/lib/pgsql/data"
-            name: "${APPLICATION_NAME}-postgresql-pvol"
-          env:
-          - name: POSTGRESQL_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: password
-                name: "${DB_SECRET}"
-          - name: POSTGRESQL_USER
-            valueFrom:
-              secretKeyRef:
-                key: username
-                name: "${DB_SECRET}"
-          - name: POSTGRESQL_DATABASE
-            value: "${ENTANDO_PORT_DATABASE}"
-          - name: POSTGRESQL_DATABASE2
-            value: "${ENTANDO_SERV_DATABASE}"
-          - name: POSTGRESQL_MAX_CONNECTIONS
-            value: "${POSTGRESQL_MAX_CONNECTIONS}"
-          - name: POSTGRESQL_MAX_PREPARED_TRANSACTIONS
-            value: "${POSTGRESQL_MAX_CONNECTIONS}"
-          - name: POSTGRESQL_SHARED_BUFFERS
-            value: "${POSTGRESQL_SHARED_BUFFERS}"
-        volumes:
-        - name: "${APPLICATION_NAME}-postgresql-pvol"
-          persistentVolumeClaim:
-            claimName: "${APPLICATION_NAME}-postgresql-claim"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -798,18 +694,6 @@ objects:
         dnsPolicy: ClusterFirst
         securityContext: {}
         schedulerName: default-scheduler
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: "${APPLICATION_NAME}-postgresql-claim"
-    labels:
-      application: "${APPLICATION_NAME}"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: "${VOLUME_CAPACITY}"
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:

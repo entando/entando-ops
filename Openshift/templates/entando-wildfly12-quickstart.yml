@@ -41,6 +41,11 @@ parameters:
   name: ENTANDO_RUNTIME_HOSTNAME_HTTP
   value: ''
   required: true
+- displayName: Context root of the Entando Runtime web app
+  description: 'Context root of the Entando Runtime web app'
+  name: ENTANDO_WEB_CONTEXT
+  value: ''
+  required: true
 - displayName: KIE Server base url
   description: KIE Server base url
   name: KIE_SERVER_BASE_URL
@@ -333,7 +338,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/entando
+            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/${ENTANDO_WEB_CONTEXT}
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File

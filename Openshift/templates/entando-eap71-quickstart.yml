@@ -40,6 +40,11 @@ parameters:
   name: ENTANDO_RUNTIME_HOSTNAME_HTTP
   value: ''
   required: true
+- displayName: Context root of the Entando Runtime web app
+  description: 'Context root of the Entando Runtime web app'
+  name: ENTANDO_WEB_CONTEXT
+  value: ''
+  required: true
 - displayName: KIE Server base url
   description: KIE Server base url
   name: KIE_SERVER_BASE_URL
@@ -178,7 +183,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-s2i"
+    name: "${APPLICATION_NAME}-s2i-dbrebuild"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -198,6 +203,8 @@ objects:
           value: "${MAVEN_ARGS_APPEND}"
         - name: ARTIFACT_DIR
           value: "${ARTIFACT_DIR}"
+        - name: PREPARE_DB
+          value: "true"
         forcePull: false
         from:
           kind: ImageStreamTag
@@ -218,6 +225,41 @@ objects:
     - type: ImageChange
       imageChange: {}
     - type: ConfigChange
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-s2i-fast"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    source:
+      type: Git
+      git:
+        uri: "${SOURCE_REPOSITORY_URL}"
+        ref: "${SOURCE_REPOSITORY_REF}"
+      contextDir: "${CONTEXT_DIR}"
+    strategy:
+      type: Source
+      sourceStrategy:
+        env:
+        - name: MAVEN_MIRROR_URL
+          value: "${MAVEN_MIRROR_URL}"
+        - name: MAVEN_ARGS_APPEND
+          value: "${MAVEN_ARGS_APPEND}"
+        - name: ARTIFACT_DIR
+          value: "${ARTIFACT_DIR}"
+        - name: PREPARE_DB
+          value: "false"
+        forcePull: false
+        from:
+          kind: ImageStreamTag
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
+          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
+        incremental: false
+    output:
+      to:
+        kind: ImageStreamTag
+        name: "${APPLICATION_NAME}:latest"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -331,7 +373,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/entando
+            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/${ENTANDO_WEB_CONTEXT}
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File

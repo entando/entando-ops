@@ -60,9 +60,9 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
                 -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
                 -Djboss=jboss \
+                -Dproject.build.sourceEncoding=UTF-8 \
                 -Denv.db.environment=production \
                 -Dprofile.config.version=production \
-                -Dprofile.application.name=entando \
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
@@ -162,7 +162,4 @@ fi
 rm -rf /tmp/hsperfdata_jboss
 #Entando: we don't support incremental builds so we can make the image lean
 rm -Rf $LOCAL_SOURCE_DIR
-cd /opt/eap/standalone/deployments
-#Entando: standardise to a war named 'entando.war' TODO make ROOT.war
-mv *.war entando.war
 exit 0

@@ -18,6 +18,7 @@ mvn_command="mvn clean package jetty:run --settings $HOME/.m2/settings.xml \
     --batch-mode \
     $MAVEN_ARGS_APPEND \
     -DskipTests \
+    -Dproject.build.sourceEncoding=UTF-8 \
     -Dmaven.repo.local=$HOME/.m2/repository \
     -Dprofile.config.version=production \
     -Dprofile.db.restore.enabled=true \
