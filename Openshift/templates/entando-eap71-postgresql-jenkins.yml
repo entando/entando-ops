@@ -6,24 +6,22 @@ metadata:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
     version: 5.0.1-SNAPSHOT
-    openshift.io/display-name: Entando in EAP 7.1 + PostgreSQL (Persistent with https)
+    openshift.io/display-name: Entando in EAP 7.1 + PostgreSQL (Persistent)
     openshift.io/provider-display-name: Entando
     description: An example Entando application with a PostgreSQL database.
     template.openshift.io/long-description: This template defines resources needed
       to develop Entando applications based on EAP 7.1, including a build configuration,
       application deployment configuration, database deployment configuration for
-      PostgreSQL using persistence and secure communication using https.
+      PostgreSQL using persistence.
     template.openshift.io/documentation-url: https://central.entando.com/
     template.openshift.io/support-url: https://central.entando.com
-  name: entando-eap71-postgresql95-persistent-s2i
+  name: entando-eap71-postgresql-jenkins
 labels:
-  template: entando-eap71-postgresql95-persistent-s2i
+  template: entando-eap71-postgresql-jenkins
 message: 'A new Entando EAP 12 persistent based application connecting to an external PostgreSQL
-  database. It has SSL support created in your project. The username/password for accessing
-  the PostgreSQL databases is specifed in the ${DB_SECRET} secret, as well as their their
-  connection strings.
-  Please be sure to create the following secrets: "${HTTPS_SECRET}" containing the
-  ${HTTPS_KEYSTORE} file used for serving secure content; "${JGROUPS_ENCRYPT_SECRET}"
+  database. The username/password for accessing
+  the PostgreSQL databases is specifed in the ${PORTDB_SECRET} secret, as well as their 
+  connection strings.   be sure to create the following secrets: "${JGROUPS_ENCRYPT_SECRET}"
   containing the ${JGROUPS_ENCRYPT_KEYSTORE} file used for securing JGroups communications.'
 parameters:
 - displayName: Application Name
@@ -41,18 +39,6 @@ parameters:
   EAP 7.1 image
   name: BASE_IMAGE_NAME
   value: registry.connect.redhat.com/entando/entando-eap71-openshift-imagick
-  required: false
-- displayName: Custom http Route Hostname
-  description: 'Custom hostname for http service route.  Leave blank for default hostname,
-    e.g.: <application-name>-<project>.<default-domain-suffix>'
-  name: HOSTNAME_HTTP
-  value: ''
-  required: false
-- displayName: Custom https Route Hostname
-  description: 'Custom hostname for https service route.  Leave blank for default
-    hostname, e.g.: secure-<application-name>-<project>.<default-domain-suffix>'
-  name: HOSTNAME_HTTPS
-  value: ''
   required: false
 - displayName: The base url to be used to access the Entando rest services.
   description: NB!! This must reflect either HOSTNAME_HTTPS or HOSTNAME_HTTP, as well
@@ -80,11 +66,20 @@ parameters:
   name: CONTEXT_DIR
   value: ''
   required: false
-- displayName: Entando Database Secret
+- displayName: Entando Port Database Secret
   description: The name of the secret containing the 'username' and 'password' of
-    the user that will access the Postgresql databases, as well as the 'portDbUrl' as well
-    as the 'servDbUrl' connectiong strings.
-  name: DB_SECRET
+    the user that will access the Postgresql Port database, the 'adminUsername' 
+    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url' 
+    defining the connection string.
+  name: PORTDB_SECRET
+  value: entando-portdb-secret
+  required: true
+- displayName: Entando Serv Database Secret
+  description: The name of the secret containing the 'username' and 'password' of
+    the user that will access the Postgresql Serv database, the 'adminUsername' 
+    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url' 
+    defining the connection string.
+  name: SERVDB_SECRET
   value: entando-db-secret
   required: true
 - displayName: Target Registry Secret
@@ -130,31 +125,6 @@ parameters:
   description: Size of persistent storage for database volume.
   name: VOLUME_CAPACITY
   value: 1Gi
-  required: false
-- displayName: Server Keystore Secret Name
-  description: The name of the secret containing the keystore file
-  name: HTTPS_SECRET
-  value: entando-app-secret
-  required: true
-- displayName: Server Keystore Filename
-  description: The name of the keystore file within the secret
-  name: HTTPS_KEYSTORE
-  value: keystore.jks
-  required: false
-- displayName: Server Keystore Type
-  description: The type of the keystore file (JKS or JCEKS)
-  name: HTTPS_KEYSTORE_TYPE
-  value: ''
-  required: false
-- displayName: Server Certificate Name
-  description: The name associated with the server certificate
-  name: HTTPS_NAME
-  value: jboss
-  required: false
-- displayName: Server Keystore Password
-  description: The password for the keystore and certificate
-  name: HTTPS_PASSWORD
-  value: mykeystorepass
   required: false
 - displayName: Datasource Minimum Pool Size
   description: Sets xa-pool/min-pool-size for the configured datasource.
@@ -320,57 +290,10 @@ objects:
     annotations:
       service.alpha.kubernetes.io/tolerate-unready-endpoints: 'true'
       description: The JGroups ping port for clustering.
-- kind: Route
-  apiVersion: v1
-  id: "${APPLICATION_NAME}-http"
-  metadata:
-    name: "${APPLICATION_NAME}"
-    labels:
-      application: "${APPLICATION_NAME}"
-    annotations:
-      description: Route for application's http service.
-  spec:
-    host: "${HOSTNAME_HTTP}"
-    to:
-      name: "${APPLICATION_NAME}"
-- kind: Route
-  apiVersion: v1
-  id: "${APPLICATION_NAME}-appbuilder"
-  metadata:
-    name: "${APPLICATION_NAME}-appbuilder"
-    labels:
-      application: "${APPLICATION_NAME}-appbuilder"
-    annotations:
-      description: Route for application's http service.
-  spec:
-    host: appbuilder.${HOSTNAME_HTTP}
-    to:
-      name: "${APPLICATION_NAME}-appbuilder"
-- kind: Route
-  apiVersion: v1
-  id: "${APPLICATION_NAME}-https"
-  metadata:
-    name: secure-${APPLICATION_NAME}
-    labels:
-      application: "${APPLICATION_NAME}"
-    annotations:
-      description: Route for application's https service.
-  spec:
-    host: "${HOSTNAME_HTTPS}"
-    to:
-      name: secure-${APPLICATION_NAME}
-    tls:
-      termination: passthrough
 - kind: ImageStream
   apiVersion: v1
   metadata:
     name: "${APPLICATION_NAME}"
-    labels:
-      application: "${APPLICATION_NAME}"
-- kind: ImageStream
-  apiVersion: v1
-  metadata:
-    name: "${APPLICATION_NAME}-postgresql"
     labels:
       application: "${APPLICATION_NAME}"
 - kind: BuildConfig
@@ -386,10 +309,10 @@ objects:
       type: Docker
       dockerfile: |-
          FROM ${BASE_IMAGE_NAME}:${IMAGE_STREAM_TAG}
-         COPY entando.war  /opt/eap/standalone/deployments/entando.war
+         COPY ${APPLICATION_NAME}.war  /opt/eap/standalone/deployments/${APPLICATION_NAME}.war
          CMD "/usr/local/s2i/run"
       binary:
-        asFile: "entando.war"
+        asFile: "${APPLICATION_NAME}.war"
     output:
       to:
         kind: ImageStreamTag
@@ -430,11 +353,12 @@ objects:
                     -Dprofile.resources.path.protected=/entando-data/protected \
                     -Dprofile.index.path=/entando-data/indexdir \
                     -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}
-                  oc start-build -F ${APPLICATION_NAME}-docker-build --from-file=target/${APPLICATION_NAME}.war
                """
             }
             stage("Build Image") {
-
+              ssh """
+                  oc start-build -F ${APPLICATION_NAME}-docker-build --from-file=target/${APPLICATION_NAME}.war
+              """
             }
           }
     triggers:
@@ -505,9 +429,6 @@ objects:
           - name: http
             containerPort: 8080
             protocol: TCP
-          - name: https
-            containerPort: 8443
-            protocol: TCP
           - name: ping
             containerPort: 8888
             protocol: TCP
@@ -525,33 +446,33 @@ objects:
           - name: PORTDB_URL
             valueFrom:
               secretKeyRef:
-                key: portDbUrl
-                name: "${DB_SECRET}"
+                key: url
+                name: "${PORTDB_SECRET}"
           - name: SERVDB_URL
             valueFrom:
               secretKeyRef:
-                key: servDbUrl
-                name: "${DB_SECRET}"
+                key: url
+                name: "${SERVDB_SECRET}"
           - name: PORTDB_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: password
-                name: "${DB_SECRET}"
+                name: "${PORTDB_SECRET}"
           - name: PORTDB_USERNAME
             valueFrom:
               secretKeyRef:
                 key: username
-                name: "${DB_SECRET}"
+                name: "${SERVDB_SECRET}"
           - name: SERVDB_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: password
-                name: "${DB_SECRET}"
+                name: "${PORTDB_SECRET}"
           - name: SERVDB_USERNAME
             valueFrom:
               secretKeyRef:
                 key: username
-                name: "${DB_SECRET}"
+                name: "${SERVDB_SECRET}"
           - name: SERVDB_MIN_POOL_SIZE
             value: "${DB_MIN_POOL_SIZE}"
           - name: PORTDB_MIN_POOL_SIZE
@@ -570,16 +491,6 @@ objects:
             value: "${APPLICATION_NAME}-ping"
           - name: OPENSHIFT_DNS_PING_SERVICE_PORT
             value: '8888'
-          - name: HTTPS_KEYSTORE_DIR
-            value: "/etc/eap-secret-volume"
-          - name: HTTPS_KEYSTORE
-            value: "${HTTPS_KEYSTORE}"
-          - name: HTTPS_KEYSTORE_TYPE
-            value: "${HTTPS_KEYSTORE_TYPE}"
-          - name: HTTPS_NAME
-            value: "${HTTPS_NAME}"
-          - name: HTTPS_PASSWORD
-            value: "${HTTPS_PASSWORD}"
           - name: JGROUPS_ENCRYPT_SECRET
             value: "${JGROUPS_ENCRYPT_SECRET}"
           - name: JGROUPS_ENCRYPT_KEYSTORE_DIR
@@ -624,9 +535,6 @@ objects:
                 key: password
                 name: "${KIE_SERVER_SECRET}"
         volumes:
-        - name: eap-keystore-volume
-          secret:
-            secretName: "${HTTPS_SECRET}"
         - name: eap-jgroups-keystore-volume
           secret:
             secretName: "${JGROUPS_ENCRYPT_SECRET}"

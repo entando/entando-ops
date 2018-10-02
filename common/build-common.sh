@@ -11,8 +11,8 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
         $DOCKER_BUILD_DIR/hooks/build
         if [ $? -eq 0 ]; then
             #Now push to locally forwarded port (easiest way to get access to Openshift registry)
-            docker login -u $(oc whoami) -p $(oc whoami -t) 127.0.0.1:5000
-            export DOCKER_REPO="127.0.0.1:5000/$DOCKER_REPO"
+            docker login -u $(oc whoami) -p $(oc whoami -t) 192.168.0.100:5000
+            export DOCKER_REPO="192.168.0.100:5000/$DOCKER_REPO"
 
             echo "Pushing $DOCKER_REPO:$DOCKER_TAG to local registry"
             docker tag $IMAGE_NAME "$DOCKER_REPO:$DOCKER_TAG"
