@@ -9,6 +9,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
 COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 ./settings.xml $HOME/.m2/settings.xml
 COPY --chown=1001:0 ./wfmodules $HOME/wildfly/modules
+COPY --chown=1001:0 ./poms/ /tmp/
 
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \

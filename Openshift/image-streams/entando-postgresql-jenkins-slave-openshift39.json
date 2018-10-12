@@ -1,0 +1,53 @@
+{
+  "apiVersion": "v1",
+  "kind": "ImageStream",
+  "metadata": {
+    "annotations": {
+      "openshift.io/display-name": "Entando Jenkins Slave Builder Image",
+      "openshift.io/provider-display-name": "Entando",
+      "description": "Build Entando applications",
+      "sampleRepo": "https://github.com/ampie/entando-sample.git",
+      "supports": "postgresql,java",
+      "tags": "builder,java"
+    },
+    "name": "entando-postgresql-jenkins-slave-openshift39"
+  },
+  "spec": {
+    "tags": [
+      {
+        "annotations": {
+          "role": "jenkins-slave",
+          "slave-label":"entando-latest"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-postgresql-jenkins-slave-openshift39:latest"
+        },
+        "name": "latest"
+      },
+      {
+        "annotations": {
+          "role": "jenkins-slave",
+          "slave-label":"entando-5.0.1-SNAPSHOT"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-postgresql-jenkins-slave-openshift39:5.0.1-SNAPSHOT"
+        },
+        "name": "5.0.1-SNAPSHOT"
+      },
+      {
+        "annotations": {
+          "role": "jenkins-slave",
+          "slave-label":"entando-5.1.0-SNAPSHOT"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-postgresql-jenkins-slave-openshift39:5.1.0-SNAPSHOT"
+        },
+        "name": "5.1.0-SNAPSHOT"
+      }
+
+    ]
+  }
+}

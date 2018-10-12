@@ -1,5 +1,5 @@
 ARG ENTANDO_IMAGE_VERSION
-FROM entando/entando-jenkins-slave-openshift39:$ENTANDO_IMAGE_VERSION
+FROM entando/entando-maven-jenkins-slave-openshift39:$ENTANDO_IMAGE_VERSION
 ARG ENTANDO_VERSION
 LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Jenkins image for building and Entando applications with a pre-cached maven repository, a PostgreSQL client and some helper scripts" \
@@ -8,7 +8,8 @@ ENV ENTANDO_VERSION=$ENTANDO_VERSION \
     USERID_TO_USE=1001
 USER root
 RUN yum -y update-minimal --setopt=tsflags=nodocs --security --sec-severity=Important --sec-severity=Critical && \
-    yum -y install --setopt=tsflags=nodocs postgresql && \
+    yum -y install https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm && \
+    yum  -y install postgresql95 && \
     yum clean all && \
     rm -rf /var/cache/yum/*
 USER 1001
