@@ -11,6 +11,7 @@ function create_projects(){
     oc policy add-role-to-user edit system:serviceaccount:$APPLICATION_NAME-build:jenkins -n $APPLICATION_NAME-stage
     oc policy add-role-to-user edit system:serviceaccount:$APPLICATION_NAME-build:jenkins -n $APPLICATION_NAME-prod
     oc policy add-role-to-user edit system:serviceaccount:$APPLICATION_NAME-build:jenkins -n $APPLICATION_NAME
+    oc policy add-role-to-user edit  system:serviceaccount:$APPLICATION_NAME-build:jenkins -n $IMAGE_STREAM_NAMESPACE
     oc policy add-role-to-group system:image-puller system:serviceaccounts:$APPLICATION_NAME-stage -n $IMAGE_STREAM_NAMESPACE
     oc policy add-role-to-group system:image-puller system:serviceaccounts:$APPLICATION_NAME-stage -n $APPLICATION_NAME
     oc policy add-role-to-group system:image-puller system:serviceaccounts:$APPLICATION_NAME-prod -n $IMAGE_STREAM_NAMESPACE
@@ -50,6 +51,10 @@ function populate_image_project(){
 function populate_deployment_project(){
   echo "Populating the $1 project." 2> /dev/null
   oc project $APPLICATION_NAME-$1
+  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/sample-jgroups-secret.yml \
+            -p APPLICATION_NAME="${APPLICATION_NAME}" \
+            -p SECRET_NAME="entando-app-secret" \
+            | oc replace --force --grace-period 60  -f -
   oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-eap71-deployment.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p ENVIRONMENT_TAG=$1 \

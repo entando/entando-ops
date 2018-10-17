@@ -19,6 +19,21 @@ stringData:
 EOF
   fi
 }
+function prepare_pam_secret(){
+    echo "Creating the RedHat PAM secret."
+     cat <<EOF | oc replace --force --grace-period 60 -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: entando-pam-secret
+  labels:
+    application: "${APPLICATION_NAME}"
+stringData:
+  username: dummy
+  password: dummy
+  url: dummy
+EOF
+}
 
 function prepare_db_secret(){
   echo "Creating the Entando DB Secret for the $1 environment."
@@ -79,8 +94,10 @@ case $COMMAND in
       prepare_db_secret prod
       oc project ${APPLICATION_NAME}-stage
       prepare_db_secret stage
+      prepare_pam_secret
       oc project ${APPLICATION_NAME}-prod
       prepare_db_secret prod
+      prepare_pam_secret
   ;;
   clear)
       oc delete secrets -l application=${APPLICATION_NAME} -n ${APPLICATION_NAME}-build

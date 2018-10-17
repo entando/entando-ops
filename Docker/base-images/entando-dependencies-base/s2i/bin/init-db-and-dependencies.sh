@@ -14,8 +14,8 @@ mvn archetype:generate -B --settings $HOME/.m2/settings.xml \
         -Dpackage=org.entando
 
 
-if [ -f "pom-$ENTANDO_VERSION.xml" ]; then
-  echo "Using pom-$ENTANDO_VERSION.xml"
+if [ -f "/tmp/pom-$ENTANDO_VERSION.xml" ]; then
+  echo "#############################  Using pom-$ENTANDO_VERSION.xml"
   rm entando/pom.xml
   mv /tmp/pom-$ENTANDO_VERSION.xml entando/pom.xml
 fi

@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 rm -f *.sql
 export PGPASSWORD=$ADMIN_PASSWORD
 echo "PORTDB_SERVICE_HOST=${PORTDB_SERVICE_HOST}"
