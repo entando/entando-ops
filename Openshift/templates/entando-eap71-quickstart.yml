@@ -90,7 +90,7 @@ parameters:
   name: GITHUB_WEBHOOK_SECRET
   from: "[a-zA-Z0-9]{8}"
   generate: expression
-  required: true
+  required: false
 - displayName: Generic Webhook Secret
   description: Generic build trigger secret
   name: GENERIC_WEBHOOK_SECRET
