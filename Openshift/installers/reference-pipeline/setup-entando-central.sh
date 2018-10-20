@@ -1,80 +1,36 @@
 #!/usr/bin/env bash
-source $(dirname $0)/../common.sh
-APPLICATION_NAME=entando-central
+export APPLICATION_NAME=entando-central
 
-function prepare_source_secret(){
-    echo "Creating the BitBucket source secret."
-    if [ -n "${BITBUCKET_USERNAME}" ]; then
-      cat <<EOF | oc replace --force --grace-period 60 -f -
+function prepare_redhat_route(){
+  if [ -f $(dirname $0)/$1.conf ]; then
+    source $(dirname $0)/$1.conf
+  else
+    echo "$1 config file not found. Expected file: $(dirname $0)/$1.conf)"
+    exit -1
+  fi
+  echo "Creating the Red Hat route for $1: ${APPLICATION_NAME}, ${ENGINE_API_DOMAIN}"
+  cat <<EOF | oc replace -n "${APPLICATION_NAME}-$1" --force --grace-period 60 -f -
 apiVersion: v1
-kind: Secret
+kind: Route
 metadata:
-  name: ${APPLICATION_NAME}-source-secret
+  name: ${APPLICATION_NAME}-redhat-route
   labels:
     application: "${APPLICATION_NAME}"
-    credential.sync.jenkins.openshift.io: "true"
-stringData:
-  username: ${BITBUCKET_USERNAME}
-  password: ${BITBUCKET_PASSWORD}
-EOF
-  fi
-}
-function prepare_pam_secret(){
-    echo "Creating the RedHat PAM secret."
-     cat <<EOF | oc replace --force --grace-period 60 -f -
-apiVersion: v1
-kind: Secret
-metadata:
-  name: entando-pam-secret
-  labels:
-    application: "${APPLICATION_NAME}"
-stringData:
-  username: dummy
-  password: dummy
-  url: dummy
+spec:
+  host: redhat.${ENGINE_API_DOMAIN}
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: ${APPLICATION_NAME}
+    weight: 100
+  wildcardPolicy: None
 EOF
 }
-
-function prepare_db_secret(){
-  echo "Creating the Entando DB Secret for the $1 environment."
-  PASSWORD_VAR_NAME=${1^^}_DB_PASSWORD
-  ADMIN_PASSWORD_VAR_NAME=${1^^}_DB_ADMIN_PASSWORD
-  if [ -f passwords.txt ]; then
-  # read previously generated passwords from file
-    source passwords.txt
-  fi
-  if [ -z "${!PASSWORD_VAR_NAME}" ]; then
-  # make sure that the passwords for this environment is persisted to the file too
-      declare ${PASSWORD_VAR_NAME}=asdfasdf #$(openssl rand -base64 24)
-      declare ${ADMIN_PASSWORD_VAR_NAME}=asdfasdfa #$(openssl rand -base64 24)
-      cat <<EOF >> passwords.txt
-${1^^}_DB_PASSWORD=${!PASSWORD_VAR_NAME}
-${1^^}_DB_ADMIN_PASSWORD=${!ADMIN_PASSWORD_VAR_NAME}
-EOF
-  fi
-  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-db-secret.yml \
-            -p APPLICATION_NAME="${APPLICATION_NAME}" \
-            -p SECRET_NAME="${APPLICATION_NAME}-db-secret-$1" \
-            -p PASSWORD="${!PASSWORD_VAR_NAME}" \
-            -p DB_HOSTNAME="${APPLICATION_NAME}-postgresql.${APPLICATION_NAME}-$1.svc" \
-            -p ADMIN_PASSWORD="${!ADMIN_PASSWORD_VAR_NAME}" \
-          |  oc replace --force --grace-period 60  -f -
-  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-db-file-secret.yml \
-            -p APPLICATION_NAME="${APPLICATION_NAME}" \
-            -p SECRET_NAME="${APPLICATION_NAME}-db-file-secret-$1" \
-            -p PASSWORD="${!PASSWORD_VAR_NAME}" \
-            -p DB_HOSTNAME="${APPLICATION_NAME}-postgresql.${APPLICATION_NAME}-$1.svc" \
-            -p ADMIN_PASSWORD="${!ADMIN_PASSWORD_VAR_NAME}" \
-          |  oc replace --force --grace-period 60  -f -
-}
-
 function setup_entando_pipeline(){
-  ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME} \
-    --source-repository-url="https://bitbucket.org/entando/central-entando.git" \
-    --source-repository-ref="EN-1904" \
-    --image-stream-namespace=entando \
-    --stage-db-secret="${APPLICATION_NAME}-db-secret-stage" \
-    --prod-db-secret="${APPLICATION_NAME}-db-secret-prod"
+  ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME}
 
 }
 if [[ $1 =~ -.* ]]; then
@@ -88,20 +44,10 @@ fi
 
 case $COMMAND in
   populate)
-      oc project ${APPLICATION_NAME}-build
-      prepare_source_secret
-      prepare_db_secret stage
-      prepare_db_secret prod
-      oc project ${APPLICATION_NAME}-stage
-      prepare_db_secret stage
-      prepare_pam_secret
-      oc project ${APPLICATION_NAME}-prod
-      prepare_db_secret prod
-      prepare_pam_secret
+    prepare_redhat_route stage
+    prepare_redhat_route prod
   ;;
   clear)
-      oc delete secrets -l application=${APPLICATION_NAME} -n ${APPLICATION_NAME}-build
-      oc delete secrets -l application=${APPLICATION_NAME} -n ${APPLICATION_NAME}-stage
       oc delete secrets -l application=${APPLICATION_NAME} -n ${APPLICATION_NAME}-prod
   ;;
 esac

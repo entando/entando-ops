@@ -28,11 +28,13 @@ parameters:
   value: stage
   required: false
 - displayName: The base url to be used to access the Entando rest services.
-  description: This must reflect either the HTTP or HTTPS hostname of the Entando core engine service, as well
-    as any web context root that may be used
-  name: ENTANDO_BASEURL
-  value: ''
-  required: false
+  description: This must reflect either the HTTPS hostname of the Entando core engine service. Root servlet context is assumed
+  name: ENGINE_API_DOMAIN
+  required: true
+- displayName: The base url to be used to access the Entando rest services.
+  description: This must reflect either the HTTPS hostname of the Entando AppBuilder service. Root servlet context is assumed
+  name: APP_BUILDER_DOMAIN
+  required: true
 - displayName: Entando Port Database Secret
   description: The name of the secret containing the 'username' and 'password' of
     the user that will access the Postgresql Port as well as Serv database, the 'adminUsername'
@@ -429,7 +431,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: "${ENTANDO_BASEURL}"
+            value: "https://${ENGINE_API_DOMAIN}"
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File
@@ -439,6 +441,40 @@ objects:
         dnsPolicy: ClusterFirst
         securityContext: {}
         schedulerName: default-scheduler
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}-engine
+  spec:
+    host: ${ENGINE_API_DOMAIN}
+    port:
+      targetPort: 8080
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${APPLICATION_NAME}
+      weight: 100
+    wildcardPolicy: None
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      application: ${APPLICATION_NAME}
+    name: ${APPLICATION_NAME}-appbuilder
+  spec:
+    host: ${APP_BUILDER_DOMAIN}
+    port:
+      targetPort: 5000
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: ${APPLICATION_NAME}-appbuilder
+      weight: 100
+    wildcardPolicy: None
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:

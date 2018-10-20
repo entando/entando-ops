@@ -60,28 +60,12 @@ parameters:
   name: ENTANDO_DB_SECRET_STAGE
   value: entando-secret-stage
   required: true
-- displayName: Entando Serv Database Secret for the Production environment
-  description: The name of the secret containing the 'username' and 'password' of
-    the user that will access the Postgresql Serv database, the 'adminUsername' 
-    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url' 
-    defining the connection string.
-  name: SERVDB_SECRET_STAGE
-  value: entando-servdb-secret-stage
-  required: true
-- displayName: Entando Port Database Secret for the Production environment
-  description: The name of the secret containing the 'username' and 'password' of
-    the user that will access the Postgresql Port database, the 'adminUsername'
-    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url'
-    defining the connection string.
-  name: PORTDB_SECRET_PROD
-  value: entando-portdb-secret-prod
-  required: true
-- displayName: Entando Serv Database Secret for the Staging environment
+- displayName: Entando Database Secret for the Production environment
   description: The name of the secret containing the 'username' and 'password' of
     the user that will access the Postgresql Serv database, the 'adminUsername'
     and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url'
     defining the connection string.
-  name: SERVDB_SECRET_PROD
+  name: ENTANDO_DB_SECRET_PROD
   value: entando-servdb-secret-prod
   required: true
 - displayName: Maven mirror URL

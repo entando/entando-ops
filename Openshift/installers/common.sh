@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 export ENTANDO_OPS_HOME=/home/lulu/Code/entando/entando-ops
-#export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/EN-1928"
+#export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/credit-card-dispute"
 
 function get_openshift_subdomain(){
   if [ -n "${OPENSHIFT_DOMAIN_SUFFIX}" ]; then
