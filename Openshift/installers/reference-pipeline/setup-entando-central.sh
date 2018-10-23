@@ -17,7 +17,7 @@ metadata:
   labels:
     application: "${APPLICATION_NAME}"
 spec:
-  host: redhat.${ENGINE_API_DOMAIN}
+  host: ${REDHAT_ENGINE_API_DOMAIN}
   port:
     targetPort: 8080
   tls:
