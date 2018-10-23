@@ -20,15 +20,15 @@ mvn archetype:generate -DgroupId=org.sample -DartifactId=sample \
 #cp filter-openshift.properties sample/src/main/filters/filter-openshift.properties
 pushd sample
 mvn package jetty:run 2>&1 > db_creation.log &
-jetty_pid=$!
-echo "jetty: $jetty_pid"
+JETTY_PID=$!
+echo "jetty: $JETTY_PID"
 for i in {1..900} ;
     do sleep 2 && tail db_creation.log -n 20;
     if fgrep --quiet "BUILD FAILURE" db_creation.log; then
       exit 1
     fi
     if fgrep --quiet "Started Jetty Server" db_creation.log; then
-        echo "Jetty started" &&  kill $jetty_pid
+        echo "Jetty started" &&  kill $JETTY_PID
         popd  && rm sample -r
         rm -rf $HOME/.m2
         rm -rf entando*
