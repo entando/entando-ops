@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-export ENTANDO_OPS_HOME=/home/lulu/Code/entando/entando-ops
-#export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/credit-card-dispute"
+#export ENTANDO_OPS_HOME=/home/lulu/Code/entando/entando-ops
+#export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/EN-2085"
+export ENTANDO_OPS_HOME=../../..
 IMAGE_STREAM_NAMESPACE=entando
 function create_projects(){
     echo "Creating projects for ${APPLICATION_NAME}"
@@ -26,6 +27,11 @@ function create_projects(){
         -p ENABLE_OAUTH=true
 }
 function install_imagick_image(){
+  echo "Installing required images"
+  oc create -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-postgresql-jenkins-slave-openshift39.json 2> /dev/null
+  oc create -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-maven-jenkins-slave-openshift39.json 2> /dev/null
+  oc create -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-postgresql95-openshift.json 2> /dev/null
+  oc create -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json 2> /dev/null
   echo "Installing the Entando Imagick Image stream."
   if [ -f $(dirname $0)/build.conf ]; then
     source $(dirname $0)/build.conf
@@ -34,6 +40,13 @@ function install_imagick_image(){
     exit -1
   fi
   if [ -n "${REDHAT_REGISTRY_USERNAME}" ]; then
+    oc delete secret base-image-registry-secret -n ${APPLICATION_NAME}-build 2>/dev/null
+    oc create secret docker-registry base-image-registry-secret \
+        --docker-server=registry.connect.redhat.com \
+        --docker-username=${REDHAT_REGISTRY_USERNAME} \
+        --docker-password=${REDHAT_REGISTRY_PASSWORD} \
+        --docker-email=${REDHAT_REGISTRY_USERNAME} \
+        -n ${APPLICATION_NAME}-build
     oc delete secret base-image-registry-secret -n $IMAGE_STREAM_NAMESPACE 2>/dev/null
     oc create secret docker-registry base-image-registry-secret \
         --docker-server=registry.connect.redhat.com \
@@ -46,7 +59,7 @@ function install_imagick_image(){
     echo "Please set the REDHAT_REGISTRY_USERNAME and REDHAT_REGISTRY_PASSWORD variables so that the image can be retrieved from the secure Red Hat registry"
     exit -1
   fi
-oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-openshift.json -n $IMAGE_STREAM_NAMESPACE
+  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-openshift.json -n $IMAGE_STREAM_NAMESPACE
 }
 
 function prepare_source_secret(){
@@ -234,6 +247,28 @@ function populate_projects(){
     populate_image_project
     populate_deployment_project stage
     populate_deployment_project prod
+    COUNTER=0
+    oc get pods -n ${APPLICATION_NAME}-build --selector name=jenkins
+    until oc get pods -n ${APPLICATION_NAME}-build --selector name=jenkins | grep  '1/1\s*Running' ;
+    do
+       if [ $COUNTER -gt 100 ]; then
+         echo "Timeout waiting for Jenkins pod"
+         exit -1
+       fi
+        echo "waiting for Jenkins:"
+       sleep 10
+    done   
+    until oc get pods -n ${APPLICATION_NAME}-stage --selector deploymentConfig=${APPLICATION_NAME}-postgresql | grep '1/1\s*Running' ; 
+    do
+       if [ $COUNTER -gt 100 ]; then
+       	 echo "Timeout	waiting	for PostgreSQL pod"
+       	 exit -1
+       fi
+       echo "waiting for PostgreSQL:"
+       sleep 10 
+    done
+    echo "running oc adm pod-network join-projects --to=${APPLICATION_NAME}-stage ${APPLICATION_NAME}-build ${APPLICATION_NAME}-prod"
+    oc adm pod-network join-projects --to=${APPLICATION_NAME}-stage ${APPLICATION_NAME}-build ${APPLICATION_NAME}-prod
 }
 function clear_projects(){
     echo "Deleting all elements with the label application=$APPLICATION_NAME"
@@ -245,6 +280,10 @@ function clear_projects(){
     oc delete secret -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
     oc delete secret -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
     oc delete secret -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+    oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
+    oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
+    oc delete pvc -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+
 }
 
 
