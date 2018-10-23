@@ -36,7 +36,7 @@ function install_imagick_image(){
   if [ -f $(dirname $0)/build.conf ]; then
     source $(dirname $0)/build.conf
   else
-    echo "Build config file not found. Expected file: $(dirname $0)/build.conf)"
+    echo "Build config file not found. Expected file: $(dirname $0)/build.conf.sample)"
     exit -1
   fi
   if [ -n "${REDHAT_REGISTRY_USERNAME}" ]; then
@@ -116,7 +116,7 @@ function populate_build_project(){
   if [ -f $(dirname $0)/build.conf ]; then
     source $(dirname $0)/build.conf
   else
-    echo "Build config file not found. Expected file: $(dirname $0)/build.conf)"
+    echo "Build config file not found. Expected file: $(dirname $0)/build.conf.sample)"
     exit -1
   fi
   oc project $APPLICATION_NAME-build

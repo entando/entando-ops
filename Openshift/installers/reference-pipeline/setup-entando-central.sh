@@ -29,6 +29,23 @@ spec:
   wildcardPolicy: None
 EOF
 }
+function create_bitbucket_webhook_secret(){
+  WEB_HOOK_SECRET_KEY=$(openssl rand -base64 12)
+  cat <<EOF | oc replace -n "${APPLICATION_NAME}-build" --force --grace-period 60 -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${APPLICATION_NAME}-webhook-secret
+  labels:
+    application: "${APPLICATION_NAME}"
+stringData:
+  WebHookSecretKey: "$WEB_HOOK_SECRET_KEY"
+EOF
+  oc patch bc ${APPLICATION_NAME}-jenkins-pipeline --patch '{"spec":{"triggers":[{"type":"Bitbucket","bitbucket":{"secretReference":{"name":"${APPLICATION_NAME}-webhook-secret"}}}]}}'
+  echo $WEB_HOOK_SECRET_KEY >> webhook.key
+
+}
+
 function setup_entando_pipeline(){
   ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME}
 
@@ -44,6 +61,7 @@ fi
 
 case $COMMAND in
   populate)
+    create_bitbucket_webhook_secret
     prepare_redhat_route stage
     prepare_redhat_route prod
   ;;
