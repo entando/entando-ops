@@ -299,7 +299,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-jenkins-db-pipeline"
+    name: "${APPLICATION_NAME}-jenkins-test-pipeline"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -336,32 +336,37 @@ objects:
           pipeline {
               agent none
               stages {
-                  stage("Build ${APPLICATION_NAME} Image") {
-                  stage("Bring down ${APPLICATION_NAME} Prod Deployment") {
+                  stage('Bring down ${APPLICATION_NAME} Prod Deployment') {
                       agent {
                           label "entando-maven"
                       }
                       steps {
                           script {
-                              openshift.withCluster() {
-                                  openshift.withProject("${APPLICATION_NAME}-prod"){
-                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
-                                    deploymentConfig.scale("--replicas=0")
-                                    openshift.tag("${APPLICATION_NAME}/${APPLICATION_NAME}:latest", "${APPLICATION_NAME}/${APPLICATION_NAME}:stage")
-                                    openshift.tag("entando/appbuilder:${ENTANDO_IMAGE_TAG}", "${APPLICATION_NAME}/appbuilder:stage")
-                                    openshift.tag("entando/entando-postgresql95-openshift:${ENTANDO_IMAGE_TAG}", "${APPLICATION_NAME}/entando-postgresql95-openshift:stage")
+                              openshift.withCluster('${PRODUCTION_CLUSTER_URL}','${APPLICATION_NAME}-build-${APPLICATION_NAME}-production-cluster-secret') {
+                                  openshift.withProject('${APPLICATION_NAME}-prod'){
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}')
+                                    deploymentConfig.scale('--replicas=0')
                                   }
                               }
                           }
                       }
                   }
-                  stage("Prepare ${APPLICATION_NAME} Database ") {
+                  stage('Prepare ${APPLICATION_NAME} Production Database') {
                       agent {
                           label 'entando-postgresql'
                       }
                       steps {
-                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
-                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
+                          git url: '${SOURCE_REPOSITORY_URL}', branch: '${SOURCE_REPOSITORY_REF}', credentialsId: '${APPLICATION_NAME}-build-${SOURCE_SECRET}'
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-production-cluster-secret',
+                                            usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                              sh '''
+                                    #!/bin/bash
+                                    oc login -u $USERNAME -p $PASSWORD-p $PRODUCTION_CLUSTER_URL
+                                    PG_POD=$(oc get pods -n ${APPLICATION_NAME}-prod -l deploymentConfig=${APPLICATION_NAME}-postgresql | grep '${APPLICATION_NAME}-[a-zA-Z0-9\-]*' -o)
+                                    nohup oc port-forward $PG_POD 5432:5432 &
+                              '''
+                          }
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
                                             usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
                               sh '''
                                     #!/bin/bash
@@ -371,6 +376,10 @@ objects:
                                        cd ""
                                     fi
                                     set -e
+                                    export PORTDB_SERVICE_HOST=localhost
+                                    export SERVDB_SERVICE_HOST=localhost
+                                    export PORTDB_SERVICE_PORT=5432
+                                    export SERVDB_SERVICE_PORT=5432
                                     ${HOME}/backup-dbs.sh
                                     ${HOME}/recreate-dbs.sh
                                     ${HOME}/init-postgresql-db.sh
@@ -379,7 +388,7 @@ objects:
                       }
                       post {
                           failure {
-                              withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
+                              withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
                                                 usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
                                   sh '''
                                       #!/bin/bash
@@ -388,6 +397,10 @@ objects:
                                       if [ -n "${CONTEXT_DIR}" ]; then
                                          cd ""
                                       fi
+                                      export PORTDB_SERVICE_HOST=localhost
+                                      export SERVDB_SERVICE_HOST=localhost
+                                      export PORTDB_SERVICE_PORT=5432
+                                      export SERVDB_SERVICE_PORT=5432
                                       ${HOME}/restore-dbs.sh
                                      '''
                               }
@@ -400,8 +413,8 @@ objects:
                       }
                       steps {
                           script {
-                              openshift.withCluster() {
-                                  openshift.withProject("${APPLICATION_NAME}-stage"){
+                              openshift.withCluster('${PRODUCTION_CLUSTER_URL}','${APPLICATION_NAME}-build-${APPLICATION_NAME}-production-cluster-secret') {
+                                  openshift.withProject("${APPLICATION_NAME}-prod"){
                                     def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
                                     def rolloutManager=deploymentConfig.rollout()
                                     rolloutManager.latest()

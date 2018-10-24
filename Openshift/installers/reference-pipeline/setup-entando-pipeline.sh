@@ -26,12 +26,15 @@ function create_projects(){
         -p MEMORY_LIMIT=2048Mi \
         -p ENABLE_OAUTH=true
 }
-function install_imagick_image(){
+function install_image_streams(){
   echo "Installing required images"
   oc create -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-postgresql-jenkins-slave-openshift39.json 2> /dev/null
   oc create -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-maven-jenkins-slave-openshift39.json 2> /dev/null
   oc create -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-postgresql95-openshift.json 2> /dev/null
   oc create -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json 2> /dev/null
+}
+
+function install_imagick_image(){
   echo "Installing the Entando Imagick Image stream."
   if [ -f $(dirname $0)/build.conf ]; then
     source $(dirname $0)/build.conf
@@ -40,6 +43,7 @@ function install_imagick_image(){
     exit -1
   fi
   if [ -n "${REDHAT_REGISTRY_USERNAME}" ]; then
+    #Create secret in build namespace as somehow the Docker build fails -TODO test if this is still necessary as we are now using an S2I build
     oc delete secret base-image-registry-secret -n ${APPLICATION_NAME}-build 2>/dev/null
     oc create secret docker-registry base-image-registry-secret \
         --docker-server=registry.connect.redhat.com \
@@ -47,6 +51,7 @@ function install_imagick_image(){
         --docker-password=${REDHAT_REGISTRY_PASSWORD} \
         --docker-email=${REDHAT_REGISTRY_USERNAME} \
         -n ${APPLICATION_NAME}-build
+    #Create secret in image namespace for
     oc delete secret base-image-registry-secret -n $IMAGE_STREAM_NAMESPACE 2>/dev/null
     oc create secret docker-registry base-image-registry-secret \
         --docker-server=registry.connect.redhat.com \
@@ -79,6 +84,38 @@ stringData:
 EOF
   fi
 }
+function prepare_prod_cluster_secret(){
+    echo "Creating the Production Cluster secret."
+    if [ -n "${PRODUCTION_CLUSTER_USERNAME}" ] && [ -n "${PRODUCTION_CLUSTER_PASSWORD}" ] && [ -n "${PRODUCTION_CLUSTER_URL}" ]; then
+      cat <<EOF | oc replace --force --grace-period 60 -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${APPLICATION_NAME}-production-cluster-secret
+  labels:
+    application: "${APPLICATION_NAME}"
+    credential.sync.jenkins.openshift.io: "true"
+stringData:
+  username: ${PRODUCTION_CLUSTER_USERNAME}
+  password: ${PRODUCTION_CLUSTER_PASSWORD}
+EOF
+  fi
+}
+function prepare_external_docker_secret(){
+  echo "Creating the External Docker secret."
+  if [ -n "${EXTERNAL_DOCKER_REGISTRY_USERNAME}" ] && [ -n "${EXTERNAL_DOCKER_REGISTRY_USERNAME}" ] && [ -n "${EXTERNAL_DOCKER_REGISTRY_URL}" ]; then
+    oc delete secret ${APPLICATION_NAME}-external-registry-secret -n $IMAGE_STREAM_NAMESPACE 2>/dev/null
+    oc create secret docker-registry ${APPLICATION_NAME}-external-registry-secret \
+        --docker-server=${EXTERNAL_DOCKER_REGISTRY_URL}\
+        --docker-username=${EXTERNAL_DOCKER_REGISTRY_USERNAME} \
+        --docker-password=${EXTERNAL_DOCKER_REGISTRY_PASSWORD} \
+        --docker-email=${EXTERNAL_DOCKER_REGISTRY_USERNAME} \
+        -n $IMAGE_STREAM_NAMESPACE
+    oc label secret ${APPLICATION_NAME}-external-registry-secret credential.sync.jenkins.openshift.io=true
+    oc label secret ${APPLICATION_NAME}-external-registry-secret application=${APPLICATION_NAME}
+  fi
+}
+
 function prepare_pam_secret(){
     echo "Creating the RedHat PAM secret."
     if [ -n "${KIE_SERVER_USERNAME}" ] && [ -n "${KIE_SERVER_PASSWORD}" ] && [ -n "${KIE_SERVER_BASE_URL}" ] ; then
@@ -110,20 +147,13 @@ EOF
     fi
 }
 
-
-function populate_build_project(){
-  echo "Populating the build project." 2> /dev/null
+function deploy_build_template(){
   if [ -f $(dirname $0)/build.conf ]; then
     source $(dirname $0)/build.conf
   else
     echo "Build config file not found. Expected file: $(dirname $0)/build.conf.sample)"
     exit -1
   fi
-  oc project $APPLICATION_NAME-build
-  prepare_source_secret
-  install_imagick_image
-  prepare_db_secret stage
-  prepare_db_secret prod
   oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-build.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p ENTANDO_IMAGE_STREAM_NAMESPACE="entando" \
@@ -133,8 +163,13 @@ function populate_build_project(){
             -p SOURCE_REPOSITORY_REF=${SOURCE_REPOSITORY_REF:-master} \
             -p ENTANDO_DB_SECRET_STAGE="${APPLICATION_NAME}-db-secret-stage" \
             -p ENTANDO_DB_SECRET_PROD="${APPLICATION_NAME}-db-secret-prod" \
+            -p PRODUCTION_CLUSTER_URL="${PRODUCTION_CLUSTER_URL}" \
+            -p PRODUCTION_CLUSTER_SECRET="${APPLICATION_NAME}-production-cluster-secret" \
+            -p EXTERNAL_DOCKER_REGISTRY_URL="${EXTERNAL_DOCKER_REGISTRY_URL}" \
+            -p EXTERNAL_DOCKER_REGISTRY_SECRET="${APPLICATION_NAME}-external-registry-secret" \
           |  oc replace --force --grace-period 60  -f -
 }
+
 function populate_image_project(){
   echo "Populating the image project." 2> /dev/null
   oc project $APPLICATION_NAME
@@ -142,6 +177,7 @@ function populate_image_project(){
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             | oc replace --force --grace-period 60  -f -
 }
+
 function prepare_db_secret(){
   echo "Creating the Entando DB Secret for the $1 environment."
   if [ -f $(dirname $0)/$1.conf ]; then
@@ -189,10 +225,7 @@ EOF
             -p ADMIN_USERNAME="postgres" \
           |  oc replace --force --grace-period 60  -f -
 }
-
-
-function populate_deployment_project(){
-  echo "Populating the $1 project." 2> /dev/null
+function deploy_runtime_templates(){
   source $(dirname $0)/clear-vars.sh
   if [ -f $(dirname $0)/$1.conf ]; then
     source $(dirname $0)/$1.conf
@@ -200,9 +233,6 @@ function populate_deployment_project(){
     echo "Config file for $1 not found. Expected file: $(dirname $0)/$1.conf)"
     exit -1
   fi
-  oc project $APPLICATION_NAME-$1
-  prepare_db_secret $1
-  prepare_pam_secret $1
   oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/sample-jgroups-secret.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p SECRET_NAME="entando-app-secret" \
@@ -242,34 +272,66 @@ function populate_deployment_project(){
   fi
 }
 
-function populate_projects(){
-    populate_build_project
-    populate_image_project
-    populate_deployment_project stage
-    populate_deployment_project prod
+function log_into_prod_cluster(){
+  source $(dirname $0)/clear-vars.sh
+  if [ -f $(dirname $0)/build.conf ]; then
+    source $(dirname $0)/build.conf
+  else
+    echo "Config file for prod not found. Expected file: $(dirname $0)/prod.conf)"
+    exit -1
+  fi
+  oc login -u $PRODUCTION_CLUSTER_USERNAME -p $PRODUCTION_CLUSTER_PASSWORD $PRODUCTION_CLUSTER_URL
+}
+
+function wait_for_stage_deployment(){
     COUNTER=0
     oc get pods -n ${APPLICATION_NAME}-build --selector name=jenkins
     until oc get pods -n ${APPLICATION_NAME}-build --selector name=jenkins | grep  '1/1\s*Running' ;
     do
+       COUNTER=$(($COUNTER+1))
        if [ $COUNTER -gt 100 ]; then
          echo "Timeout waiting for Jenkins pod"
          exit -1
        fi
         echo "waiting for Jenkins:"
        sleep 10
-    done   
-    until oc get pods -n ${APPLICATION_NAME}-stage --selector deploymentConfig=${APPLICATION_NAME}-postgresql | grep '1/1\s*Running' ; 
+    done
+    until oc get pods -n ${APPLICATION_NAME}-stage --selector deploymentConfig=${APPLICATION_NAME}-postgresql | grep '1/1\s*Running' ;
     do
+       COUNTER=$(($COUNTER+1))
        if [ $COUNTER -gt 100 ]; then
        	 echo "Timeout	waiting	for PostgreSQL pod"
        	 exit -1
        fi
        echo "waiting for PostgreSQL:"
-       sleep 10 
+       sleep 10
     done
-    echo "running oc adm pod-network join-projects --to=${APPLICATION_NAME}-stage ${APPLICATION_NAME}-build ${APPLICATION_NAME}-prod"
-    oc adm pod-network join-projects --to=${APPLICATION_NAME}-stage ${APPLICATION_NAME}-build ${APPLICATION_NAME}-prod
 }
+function join_build_and_stage_network(){
+    echo "running oc adm pod-network join-projects --to=${APPLICATION_NAME}-stage ${APPLICATION_NAME}-build "
+    oc adm pod-network join-projects --to=${APPLICATION_NAME}-stage ${APPLICATION_NAME}-build
+}
+function populate_deployment_project(){
+  echo "Populating the $1 project." 2> /dev/null
+  oc project $APPLICATION_NAME-$1
+  prepare_db_secret $1
+  prepare_pam_secret $1
+  deploy_runtime_templates $1
+}
+
+function populate_build_project(){
+  echo "Populating the build project." 2> /dev/null
+  oc project $APPLICATION_NAME-build
+  prepare_source_secret
+  install_image_streams
+  install_imagick_image
+  prepare_db_secret stage
+  prepare_db_secret prod
+  deploy_build_template
+  prepare_external_docker_secret
+  prepare_prod_cluster_secret
+}
+
 function clear_projects(){
     echo "Deleting all elements with the label application=$APPLICATION_NAME"
     oc delete all -l application=$APPLICATION_NAME -n $APPLICATION_NAME
@@ -283,9 +345,7 @@ function clear_projects(){
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
     oc delete pvc -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
-
 }
-
 
 function delete_projects(){
     echo "Deleting projects for ${APPLICATION_NAME}"
@@ -293,6 +353,16 @@ function delete_projects(){
     oc delete project $APPLICATION_NAME-build
     oc delete project $APPLICATION_NAME-stage
     oc delete  project $APPLICATION_NAME-prod
+}
+function populate_projects(){
+    populate_build_project
+    populate_image_project
+    populate_deployment_project stage
+#This is probably not necessary anymore
+    wait_for_stage_deployment
+    join_build_and_stage_network
+    log_into_prod_cluster
+    populate_deployment_project prod
 }
 
 if [[ $1 =~ -.* ]]; then
