@@ -230,7 +230,6 @@ objects:
                                     deploymentConfig.scale("--replicas=0")
                                     openshift.tag("${APPLICATION_NAME}/${APPLICATION_NAME}:latest", "${APPLICATION_NAME}/${APPLICATION_NAME}:stage")
                                     openshift.tag("entando/appbuilder:${ENTANDO_IMAGE_TAG}", "${APPLICATION_NAME}/appbuilder:stage")
-                                    openshift.tag("entando/entando-postgresql95-openshift:${ENTANDO_IMAGE_TAG}", "${APPLICATION_NAME}/entando-postgresql95-openshift:stage")
                                   }
                               }
                           }
@@ -336,6 +335,23 @@ objects:
           pipeline {
               agent none
               stages {
+                  stage("Push ${APPLICATION_NAME}:prod image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              docker.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-stage"){
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
+                                    deploymentConfig.scale("--replicas=0")
+                                    openshift.tag("${APPLICATION_NAME}/${APPLICATION_NAME}:stage", "${APPLICATION_NAME}/${APPLICATION_NAME}:stage")
+                                    openshift.tag("entando/appbuilder:${ENTANDO_IMAGE_TAG}", "${APPLICATION_NAME}/appbuilder:stage")
+                                  }
+                              }
+                          }
+                      }
+                  }
                   stage('Bring down ${APPLICATION_NAME} Prod Deployment') {
                       agent {
                           label "entando-maven"

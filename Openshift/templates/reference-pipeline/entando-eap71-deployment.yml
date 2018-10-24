@@ -127,7 +127,33 @@ parameters:
   name: MEMORY_LIMIT
   value: 1Gi
   required: false
+- description: External Docker Registry URL
+  name: EXTERNAL_DOCKER_REGISTRY_URL
+  value: docker.io
+  required: false
+- description: External Docker Project
+  name: EXTERNAL_DOCKER_PROJECT
+  value: ''
+  required: true
 objects:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: ${APPLICATION_NAME}
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    tags:
+    - from:
+        kind: DockerImage
+        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:1.0"
+      name: "latest"
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: ${APPLICATION_NAME}-appbuilder
+    labels:
+      application: "${APPLICATION_NAME}"
 - kind: Service
   apiVersion: v1
   spec:
