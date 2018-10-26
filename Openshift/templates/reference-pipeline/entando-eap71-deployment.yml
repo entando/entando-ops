@@ -23,9 +23,14 @@ parameters:
   value: entando-sample
   required: false
 - displayName: Environment Image Stream Tag
-  description: The Image Stream Tag to use for each of the entando deployment components, which generally corresponds with the environment (STAGE, PROD etc.)
+  description: The Image Stream Tag to use for each of the entando deployment components, which generally corresponds with the environment (dev, stage, prod etc.)
   name: ENVIRONMENT_TAG
   value: stage
+  required: false
+- displayName: Entando Image Version
+  description: Entando Image Version
+  name: ENTANDO_IMAGE_VERSION
+  value: 5.0.1-SNAPSHOT
   required: false
 - displayName: The base url to be used to access the Entando rest services.
   description: This must reflect either the HTTPS hostname of the Entando core engine service. Root servlet context is assumed
@@ -93,9 +98,9 @@ parameters:
   name: DB_TX_ISOLATION
   required: false
 - displayName: ImageStream Namespace
-  description: Namespace in which the ImageStreams for the Entando deployment components are published to
+  description: Namespace in which the ImageStreams for the Entando Images are published to
   name: IMAGE_STREAM_NAMESPACE
-  value: entando-sample
+  value: openshift
   required: true
 - displayName: JGroups Secret Name
   description: The name of the secret containing the keystore file
@@ -136,24 +141,18 @@ parameters:
   value: ''
   required: true
 objects:
-- kind: ImageStream
-  apiVersion: v1
-  metadata:
-    name: ${APPLICATION_NAME}
-    labels:
-      application: "${APPLICATION_NAME}"
-  spec:
-    tags:
-    - from:
-        kind: DockerImage
-        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:1.0"
-      name: "latest"
-- kind: ImageStream
-  apiVersion: v1
-  metadata:
-    name: ${APPLICATION_NAME}-appbuilder
-    labels:
-      application: "${APPLICATION_NAME}"
+#- kind: ImageStream
+#  apiVersion: v1
+#  metadata:
+#    name: ${APPLICATION_NAME}
+#    labels:
+#      application: "${APPLICATION_NAME}"
+#  spec:
+#    tags:
+#    - from:
+#        kind: DockerImage
+#        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:${ENVIRONMENT_TAG}"
+#      name: "latest"
 - kind: Service
   apiVersion: v1
   spec:
@@ -208,16 +207,6 @@ objects:
     strategy:
       type: Recreate
     triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "${APPLICATION_NAME}"
-        from:
-          kind: ImageStreamTag
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: "${APPLICATION_NAME}:${ENVIRONMENT_TAG}"
     replicas: 0
     selector:
       deploymentConfig: "${APPLICATION_NAME}"
@@ -231,7 +220,7 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "${APPLICATION_NAME}"
-          image: "${IMAGE_STREAM_NAMESPACE}/${APPLICATION_NAME}:${ENVIRONMENT_TAG}"
+          image: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:${ENVIRONMENT_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
@@ -436,7 +425,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${ENVIRONMENT_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_VERSION}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -449,7 +438,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENVIRONMENT_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_VERSION}"
           ports:
           - containerPort: 5000
             protocol: TCP

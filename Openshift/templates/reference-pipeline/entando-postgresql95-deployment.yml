@@ -22,9 +22,9 @@ parameters:
   name: APPLICATION_NAME
   value: entando-sample
   required: false
-- displayName: Image Stream Tag for Entando Images
-  description: Image Stream Tag for Entando Images
-  name: ENTANDO_IMAGE_TAG
+- displayName: Image Version for Entando Images
+  description: Image Version for Entando Images
+  name: ENTANDO_IMAGE_VERSION
   value: stage
   required: false
 - displayName: Entando Database Secret
@@ -36,8 +36,8 @@ parameters:
   value: entando-db-secret
   required: true
 - displayName: ImageStream Namespace
-  description: Namespace in which the ImageStreams for the Entando deployment components are published to
-  name: ENTANDO_IMAGE_STREAM_NAMESPACE
+  description: Namespace in which the ImageStreams for the Entando Images have been installed in
+  name: IMAGE_STREAM_NAMESPACE
   value: entando-sample
   required: true
 - displayName: Volume Capacity
@@ -89,8 +89,8 @@ objects:
         - "${APPLICATION_NAME}-postgresql"
         from:
           kind: ImageStreamTag
-          name: "entando-postgresql95-openshift:${ENTANDO_IMAGE_TAG}"
-          namespace: "${ENTANDO_IMAGE_STREAM_NAMESPACE}"
+          name: "entando-postgresql95-openshift:${ENTANDO_IMAGE_VERSION}"
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
     selector:

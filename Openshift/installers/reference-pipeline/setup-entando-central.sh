@@ -41,7 +41,7 @@ metadata:
 stringData:
   WebHookSecretKey: "$WEB_HOOK_SECRET_KEY"
 EOF
-  oc patch bc ${APPLICATION_NAME}-jenkins-pipeline --patch '{"spec":{"triggers":[{"type":"Bitbucket","bitbucket":{"secretReference":{"name":"${APPLICATION_NAME}-webhook-secret"}}}]}}'
+  oc patch bc ${APPLICATION_NAME}-jenkins-pipeline -n "${APPLICATION_NAME}-build" --patch '{"spec":{"triggers":[{"type":"Bitbucket","bitbucket":{"secretReference":{"name":"${APPLICATION_NAME}-webhook-secret"}}}]}}'
   echo $WEB_HOOK_SECRET_KEY >> webhook.key
 
 }
@@ -61,12 +61,14 @@ fi
 
 case $COMMAND in
   populate)
+    setup_entando_pipeline
+    ./setup-entando-pipeline.sh log-into-stage
     create_bitbucket_webhook_secret
     prepare_redhat_route stage
+    ./setup-entando-pipeline.sh log-into-prod
     prepare_redhat_route prod
   ;;
-  clear)
-      oc delete secrets -l application=${APPLICATION_NAME} -n ${APPLICATION_NAME}-prod
+  *)
+    setup_entando_pipeline
   ;;
 esac
-setup_entando_pipeline
