@@ -206,7 +206,6 @@ objects:
   spec:
     strategy:
       type: Recreate
-    triggers:
     replicas: 0
     selector:
       deploymentConfig: "${APPLICATION_NAME}"
