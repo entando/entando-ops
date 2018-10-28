@@ -154,19 +154,13 @@ objects:
       application: "${APPLICATION_NAME}"
   spec:
     strategy:
-      dockerStrategy:
+      sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: entando-eap71-openshift:${ENTANDO_IMAGE_VERSION}
-          namespace: ${IMAGE_STREAM_NAMESPACE}
-    source:
-      type: Docker
-      dockerfile: |-
-         FROM entando-eap71-openshift:${ENTANDO_IMAGE_VERSION}
-         COPY ${APPLICATION_NAME}.war  /opt/eap/standalone/deployments/${APPLICATION_NAME}.war
-         CMD "/usr/local/s2i/run"
-      binary:
-        asFile: "${APPLICATION_NAME}.war"
+          name: entando-eap71-openshift:${ENTANDO_IMAGE_TAG}
+          namespace: ${ENTANDO_IMAGE_STREAM_NAMESPACE}
+        pullSecret:
+          name: "base-image-registry-secret"
     output:
       to:
         kind: DockerImage
@@ -264,8 +258,9 @@ objects:
                                            -Dprofile.resources.path.protected=/entando-data/protected \
                                            -Dprofile.index.path=/entando-data/indexdir \
                                            -Djava.net.preferIPv4Stack=true
-                                      mv target/*.war target/${APPLICATION_NAME}.war
-                          """
+                                       mkdir target/deployments
+                                       mv target/*.war target/deployments/${APPLICATION_NAME}.war
+                                    """
                           script {
                               openshift.withCluster() {
                                   openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-file=target/${APPLICATION_NAME}.war", "--wait")
