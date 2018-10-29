@@ -354,9 +354,9 @@ function delete_projects(){
 #    oc delete  project $APPLICATION_NAME-prod
 }
 function populate_projects(){
-#    log_into_prod_cluster
-#    install_deployment_image_streams
-#    populate_deployment_project prod
+    log_into_prod_cluster
+    install_deployment_image_streams
+    populate_deployment_project prod
 
     log_into_stage_cluster
     install_deployment_image_streams
