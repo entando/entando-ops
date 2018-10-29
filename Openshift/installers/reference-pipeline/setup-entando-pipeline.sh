@@ -49,14 +49,23 @@ function create_projects(){
 
 function install_build_image_streams(){
   echo "Installing required images"
-  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-postgresql-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
-  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/images-streams/entando-maven-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE 2>
+  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
+  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-maven-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
   install_imagick_image
 }
 
 function install_imagick_image(){
   echo "Installing the Entando Imagick Image stream."
   if [ -n "${REDHAT_REGISTRY_USERNAME}" ]; then
+    oc delete secret base-image-registry-secret -n "${APPLICATION_NAME}-build" 2>/dev/null
+    oc create secret docker-registry base-image-registry-secret \
+        --docker-server=registry.connect.redhat.com \
+        --docker-username=${REDHAT_REGISTRY_USERNAME} \
+        --docker-password=${REDHAT_REGISTRY_PASSWORD} \
+        --docker-email=${REDHAT_REGISTRY_USERNAME} \
+        -n "${APPLICATION_NAME}-build"
+    oc label secret base-image-registry-secret application=entando-central -n "${APPLICATION_NAME}-build"
+    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-openshift.json -n "${APPLICATION_NAME}-build"
     oc delete secret base-image-registry-secret -n $IMAGE_STREAM_NAMESPACE 2>/dev/null
     oc create secret docker-registry base-image-registry-secret \
         --docker-server=registry.connect.redhat.com \
@@ -330,10 +339,10 @@ function clear_projects(){
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
 
-    log_into_prod_cluster
-    oc delete all -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
-    oc delete secret -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
-    oc delete pvc -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+#    log_into_prod_cluster
+#    oc delete all -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+#    oc delete secret -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+#    oc delete pvc -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
 }
 
 function delete_projects(){
@@ -341,13 +350,13 @@ function delete_projects(){
     log_into_stage_cluster
     oc delete project $APPLICATION_NAME-build
     oc delete project $APPLICATION_NAME-stage
-    log_into_prod_cluster
-    oc delete  project $APPLICATION_NAME-prod
+#    log_into_prod_cluster
+#    oc delete  project $APPLICATION_NAME-prod
 }
 function populate_projects(){
-    log_into_prod_cluster
-    install_deployment_image_streams
-    populate_deployment_project prod
+#    log_into_prod_cluster
+#    install_deployment_image_streams
+#    populate_deployment_project prod
 
     log_into_stage_cluster
     install_deployment_image_streams
