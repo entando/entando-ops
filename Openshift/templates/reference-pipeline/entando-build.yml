@@ -157,8 +157,8 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: entando-eap71-openshift:${ENTANDO_IMAGE_TAG}
-          namespace: ${ENTANDO_IMAGE_STREAM_NAMESPACE}
+          name: entando-eap71-openshift:${ENTANDO_IMAGE_VERSION}
+          namespace: ${IMAGE_STREAM_NAMESPACE}
         pullSecret:
           name: "base-image-registry-secret"
     output:
@@ -263,7 +263,7 @@ objects:
                                     """
                           script {
                               openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-file=target/${APPLICATION_NAME}.war", "--wait")
+                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/deployments", "--wait")
                               }
                           }
                       }
