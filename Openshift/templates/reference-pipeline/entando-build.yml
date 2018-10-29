@@ -253,10 +253,10 @@ objects:
                                            -Dprofile.application.baseurl.protocol=http \
                                            -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
                                            -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
-                                           -Dprofile.log.file.prefix=/entando-data/logs/log \
-                                           -Dprofile.resources.path=/entando-data/resources \
-                                           -Dprofile.resources.path.protected=/entando-data/protected \
-                                           -Dprofile.index.path=/entando-data/indexdir \
+                                           -Dprofile.log.file.prefix=/entando-resources/logs/log \
+                                           -Dprofile.resources.path=/entando-resources/welcome-content/cmsresources \
+                                           -Dprofile.resources.path.protected=/entando-resources/protected \
+                                           -Dprofile.index.path=/entando-resources/indexdir \
                                            -Djava.net.preferIPv4Stack=true
                                        mkdir target/deployments
                                        mv target/*.war target/deployments/${APPLICATION_NAME}.war
@@ -346,7 +346,102 @@ objects:
               }
           }
     triggers:
-    - type: ConfigChange
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-jenkins-pipeline-without-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    source:
+      git:
+        ref: "${SOURCE_REPOSITORY_REF}"
+        uri: "${SOURCE_REPOSITORY_URL}"
+      type: Git
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage("Build ${APPLICATION_NAME} Image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
+                          sh """
+                                      if [ -n "${CONTEXT_DIR}" ]; then
+                                        cd ""
+                                      fi
+                                      mvn -Popenshift package \
+                                           -B \
+                                           --settings $HOME/.m2/settings.xml \
+                                           -Dmaven.repo.local=$HOME/.m2/repository \
+                                           -Dprofile.portDataSourceClassName="org.postgresql.Driver" \
+                                           -Dprofile.servDataSourceClassName="org.postgresql.Driver" \
+                                           -Djboss=jboss \
+                                           -Dproject.build.sourceEncoding=UTF-8 \
+                                           -Denv.db.environment=production \
+                                           -Dprofile.config.version=production \
+                                           -Dprofile.application.baseurl.protocol=http \
+                                           -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
+                                           -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
+                                           -Dprofile.log.file.prefix=/entando-resources/logs/log \
+                                           -Dprofile.resources.path=/entando-resources/welcome-content/cmsresources \
+                                           -Dprofile.resources.path.protected=/entando-resources/protected \
+                                           -Dprofile.index.path=/entando-resources/indexdir \
+                                           -Djava.net.preferIPv4Stack=true
+                                       mkdir target/deployments
+                                       mv target/*.war target/deployments/${APPLICATION_NAME}.war
+                                    """
+                          script {
+                              openshift.withCluster() {
+                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-file=target/${APPLICATION_NAME}.war", "--wait")
+                              }
+                          }
+                      }
+                  }
+                  stage("Bring down ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject('${APPLICATION_NAME}-stage'){
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}')
+                                    deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build"){
+                                    openshift.selector("bc", "${APPLICATION_NAME}-tag-as-stage").startBuild("--wait")
+                                  }
+                                  openshift.withProject("${APPLICATION_NAME}-stage"){
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
+                                    def rolloutManager=deploymentConfig.rollout()
+                                    rolloutManager.latest()
+                                    deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -411,7 +506,7 @@ objects:
                                             usernameVariable: 'CLUSTER_USERNAME', passwordVariable: 'CLUSTER_PASSWORD']]) {
                               sh '''
                                             #!/bin/bash
-                                            oc login -u $CLUSTER_USERNAME -p $CLUSTER_PASSWORD https://openshift.serv.run:8443 --insecure-skip-tls-verify
+                                            oc login -u $CLUSTER_USERNAME -p $CLUSTER_PASSWORD https://${PRODUCTION_CLUSTER_URL} --insecure-skip-tls-verify
                                             PG_POD=$(oc get pods -n ${APPLICATION_NAME}-prod -l deploymentConfig=${APPLICATION_NAME}-postgresql | grep '${APPLICATION_NAME}-[a-zA-Z0-9\\-]*' -o)
                                             nohup oc port-forward $PG_POD 5432:5432  -n ${APPLICATION_NAME}-prod  >  forwarding.log 2>&1&
                                             for i in {1..60}
@@ -469,6 +564,69 @@ objects:
                                                 export SERVDB_URL="jdbc:postgresql://${SERVDB_SERVICE_HOST}:${SERVDB_SERVICE_PORT}/${SERVDB_DATABASE}"
                                                 ${HOME}/restore-dbs.sh
                                             '''
+                              }
+                          }
+                      }
+                  }
+                  stage("Push ${APPLICATION_NAME}:prod image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build") {
+                                      openshift.selector("bc", "${APPLICATION_NAME}-tag-as-prod").startBuild("--wait")
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject("${APPLICATION_NAME}-prod") {
+                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}")
+                                      def rolloutManager = deploymentConfig.rollout()
+                                      rolloutManager.latest()
+                                      deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-production-deploy-without-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage('Bring down ${APPLICATION_NAME} Prod Deployment') {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject('${APPLICATION_NAME}-prod') {
+                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}')
+                                      deploymentConfig.scale('--replicas=0')
+                                  }
                               }
                           }
                       }

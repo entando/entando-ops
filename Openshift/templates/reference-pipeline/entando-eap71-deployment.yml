@@ -228,7 +228,7 @@ objects:
           - name: eap-jgroups-keystore-volume
             mountPath: "/etc/jgroups-encrypt-secret-volume"
             readOnly: true
-          - mountPath: "/entando-data"
+          - mountPath: "/entando-resources"
             name: "${APPLICATION_NAME}-entando-pvol"
           livenessProbe:
             exec:
