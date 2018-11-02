@@ -260,6 +260,9 @@ objects:
                                            -Djava.net.preferIPv4Stack=true
                                        mkdir target/deployments
                                        mv target/*.war target/deployments/${APPLICATION_NAME}.war
+                                       if [[ -d configuration ]]; then
+                                         cp -Rf configuration target/deployments/
+                                       fi
                                     """
                           script {
                               openshift.withCluster() {
@@ -395,10 +398,13 @@ objects:
                                            -Djava.net.preferIPv4Stack=true
                                        mkdir target/deployments
                                        mv target/*.war target/deployments/${APPLICATION_NAME}.war
+                                       if [[ -d configuration ]]; then
+                                         cp -Rf configuration target/deployments/
+                                       fi
                                     """
                           script {
                               openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-file=target/${APPLICATION_NAME}.war", "--wait")
+                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/deployments", "--wait")
                               }
                           }
                       }

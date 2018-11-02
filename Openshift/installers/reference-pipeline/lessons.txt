@@ -23,14 +23,18 @@ This is done in the installation script. It fails on Openshift clusters where th
 9. The version of the Jenkins running in Openshift does not support nested stages yet.
 10. Even though a pipeline build does not require a source code specification, Bitbucket (and probabluy other) webhooks don't work unless Openshift can find a BuildConfig
 with a matching Source Specification
-1. Our builds are still a bit on the slow side. We need to look at disabling some of the maven plugins and finding a faster way to restore the DB
+11. Our builds are still a bit on the slow side. We need to look at disabling some of the maven plugins and finding a faster way to restore the DB
 
 
 
 TODO:
-Test that the latest images are pulled
+Prepopulate the resources directory in the assemble phase. Automate resources fully.
+We should put entando-central's standalone-openshift.xml in the Imagick image. We don't need the datasources, but the handler for the resources and the caches are required.
+We still need to automate the cert generation
 Migrate the EAP DB Secret to a single ENV_FILE
 Introducte an ENV_FILE in the PostgreSQL image and translate those variables to the appropriate variables for PG to initialise the database
 Create a PostgreSQL image WITHOUT Maven and Ant that only does the above
 Test the DB backup/restore on failure properly
 Make sure that all our bash scripts return non-zero on failure
+Wait for pod success before completing the pipeline
+There is a risk that the database may be built against modified sources in production. This problem will disappear of we let the build process generate sql.

@@ -87,8 +87,9 @@ function install_deployment_image_streams(){
 }
 
 
-function prepare_source_secret(){
+function recreate_source_secret(){
   echo "Creating the SCM source secret."
+  read_config build
   if [ -n "${SCM_USERNAME}" ] && [ -n "${SCM_PASSWORD}" ]; then
     cat <<EOF | oc replace --force --grace-period 60 -f -
 apiVersion: v1
@@ -105,8 +106,9 @@ EOF
   fi
 }
 
-function prepare_prod_cluster_secret(){
-    echo "Creating the Production Cluster secret."
+function recreate_prod_cluster_secret(){
+    echo "Recreating the Production Cluster secret."
+    read_config build
     if [ -n "${PRODUCTION_CLUSTER_USERNAME}" ] && [ -n "${PRODUCTION_CLUSTER_PASSWORD}" ] && [ -n "${PRODUCTION_CLUSTER_URL}" ]; then
       cat <<EOF | oc replace --force --grace-period 60 -f -
 apiVersion: v1
@@ -123,8 +125,9 @@ EOF
   fi
 }
 
-function prepare_external_docker_secret(){
-  echo "Creating the External Docker secret."
+function recreate_external_docker_secret(){
+  echo "Recreating the External Docker secret."
+  read_config build
   if [ -n "${EXTERNAL_DOCKER_REGISTRY_USERNAME}" ] && [ -n "${EXTERNAL_DOCKER_REGISTRY_USERNAME}" ] && [ -n "${EXTERNAL_DOCKER_REGISTRY_URL}" ]; then
     oc delete secret ${APPLICATION_NAME}-external-registry-secret 2>/dev/null
     oc create secret docker-registry ${APPLICATION_NAME}-external-registry-secret \
@@ -311,38 +314,45 @@ function populate_deployment_project(){
   prepare_db_secret $1
   prepare_pam_secret $1
   deploy_runtime_templates $1
-  prepare_external_docker_secret
+  recreate_external_docker_secret
 }
 
 function populate_build_project(){
   echo "Populating the build project." 2> /dev/null
   read_config build
   oc project "${APPLICATION_NAME}-build"
-  prepare_source_secret
+  recreate_source_secret
   install_build_image_streams
   deploy_build_template
-  prepare_external_docker_secret
-  prepare_prod_cluster_secret
+  recreate_external_docker_secret
+  recreate_prod_cluster_secret
   read_config stage
   prepare_db_secret stage
   read_config prod
   prepare_db_secret prod
 }
 
-function clear_projects(){
-    echo "Deleting all elements with the label application=$APPLICATION_NAME"
+function clear_stage_projects(){
     log_into_stage_cluster
+    echo "Deleting all elements in STAGE with the label application=$APPLICATION_NAME"
     oc delete all -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
     oc delete all -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
     oc delete secret -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
     oc delete secret -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
+}
+function clear_prod_projects(){
+    log_into_prod_cluster
+    echo "Deleting all elements in PROD with the label application=$APPLICATION_NAME"
+    oc delete all -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+    oc delete secret -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+    oc delete pvc -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+}
 
-#    log_into_prod_cluster
-#    oc delete all -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
-#    oc delete secret -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
-#    oc delete pvc -l application=$APPLICATION_NAME -n  $APPLICATION_NAME-prod
+function clear_projects(){
+    clear_stage_projects
+    clear_prod_projects
 }
 
 function delete_projects(){
@@ -350,21 +360,28 @@ function delete_projects(){
     log_into_stage_cluster
     oc delete project $APPLICATION_NAME-build
     oc delete project $APPLICATION_NAME-stage
-#    log_into_prod_cluster
-#    oc delete  project $APPLICATION_NAME-prod
+    log_into_prod_cluster
+    oc delete  project $APPLICATION_NAME-prod
 }
-function populate_projects(){
+function populate_prod_projects(){
     log_into_prod_cluster
     install_deployment_image_streams
     populate_deployment_project prod
+}
 
+function populate_stage_projects(){
     log_into_stage_cluster
     install_deployment_image_streams
     populate_build_project
     populate_deployment_project stage
     join_build_and_stage_network
-
 }
+
+function populate_projects(){
+    populate_prod_projects
+    populate_stage_projects
+}
+
 COMMAND=$1
 shift
 
@@ -393,11 +410,32 @@ case $COMMAND in
   delete)
     delete_projects
   ;;
+  populate-prod)
+    populate_prod_projects
+  ;;
+  populate-stage)
+    populate_stage_projects
+  ;;
   populate)
     populate_projects
   ;;
   clear)
     clear_projects
+  ;;
+  clear-stage)
+    clear_stage_projects
+  ;;
+  clear-prod)
+    clear_prod_projects
+  ;;
+  recreate-external-docker-secret)
+    recreate_external_docker_secret
+  ;;
+  recreate-prod-cluster-secret)
+    recreate_prod_cluster_secret
+  ;;
+  recreate-source-secret)
+    recreate_source_secret
   ;;
   log-into-prod)
     log_into_prod_cluster
