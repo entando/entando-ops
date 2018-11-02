@@ -1,6 +1,7 @@
-ARG ENTANDO_IMAGE_VERSION
-FROM entando/entando-depedencies-only:$ENTANDO_IMAGE_VERSION
+#Ampie: trying a new technique to speed build up
+FROM openshift/wildfly-120-centos7:latest
 ARG ENTANDO_VERSION
+ARG ENTANDO_IMAGE_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     STI_SCRIPTS_PATH="/usr/local/s2i" \
     USERID_TO_USE=1001
@@ -32,6 +33,6 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
 USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
     mkdir -p /entando-database-templates && chown -Rf $USERID_TO_USE:0 /entando-database-templates/ && chmod -Rf ug+rw /entando-database-templates/ && \
-    ${STI_SCRIPTS_PATH}/init-db-and-dependencies.sh
+    ${STI_SCRIPTS_PATH}/init-db-and-dependencies.sh && rm -rf $HOME/.m2/repository/org/entando
 USER $USERID_TO_USE
 #Now we have all the dependencies sitting at $HOME./m2/settings

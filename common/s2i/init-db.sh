@@ -37,7 +37,7 @@ mvn_command="mvn clean package jetty:run --settings $HOME/.m2/settings.xml \
 echo "executing $mvn_command "
 log=db_creation.log
 $mvn_command 2>&1 | tee "$log" &
-jetty_pid=$!
+JETTY_PID=$!
 for i in {1..360}
 do
     sleep 5
@@ -49,8 +49,9 @@ do
         if [[ -d "src/main/webapp/protected/databaseBackups/develop/portDataSource" ]]; then
           echo "An Entando backup was detected. Please verify that your data has been restored."
         fi
-        echo "Jetty started and database created"
-        kill $jetty_pid
+        echo "Jetty started and database created. Waiting for Jetty process to shut down"
+        (sleep 1; kill $JETTY_PID) &
+        wait $JETTY_PID
         if [ "$PORTDB_DRIVER" = "derby" ]; then
    #Copy the new database across, overwriting the old database entirely. This ensures a full restore can be effected
             cp -Rf /entando-data/databases/* /entando-database-templates/
