@@ -3,32 +3,37 @@
   "kind": "ImageStream",
   "metadata": {
     "annotations": {
-      "openshift.io/display-name": "Entando EAP 7.1"
+      "openshift.io/display-name": "Entando EAP 7.1 with Imagick support",
+      "description": "Build and run Entando applications on EAP 7.1/RHEL 7, with Imagick components installed. ",
+      "openshift.io/provider-display-name": "Entando",
+      "sampleRepo": "https://github.com/ampie/entando-sample.git",
+      "supports": "jee,java",
+      "tags": "builder,eap,java"
     },
     "name": "entando-eap71-openshift"
   },
   "spec": {
     "tags": [
       {
-        "annotations": {
-          "description": "Build and run Entando applications on EAP 7.1/CentOS 7. ",
-          "openshift.io/display-name": "Entando EAP",
-          "openshift.io/provider-display-name": "Entando",
-          "sampleRepo": "https://github.com/ampie/entando-sample.git",
-          "supports": "jee,java",
-          "tags": "builder,wildfly,java"
-        },
         "from": {
           "kind": "DockerImage",
           "name": "registry.connect.redhat.com/entando/entando-eap71-openshift-imagick:latest"
         },
-        "importPolicy": {
-          "insecure": true
+        "name": "latest"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "registry.connect.redhat.com/entando/entando-eap71-openshift-imagick:latest"
         },
-        "name": "5.0.1-SNAPSHOT",
-        "referencePolicy": {
-          "type": "Local"
-        }
+        "name": "5.0.1-SNAPSHOT"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "registry.connect.redhat.com/entando/entando-eap71-openshift-imagick:latest"
+        },
+        "name": "5.1.0-SNAPSHOT"
       }
     ]
   }

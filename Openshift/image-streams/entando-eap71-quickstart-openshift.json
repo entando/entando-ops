@@ -18,40 +18,21 @@
           "supports": "jee,java",
           "tags": "builder,eap,java"
         },
-        "from": {
-          "kind": "DockerImage",
-          "name": "docker.io/entando/entando-eap71-quickstart-openshift:latest"
-
-        },
-        "importPolicy": {
-          "insecure": false
-        },
-        "name": "latest",
-        "referencePolicy": {
-          "type": "Source"
-        }
+        "name": "latest"
       },
       {
-        "annotations": {
-          "description": "Build and run Entando applications on EAP 7.1/CentOS 7. ",
-          "openshift.io/display-name": "Entando EAP",
-          "openshift.io/provider-display-name": "Entando",
-          "sampleRepo": "https://github.com/ampie/entando-sample.git",
-          "supports": "jee,java",
-          "tags": "builder,eap,java"
-        },
         "from": {
           "kind": "DockerImage",
           "name": "docker.io/entando/entando-eap71-quickstart-openshift:5.0.1-SNAPSHOT"
-
         },
-        "importPolicy": {
-          "insecure": false
+        "name": "5.0.1-SNAPSHOT"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-quickstart-openshift:5.1.0-SNAPSHOT"
         },
-        "name": "5.0.1-SNAPSHOT",
-        "referencePolicy": {
-          "type": "Source"
-        }
+        "name": "5.1.0-SNAPSHOT"
       }
 
     ]

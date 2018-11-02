@@ -1,13 +1,14 @@
-ARG ENTANDO_IMAGE_VERSION
-FROM entando/entando-depedencies-only:$ENTANDO_IMAGE_VERSION
+FROM openshift/wildfly-120-centos7:latest
 ARG ENTANDO_VERSION
+ARG ENTANDO_IMAGE_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
-    STI_SCRIPTS_PATH="/usr/local/s2i" \
+    STI_SCRIPTS_PATH="/usr/libexec/s2i" \
     USERID_TO_USE=1001
 
 COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 ./settings.xml $HOME/.m2/settings.xml
 COPY --chown=1001:0 ./wfmodules $HOME/wildfly/modules
+COPY --chown=1001:0 ./poms/ /tmp/
 
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \

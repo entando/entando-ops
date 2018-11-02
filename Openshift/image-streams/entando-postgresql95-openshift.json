@@ -3,29 +3,43 @@
   "kind": "ImageStream",
   "metadata": {
     "annotations": {
-      "openshift.io/display-name": "Entando Postgresql 9.5"
+      "description": "Build and run Entando applications on Postgresql 9.5. ",
+      "openshift.io/display-name": "Entando Postgresql 9.5",
+      "openshift.io/provider-display-name": "Entando",
+      "sampleRepo": "https://github.com/ampie/entando-sample.git",
+      "supports": "jee,java",
+      "tags": "builder,wildfly,java"
     },
     "name": "entando-postgresql95-openshift"
   },
   "spec": {
     "tags": [
       {
-        "annotations": {
-          "description": "Build and run Entando applications on Postgresql 9.5. ",
-          "openshift.io/display-name": "Entando Postgresql 9.5",
-          "openshift.io/provider-display-name": "Entando",
-          "sampleRepo": "https://github.com/ampie/entando-sample.git",
-          "supports": "jee,java",
-          "tags": "builder,wildfly,java"
-        },
         "from": {
           "kind": "DockerImage",
           "name": "docker.io/entando/entando-postgresql95-openshift:5.0.1-SNAPSHOT"
         },
-        "importPolicy": {
-          "insecure": true
-        },
         "name": "5.0.1-SNAPSHOT",
+        "referencePolicy": {
+          "type": "Source"
+        }
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-postgresql95-openshift:5.1.0-SNAPSHOT"
+        },
+        "name": "5.1.0-SNAPSHOT",
+        "referencePolicy": {
+          "type": "Source"
+        }
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-postgresql95-openshift:latest"
+        },
+        "name": "latest",
         "referencePolicy": {
           "type": "Source"
         }

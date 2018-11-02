@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-#This utility is only to be used on local machines and will never be executed in Docker's Cloud infrastructure
+OPENSHIFT_REGISTRY=${LOCAL_OPENSHIFT_REGISTRY:-127.0.0.1:5000}
+#This utility is only to be used on local developmentmore machines and will never be executed in Docker's Cloud infrastructure
 if [ -n "${BASH_SOURCE[1]}" ]; then
     if   [ -n "$ENTANDO_IMAGE" ] && [ -n "$VERSION" ]  ; then
         DOCKER_BUILD_DIR=$(realpath $(dirname ${BASH_SOURCE[1]}))
@@ -11,8 +12,8 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
         $DOCKER_BUILD_DIR/hooks/build
         if [ $? -eq 0 ]; then
             #Now push to locally forwarded port (easiest way to get access to Openshift registry)
-            docker login -u $(oc whoami) -p $(oc whoami -t) 127.0.0.1:5000
-            export DOCKER_REPO="127.0.0.1:5000/$DOCKER_REPO"
+            docker login -u $(oc whoami) -p $(oc whoami -t) $OPENSHIFT_REGISTRY
+            export DOCKER_REPO="$OPENSHIFT_REGISTRY/$DOCKER_REPO"
 
             echo "Pushing $DOCKER_REPO:$DOCKER_TAG to local registry"
             docker tag $IMAGE_NAME "$DOCKER_REPO:$DOCKER_TAG"

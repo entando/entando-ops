@@ -1,0 +1,40 @@
+0. The docker client plugin for jenkins does not work on the openshift jenkins slaves!!!!! They do not have a docker client installed. I have successfully installed a docker
+client but in order to interact with the master node's docker service, we either need to map the unix socket  /var/run/docker.sock which is impossible to do with PV, or connect
+to the DOCKER_HOST (possibly using a 172.xx.0.1 address to the gateway). I gave up
+before getting this to work. there is a risk here as you do not want the pod to interfere with the docker host, but we sure as hell need a way to tag images. my workaround
+of building single layer images to tag is not sustainable. it creates a nightmare of child image dependencies.
+1. The Openshift Jenkins Sync Client plugin is a master-based dev project. It still seems to be pre-release status. Some unknown version of this plugin is deployed to Openshift.
+Unfortunately that means that some of the features do not seem to be supported in the current version of Openshift. For example, we could not get the  Jenkins File Credentials
+to sync from Openshift secrets.
+2. There is no way of syncing Openshift Secrets to any of the Jenkins Openshift credential types. Those would be required for the openshift.withCluster method that is invoked
+when we interact with any of the external clusters. In the end we had to opt for a token which is generated in the installation script. This is a massive security risk and
+should be replaced manually by the provisioner as soon as possible with the id of an Jenkins Openshift Token Credential.
+3. There is a known issue using Openshift Pull Secrets for the private repositories hosted on docker.io. This issue seems to come back every now and then in minor releases due to
+regression problems. The solution (https://github.com/openshift/origin/issues/18932) is to add the docker.io regristry to /etc/sysconfig/docker:
+ADD_REGISTRY='--add-registry docker.io --add-registry registry.access.redhat.com'
+4. Customer Jenkins Image Streams have to be installed in the same project as Jenkins for Jenkins to pick them up and make them available.
+5. Something strange is going on in openshift.serv.run around the automatic provisioning of PersistentVolumes. It doesn't always clear the PV when recycling it. If the PostgreSQL
+image fails and complains about things like "a server already running" then it means it picked up a dirty PV. Go into /data/openshift/<pvid> and delete all files recursively
+6. Openshift secrets aren't very secure. Jenkins credentials are more secure, but are difficult to impossible to automate. For more security, I would suggest manually creating
+Credentials in Jenkins and deleting as many of the Secrets in Openshift.
+7. The Openshift Multitenant Network Plugin blocks inter-project Pod communication. Wherever this plugin is installed, we need to join the build and deployment networks.
+This is done in the installation script. It fails on Openshift clusters where the Multitenant Network Plugin is not installed, but that can be ignored.
+8. ImageStreams add a lot of indirection that needs to be synced. You can use Docker images directly from a DC.
+9. The version of the Jenkins running in Openshift does not support nested stages yet.
+10. Even though a pipeline build does not require a source code specification, Bitbucket (and probabluy other) webhooks don't work unless Openshift can find a BuildConfig
+with a matching Source Specification
+11. Our builds are still a bit on the slow side. We need to look at disabling some of the maven plugins and finding a faster way to restore the DB
+
+
+
+TODO:
+Prepopulate the resources directory in the assemble phase. Automate resources fully.
+We should put entando-central's standalone-openshift.xml in the Imagick image. We don't need the datasources, but the handler for the resources and the caches are required.
+We still need to automate the cert generation
+Migrate the EAP DB Secret to a single ENV_FILE
+Introducte an ENV_FILE in the PostgreSQL image and translate those variables to the appropriate variables for PG to initialise the database
+Create a PostgreSQL image WITHOUT Maven and Ant that only does the above
+Test the DB backup/restore on failure properly
+Make sure that all our bash scripts return non-zero on failure
+Wait for pod success before completing the pipeline
+There is a risk that the database may be built against modified sources in production. This problem will disappear of we let the build process generate sql.

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 cd /tmp/
+mkdir default-entando-project
+cd default-entando-project
 echo "ENTANDO_VERSION = $ENTANDO_VERSION"
 mvn archetype:generate -B --settings $HOME/.m2/settings.xml \
         -Dfilter=entando \
@@ -10,6 +12,13 @@ mvn archetype:generate -B --settings $HOME/.m2/settings.xml \
         -DartifactId=entando \
         -Dversion=1.0 \
         -Dpackage=org.entando
+
+
+if [ -f "/tmp/pom-$ENTANDO_VERSION.xml" ]; then
+  echo "#############################  Using pom-$ENTANDO_VERSION.xml"
+  rm entando/pom.xml
+  mv /tmp/pom-$ENTANDO_VERSION.xml entando/pom.xml
+fi
 pushd entando
 
 if $(dirname ${BASH_SOURCE[0]})/init-db.sh ; then

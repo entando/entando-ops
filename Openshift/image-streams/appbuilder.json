@@ -3,32 +3,37 @@
   "kind": "ImageStream",
   "metadata": {
     "annotations": {
-      "openshift.io/display-name": "Entando AppBuilder for Openshift"
+      "description": "Build and run the Entando AppBuilder",
+      "openshift.io/display-name": "Entando AppBuilder",
+      "openshift.io/provider-display-name": "Entando",
+      "sampleRepo": "https://github.com/ampie/entando-sample.git",
+      "supports": "javascript",
+      "tags": "builder,react,javascript"
     },
     "name": "appbuilder"
   },
   "spec": {
     "tags": [
       {
-        "annotations": {
-          "description": "Build and run the Entando AppBuilder",
-          "openshift.io/display-name": "Entando AppBuilder",
-          "openshift.io/provider-display-name": "Entando",
-          "sampleRepo": "https://github.com/ampie/entando-sample.git",
-          "supports": "javascript",
-          "tags": "builder,react,javascript"
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/appbuilder:latest"
         },
+        "name": "latest"
+      },
+      {
         "from": {
           "kind": "DockerImage",
           "name": "docker.io/entando/appbuilder:5.0.1-SNAPSHOT"
         },
-        "importPolicy": {
-          "insecure": true
+        "name": "5.0.1-SNAPSHOT"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/appbuilder:5.1.0-SNAPSHOT"
         },
-        "name": "5.0.1-SNAPSHOT",
-        "referencePolicy": {
-          "type": "Source"
-        }
+        "name": "5.1.0-SNAPSHOT"
       }
     ]
   }

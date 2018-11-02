@@ -12,7 +12,7 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
 ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=1001
-COPY --chown=1001:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
+COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2 $HOME/.m2
 CMD "${STI_SCRIPTS_PATH}/usage"
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
