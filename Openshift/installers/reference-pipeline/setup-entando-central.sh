@@ -61,12 +61,12 @@ fi
 
 case $COMMAND in
   populate)
-#    setup_entando_pipeline
+    setup_entando_pipeline
     ./setup-entando-pipeline.sh log-into-stage
     create_bitbucket_webhook_secret
-#    prepare_redhat_route stage
-#    ./setup-entando-pipeline.sh log-into-prod
-#    prepare_redhat_route prod
+    prepare_redhat_route stage
+    ./setup-entando-pipeline.sh log-into-prod
+    prepare_redhat_route prod
   ;;
   *)
     setup_entando_pipeline
