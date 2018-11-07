@@ -219,17 +219,6 @@
                      <updatePolicy>never</updatePolicy>
                    </snapshots>
                 </repository>
-                <repository>
-                    <id>entando-snapshots-repo</id>
-                    <url>https://repository.entando.org/repository/maven-snapshots/</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                        <updatePolicy>never</updatePolicy>
-                    </snapshots>
-                </repository>
             </repositories>
         </profile>
         <!-- ### configured profiles ### -->
