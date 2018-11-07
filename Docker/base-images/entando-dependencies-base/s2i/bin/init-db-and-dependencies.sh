@@ -15,12 +15,12 @@ mvn archetype:generate -B --settings $HOME/.m2/settings.xml \
 
 
 if [ -f "/tmp/pom-$ENTANDO_VERSION.xml" ]; then
-  echo "#############################  Using pom-$ENTANDO_VERSION.xml"
+  echo "Using pom-$ENTANDO_VERSION.xml"
   rm entando/pom.xml
   mv /tmp/pom-$ENTANDO_VERSION.xml entando/pom.xml
 fi
 pushd entando
-
+rm -rf ${HOME}/.m2/repository/*
 if $(dirname ${BASH_SOURCE[0]})/init-db.sh ; then
   find $HOME/.m2 -name "_remote.repositories" -type f -delete
   find $HOME/.m2 -name "*.lastUpdated" -type f -delete

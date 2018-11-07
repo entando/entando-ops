@@ -51,6 +51,7 @@ do
           echo "An Entando backup was detected. Please verify that your data has been restored."
         fi
         echo "Jetty started and database created."
+# Attempt killing Jetty only AFTER waiting for it to terminate
         (echo "Waiting for Jetty process [$JETTY_PID] to shut down"; sleep 3; ps; kill -9 ${JETTY_PID}; ps) &
         wait ${JETTY_PID}
         if [ "$PORTDB_DRIVER" = "derby" ]; then

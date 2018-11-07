@@ -6,22 +6,21 @@ metadata:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
     version: 5.0.1-SNAPSHOT
-    openshift.io/display-name: Entando Quickstart on EAP 7.1
+    openshift.io/display-name: Entando Template for Demos
     openshift.io/provider-display-name: Entando
-    description: An example illustrating how to get Entando up and running on EAP 7.1
-    template.openshift.io/long-description: This template defines resources needed
-      to develop Entando applications based on EAP 7.1.
+    description: An template that facilitates the installation of one of the Entando demos
+    template.openshift.io/long-description: An template that facilitates the installation of one of the Entando demos
     template.openshift.io/documentation-url: https://central.entando.com/
     template.openshift.io/support-url: https://central.entando.com
-  name: entando-eap-quickstart
+  name: entando-demo
 labels:
-  template: entando-eap-quickstart
-message: A new Entando EAP 7.1 Quickstart has been created in your project.
+  template: entando-demo
+message: A new Entando Demo has been created in your project.
 parameters:
 - displayName: Application Name
   description: The name for the application.
   name: APPLICATION_NAME
-  value: entando-sample
+  value: entando-fsi-credit-card-dispute
   required: false
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
@@ -60,43 +59,11 @@ parameters:
   name: KIE_SERVER_PASSWORD
   value: ''
   required: false
-- displayName: Git Repository URL
-  description: Git source URI for application
-  name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ampie/entando-sample.git
-  required: true
-- displayName: Git Reference
-  description: Git branch/tag reference
-  name: SOURCE_REPOSITORY_REF
-  value: master
-  required: false
-# - displayName: Source Secret
-#   description: Source Secret containing the Username and Password for the source repository
-#   name: SOURCE_SECRET
-#   value: entando-source-secret
-#   required: false
-- displayName: Context Directory
-  description: Path within Git project to build; empty for root project directory.
-  name: CONTEXT_DIR
-  value: ''
-  required: false
 - displayName: Database Volume Capacity
   description: Size of persistent storage for database volume.
   name: VOLUME_CAPACITY
   value: 1Gi
   required: false
-- displayName: Github Webhook Secret
-  description: GitHub trigger secret
-  name: GITHUB_WEBHOOK_SECRET
-  from: "[a-zA-Z0-9]{8}"
-  generate: expression
-  required: false
-- displayName: Generic Webhook Secret
-  description: Generic build trigger secret
-  name: GENERIC_WEBHOOK_SECRET
-  from: "[a-zA-Z0-9]{8}"
-  generate: expression
-  required: true
 - displayName: ImageStream Namespace
   description: Namespace in which the ImageStreams for Red Hat Middleware images are
     installed. These ImageStreams are normally installed in the openshift namespace.
@@ -105,21 +72,11 @@ parameters:
   name: IMAGE_STREAM_NAMESPACE
   value: openshift
   required: true
-- displayName: Maven mirror URL
-  description: Maven mirror to use for S2I builds
-  name: MAVEN_MIRROR_URL
-  value: ''
-  required: false
-- displayName: Maven Additional Arguments
-  description: Maven additional arguments to use for S2I builds
-  name: MAVEN_ARGS_APPEND
-  value: ''
-  required: false
-- description: List of directories from which archives will be copied into the deployment
-    folder. If unspecified, all archives in /target will be copied.
-  name: ARTIFACT_DIR
-  value: ''
-  required: false
+- displayName: ImageStream Name
+  description: The name of the image stream of the selected demo image
+  name: IMAGE_STREAM
+  value: openshift
+  required: true
 - description: Container memory limit
   name: MEMORY_LIMIT
   value: 2Gi
@@ -164,6 +121,7 @@ objects:
       description: Route for the Entando Runtime's http service.
   spec:
     host: "${ENTANDO_RUNTIME_HOSTNAME_HTTP}"
+    path: "/${ENTANDO_WEB_CONTEXT}"
     to:
       name: "${APPLICATION_NAME}-runtime"
 - kind: Route
@@ -179,94 +137,6 @@ objects:
     host: "${ENTANDO_APP_BUILDER_HOSTNAME_HTTP}"
     to:
       name: "${APPLICATION_NAME}-appbuilder"
-- kind: ImageStream
-  apiVersion: v1
-  metadata:
-    name: "${APPLICATION_NAME}"
-    labels:
-      application: "${APPLICATION_NAME}"
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: "${APPLICATION_NAME}-s2i-dbrebuild"
-    labels:
-      application: "${APPLICATION_NAME}"
-  spec:
-    source:
-      type: Git
-      git:
-        uri: "${SOURCE_REPOSITORY_URL}"
-        ref: "${SOURCE_REPOSITORY_REF}"
-      contextDir: "${CONTEXT_DIR}"
-#       sourceSecret:
-#         name: "${SOURCE_SECRET}"
-    strategy:
-      type: Source
-      sourceStrategy:
-        env:
-        - name: MAVEN_MIRROR_URL
-          value: "${MAVEN_MIRROR_URL}"
-        - name: MAVEN_ARGS_APPEND
-          value: "${MAVEN_ARGS_APPEND}"
-        - name: ARTIFACT_DIR
-          value: "${ARTIFACT_DIR}"
-        - name: PREPARE_DB
-          value: "true"
-        forcePull: false
-        from:
-          kind: ImageStreamTag
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
-        incremental: false
-    output:
-      to:
-        kind: ImageStreamTag
-        name: "${APPLICATION_NAME}:latest"
-    triggers:
-    - type: GitHub
-      github:
-        secret: "${GITHUB_WEBHOOK_SECRET}"
-    - type: Generic
-      generic:
-        secret: "${GENERIC_WEBHOOK_SECRET}"
-    - type: ImageChange
-      imageChange: {}
-    - type: ConfigChange
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: "${APPLICATION_NAME}-s2i-fast"
-    labels:
-      application: "${APPLICATION_NAME}"
-  spec:
-    source:
-      type: Git
-      git:
-        uri: "${SOURCE_REPOSITORY_URL}"
-        ref: "${SOURCE_REPOSITORY_REF}"
-      contextDir: "${CONTEXT_DIR}"
-    strategy:
-      type: Source
-      sourceStrategy:
-        env:
-        - name: MAVEN_MIRROR_URL
-          value: "${MAVEN_MIRROR_URL}"
-        - name: MAVEN_ARGS_APPEND
-          value: "${MAVEN_ARGS_APPEND}"
-        - name: ARTIFACT_DIR
-          value: "${ARTIFACT_DIR}"
-        - name: PREPARE_DB
-          value: "false"
-        forcePull: false
-        from:
-          kind: ImageStreamTag
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
-        incremental: false
-    output:
-      to:
-        kind: ImageStreamTag
-        name: "${APPLICATION_NAME}:latest"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -284,7 +154,8 @@ objects:
         - "${APPLICATION_NAME}-runtime"
         from:
           kind: ImageStreamTag
-          name: "${APPLICATION_NAME}:latest"
+          name: "${IMAGE_STREAM}:${IMAGE_STREAM_TAG}"
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
     selector:
@@ -299,7 +170,7 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "${APPLICATION_NAME}-runtime"
-          image: "${APPLICATION_NAME}"
+          image: "${IMAGE_STREAM_NAMESPACE}/${IMAGE_STREAM}:${IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
