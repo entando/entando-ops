@@ -1,3 +1,0 @@
-#!/bin/bash
-$(dirname ${BASH_SOURCE[0]})/prepare-db.sh
-exec $JBOSS_HOME/bin/openshift-launch.sh

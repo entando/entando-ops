@@ -7,9 +7,9 @@ echo "This script installs the Entando Sample project on the EAP 7.1 QuickStart 
 #oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-demo.yml \
     -p APPLICATION_NAME="entando-fsi-ccd-customer" \
-    -p KIE_SERVER_BASE_URL="http://aaaric-ccd-rhpam701-entando-kieserver.apps.dev.ldcloud.com.au" \
-    -p KIE_SERVER_USERNAME="kieUser" \
-    -p KIE_SERVER_PASSWORD="kieUser!23" \
+    -p KIE_SERVER_BASE_URL="http://rhpam7-install-kieserver-rhpam7-install-entando.apps.serv.run" \
+    -p KIE_SERVER_USERNAME="kieserver" \
+    -p KIE_SERVER_PASSWORD="kieserver1!" \
     -p IMAGE_STREAM_NAMESPACE="entando" \
     -p IMAGE_STREAM="fsi-cc-dispute-customer" \
     -p ENTANDO_APP_BUILDER_HOSTNAME_HTTP="appbuilder-customer.${OPENSHIFT_DOMAIN_SUFFIX}" \
@@ -19,9 +19,9 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-demo.yml \
 
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-demo.yml \
     -p APPLICATION_NAME="entando-fsi-ccd-admin" \
-    -p KIE_SERVER_BASE_URL="http://aaaric-ccd-rhpam701-entando-kieserver.apps.dev.ldcloud.com.au" \
-    -p KIE_SERVER_USERNAME="kieUser" \
-    -p KIE_SERVER_PASSWORD="kieUser!23" \
+    -p KIE_SERVER_BASE_URL="http://rhpam7-install-kieserver-rhpam7-install-entando.apps.serv.run" \
+    -p KIE_SERVER_USERNAME="kieserver" \
+    -p KIE_SERVER_PASSWORD="kieserver1!" \
     -p IMAGE_STREAM_NAMESPACE="entando" \
     -p IMAGE_STREAM="fsi-cc-dispute-admin" \
     -p ENTANDO_APP_BUILDER_HOSTNAME_HTTP="appbuilder-admin.${OPENSHIFT_DOMAIN_SUFFIX}" \

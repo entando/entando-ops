@@ -26,7 +26,7 @@
           "kind": "DockerImage",
           "name": "registry.connect.redhat.com/entando/entando-eap71-openshift-imagick:latest"
         },
-        "name": "5.0.1-SNAPSHOT"
+        "name": "5.0.1"
       },
       {
         "from": {

@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.1-SNAPSHOT
+    version: 5.0.1
     openshift.io/display-name: Entando Quickstart on EAP 7.1
     openshift.io/provider-display-name: Entando
     description: An example illustrating how to get Entando up and running on EAP 7.1
@@ -26,7 +26,7 @@ parameters:
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
   name: IMAGE_STREAM_TAG
-  value: 5.0.1-SNAPSHOT
+  value: 5.0.1
   required: false
 - displayName: Custom http Route Hostname for the AppBuilder
   description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default

@@ -23,16 +23,16 @@
             },
             "from": {
               "kind": "DockerImage",
-              "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.1-SNAPSHOT"
+              "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.1"
             },
             "name": "latest"
           },
           {
             "from": {
               "kind": "DockerImage",
-              "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.1-SNAPSHOT"
+              "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.1"
             },
-            "name": "5.0.1-SNAPSHOT"
+            "name": "5.0.1"
           }
         ]
       }
@@ -58,16 +58,16 @@
             },
             "from": {
               "kind": "DockerImage",
-              "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.1-SNAPSHOT"
+              "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.1"
             },
             "name": "latest"
           },
           {
             "from": {
               "kind": "DockerImage",
-              "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.1-SNAPSHOT"
+              "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.1"
             },
-            "name": "5.0.1-SNAPSHOT"
+            "name": "5.0.1"
           }
         ]
       }

@@ -66,11 +66,12 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
-                -Dprofile.log.file.prefix=/entando-data/logs/log \
-                -Dprofile.resources.path=/entando-data/resources \
-                -Dprofile.resources.path.protected=/entando-data/protected \
-                -Dprofile.index.path=/entando-data/indexdir \
+                -Dprofile.log.file.prefix=/opt/eap/standalone/log/entando_ \
+                -Dprofile.resources.path=/entando-resources/resources \
+                -Dprofile.resources.path.protected=/entando-resources/protected \
+                -Dprofile.index.path=/entando-resources/indexdir \
                 -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}"
+
 
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
   echo "Using MAVEN_OPTS '${MAVEN_OPTS}'"
@@ -85,7 +86,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
     echo "Aborting due to error code $ERR from Maven build"
     exit $ERR
   fi
-
+  if [ -d src/main/webapp/resources
   # Expand each ARTIFACT_DIR entry to absolute path by prefixing it with $LOCAL_SOURCE_DIR
   IFS=',' read -a artifact_dir_entries <<< "$ARTIFACT_DIR"
   artifact_dir_entries=($(printf "$LOCAL_SOURCE_DIR/%s\n" "${artifact_dir_entries[@]}" | tr '\n' ','))

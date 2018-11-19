@@ -8,16 +8,6 @@
     <version>1.0</version>
     <name>entando</name>
     <url>http://maven.apache.org/</url>
-    <repositories>
-        <repository>
-            <id>snapshot-repository</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
-    </repositories>
     <profiles>
         <profile>
             <id>production</id>
@@ -152,7 +142,7 @@
 
         <skipDerby>true</skipDerby>
         <skipStandalone>true</skipStandalone>
-        <entando.version>5.0.1-SNAPSHOT</entando.version>
+        <entando.version>5.0.1</entando.version>
         <spring.version>5.0.5.RELEASE</spring.version>
         <struts2.version>2.5.17</struts2.version>
         <cxf.version>3.0.4</cxf.version>

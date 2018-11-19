@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: maven jenkins
-    version: 5.0.1-SNAPSHOT
+    version: 5.0.1
     openshift.io/display-name: Entando Build Configs for EAP and PostgreSQL
     openshift.io/provider-display-name: Entando
     description: Entando Build Configs for EAP and PostgreSQL
@@ -25,7 +25,7 @@ parameters:
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
   name: ENTANDO_IMAGE_VERSION
-  value: 5.0.1-SNAPSHOT
+  value: 5.0.1
   required: false
 - displayName: Entando Image Stream Namespace
   description: The Namespace containing the standard Entando Image Streams

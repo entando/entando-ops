@@ -1,7 +1,7 @@
 version: '2'
 services:
   engine-api:
-    image: entando/engine-api:5.0.1-SNAPSHOT
+    image: entando/engine-api:5.0.1
     ports:
      - "8080:8080"
     volumes:
@@ -12,13 +12,13 @@ services:
       PORTDB_DRIVER: postgresql
       SERVDB_DRIVER: postgresql
   postgresql:
-    image: entando/postgresql:5.0.1-SNAPSHOT
+    image: entando/postgresql:5.0.1
     ports:
      - "5432:5432"
     volumes:
      - entando-pg-volume:/var/lib/pgsql/data
   appbuilder:
-    image: entando/appbuilder:5.0.1-SNAPSHOT
+    image: entando/appbuilder:5.0.1
     ports:
      - "5000:5000"
     environment:

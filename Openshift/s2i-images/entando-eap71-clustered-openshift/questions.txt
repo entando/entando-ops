@@ -1,0 +1,5 @@
+What resources other than the DB BAckups reside in the protected resources path?
+Is anything uploaded to the protected resources path?
+Is it correct that stuff can be uploaded to the CMS Resources path?
+How can I test it?
+Can the DB be populated from JBoss

@@ -1,0 +1,206 @@
+
+
+Sat Nov 10 11:48:30 2018
+Command line: TestDisk
+
+TestDisk 7.0, Data Recovery Utility, April 2015
+Christophe GRENIER <grenier@cgsecurity.org>
+http://www.cgsecurity.org
+OS: Linux, kernel 4.15.0-38-generic (#41-Ubuntu SMP Wed Oct 10 10:59:38 UTC 2018) x86_64
+Compiler: GCC 7.2
+ext2fs lib: 1.44.1, ntfs lib: libntfs-3g, reiserfs lib: none, ewf lib: none, curses lib: ncurses 6.0
+/dev/sda: LBA, HPA, LBA48, DCO support
+/dev/sda: size       500118192 sectors
+/dev/sda: user_max   500118192 sectors
+/dev/sda: native_max 500118192 sectors
+/dev/sda: dco        500118192 sectors
+Warning: can't get size for Disk /dev/mapper/control - 0 B - 0 sectors, sector size=512
+Hard disk list
+Disk /dev/sda - 256 GB / 238 GiB - CHS 31130 255 63, sector size=512 - HFS256G3BTND-N210A, S/N:ES79N537710409F69, FW:30001P10
+Disk /dev/sdb - 3000 GB / 2794 GiB - CHS 364801 255 63, sector size=512 - Seagate Expansion Desk, FW:9401
+
+Partition table type (auto): EFI GPT
+Disk /dev/sdb - 3000 GB / 2794 GiB - Seagate Expansion Desk
+Partition table type: EFI GPT
+
+Analyse Disk /dev/sdb - 3000 GB / 2794 GiB - CHS 364801 255 63
+hdr_size=92
+hdr_lba_self=1
+hdr_lba_alt=5860533166 (expected 5860533166)
+hdr_lba_start=34
+hdr_lba_end=5860533133
+hdr_lba_table=2
+hdr_entries=128
+hdr_entsz=128
+check_part_gpt failed for partition
+ 1 P MS Reserved                   34     262177     262144 [Microsoft reserved partition]
+Current partition structure:
+No FAT, NTFS, ext2, JFS, Reiser, cramfs or XFS marker
+ 1 P MS Reserved                   34     262177     262144 [Microsoft reserved partition]
+ 1 P MS Reserved                   34     262177     262144 [Microsoft reserved partition]
+ 2 P MS Data                   264192 5860532223 5860268032 [Basic data partition]
+
+search_part()
+Disk /dev/sdb - 3000 GB / 2794 GiB - CHS 364801 255 63
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+NTFS part_offset=135266304, part_size=3000457232384, sector_size=512
+NTFS partition cannot be added (part_offset<part_size).
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+     MS Data                   264192 5860532223 5860268032
+     NTFS, blocksize=4096, 3000 GB / 2794 GiB
+
+Results
+   P MS Data                   264192 5860532223 5860268032
+     NTFS, blocksize=4096, 3000 GB / 2794 GiB
+
+Hint for advanced users. dmsetup may be used if you prefer to avoid to rewrite the partition table for the moment:
+echo "0 5860268032 linear /dev/sdb 264192" | dmsetup create test0
+
+interface_write()
+ 1 P MS Data                   264192 5860532223 5860268032
+
+search_part()
+Disk /dev/sdb - 3000 GB / 2794 GiB - CHS 364801 255 63
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+NTFS part_offset=135266304, part_size=3000457232384, sector_size=512
+NTFS partition cannot be added (part_offset<part_size).
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+     MS Data                   264192 5860532223 5860268032
+     NTFS, blocksize=4096, 3000 GB / 2794 GiB
+Search for partition aborted
+
+Results
+   P MS Data                   264192 5860532223 5860268032
+     NTFS, blocksize=4096, 3000 GB / 2794 GiB
+
+Hint for advanced users. dmsetup may be used if you prefer to avoid to rewrite the partition table for the moment:
+echo "0 5860268032 linear /dev/sdb 264192" | dmsetup create test0
+
+interface_write()
+ 1 P MS Data                   264192 5860532223 5860268032
+simulate write!
+
+Analyse Disk /dev/sdb - 3000 GB / 2794 GiB - CHS 364801 255 63
+hdr_size=92
+hdr_lba_self=1
+hdr_lba_alt=5860533166 (expected 5860533166)
+hdr_lba_start=34
+hdr_lba_end=5860533133
+hdr_lba_table=2
+hdr_entries=128
+hdr_entsz=128
+check_part_gpt failed for partition
+ 1 P MS Reserved                   34     262177     262144 [Microsoft reserved partition]
+Current partition structure:
+No FAT, NTFS, ext2, JFS, Reiser, cramfs or XFS marker
+ 1 P MS Reserved                   34     262177     262144 [Microsoft reserved partition]
+ 1 P MS Reserved                   34     262177     262144 [Microsoft reserved partition]
+ 2 P MS Data                   264192 5860532223 5860268032 [Basic data partition]
+
+search_part()
+Disk /dev/sdb - 3000 GB / 2794 GiB - CHS 364801 255 63
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+NTFS part_offset=135266304, part_size=3000457232384, sector_size=512
+NTFS partition cannot be added (part_offset<part_size).
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+     MS Data                   264192 5860532223 5860268032
+     NTFS, blocksize=4096, 3000 GB / 2794 GiB
+
+Results
+   P MS Data                   264192 5860532223 5860268032
+     NTFS, blocksize=4096, 3000 GB / 2794 GiB
+
+Hint for advanced users. dmsetup may be used if you prefer to avoid to rewrite the partition table for the moment:
+echo "0 5860268032 linear /dev/sdb 264192" | dmsetup create test0
+
+interface_write()
+ 1 P MS Data                   264192 5860532223 5860268032
+
+search_part()
+Disk /dev/sdb - 3000 GB / 2794 GiB - CHS 364801 255 63
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+NTFS part_offset=135266304, part_size=3000457232384, sector_size=512
+NTFS partition cannot be added (part_offset<part_size).
+NTFS at 16/113/34
+filesystem size           5860268032
+sectors_per_cluster       8
+mft_lcn                   786432
+mftmirr_lcn               2
+clusters_per_mft_record   -10
+clusters_per_index_record 1
+     MS Data                   264192 5860532223 5860268032
+     NTFS, blocksize=4096, 3000 GB / 2794 GiB
+file_pread(5,16,buffer,23616674(1470/17/54)) read err: Partial read
+file_pread(5,16,buffer,23616754(1470/19/8)) read err: Partial read
+file_pread(5,16,buffer,23616770(1470/19/24)) read err: Input/output error
+file_pread(5,1,buffer,23616770(1470/19/24)) read err: Input/output error
+file_pread(5,1,buffer,23616771(1470/19/25)) read err: Input/output error
+file_pread(5,1,buffer,23616772(1470/19/26)) read err: Input/output error
+file_pread(5,1,buffer,23616773(1470/19/27)) read err: Input/output error
+file_pread(5,1,buffer,23616774(1470/19/28)) read err: Input/output error
+file_pread(5,16,buffer,23616775(1470/19/29)) read err: Input/output error
+file_pread(5,1,buffer,23616775(1470/19/29)) read err: Input/output error
+file_pread(5,16,buffer,23616776(1470/19/30)) read err: Input/output error
+file_pread(5,1,buffer,23616776(1470/19/30)) read err: Input/output error
+file_pread(5,16,buffer,23616777(1470/19/31)) read err: Input/output error
+file_pread(5,1,buffer,23616777(1470/19/31)) read err: Input/output error
+file_pread(5,16,buffer,23616778(1470/19/32)) read err: Input/output error
+file_pread(5,1,buffer,23616778(1470/19/32)) read err: Input/output error
+file_pread(5,1,buffer,23616779(1470/19/33)) read err: Input/output error
+file_pread(5,1,buffer,23616780(1470/19/34)) read err: Input/output error
+file_pread(5,1,buffer,23616781(1470/19/35)) read err: Input/output error
+file_pread(5,1,buffer,23616782(1470/19/36)) read err: Input/output error
+file_pread(5,1,buffer,23616783(1470/19/37)) read err: Input/output error
+file_pread(5,16,buffer,23616784(1470/19/38)) read err: Input/output error
+file_pread(5,1,buffer,23616784(1470/19/38)) read err: Input/output error
+file_pread(5,1,buffer,23616785(1470/19/39)) read err: Input/output error
+file_pread(5,16,buffer,23616786(1470/19/40)) read err: Input/output error
+file_pread(5,1,buffer,23616786(1470/19/40)) read err: Input/output error
+file_pread(5,1,buffer,23616787(1470/19/41)) read err: Input/output error
+file_pread(5,1,buffer,23616788(1470/19/42)) read err: Input/output error
+file_pread(5,1,buffer,23616789(1470/19/43)) read err: Input/output error
+file_pread(5,1,buffer,23616790(1470/19/44)) read err: Input/output error
+file_pread(5,1,buffer,23616791(1470/19/45)) read err: Input/output error
+SIGHUP detected! TestDisk has been killed.

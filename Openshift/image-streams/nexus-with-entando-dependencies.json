@@ -20,12 +20,12 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/nexus-with-entando-dependencies:5.0.1-SNAPSHOT"
+          "name": "docker.io/entando/nexus-with-entando-dependencies:5.0.1"
         },
         "importPolicy": {
           "insecure": true
         },
-        "name": "5.0.1-SNAPSHOT",
+        "name": "5.0.1",
         "referencePolicy": {
           "type": "Source"
         }
