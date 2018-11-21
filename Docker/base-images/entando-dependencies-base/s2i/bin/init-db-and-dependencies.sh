@@ -3,7 +3,7 @@ cd /tmp/
 mkdir default-entando-project
 cd default-entando-project
 echo "ENTANDO_VERSION = $ENTANDO_VERSION"
-mvn archetype:generate -B --settings $HOME/.m2/settings.xml \
+mvn archetype:generate -B -U --settings $HOME/.m2/settings.xml \
         -Dfilter=entando \
         -DarchetypeGroupId=org.entando.entando \
         -DarchetypeArtifactId=entando-archetype-web-app-BPM \

@@ -9,7 +9,7 @@ COPY --chown=1001:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
 RUN ls -al $HOME/.m2/repository/org/entando/entando
 USER 1001
 RUN mkdir -p /tmp/src  && cd /tmp/src && \
-    git clone --depth 1 -b  v${ENTANDO_VERSION} https://github.com/entando/fsi-cc-dispute-customer.git . && \
+    git clone --depth 1 -b  v5.0.1-SNAPSHOT https://github.com/entando/fsi-cc-dispute-customer.git . && \
     ${STI_SCRIPTS_PATH}/assemble
 FROM entando/entando-eap71-base:${ENTANDO_IMAGE_VERSION}
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \

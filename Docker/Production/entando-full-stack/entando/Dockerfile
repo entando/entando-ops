@@ -31,3 +31,5 @@ RUN mkdir  -p /tmp/entando-init && \
             -Djava.net.preferIPv4Stack=true
 FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION
 COPY --chown=1001:0 --from=dependencies /tmp/entando-init/entando/target/entando.war /wildfly/standalone/deployments/
+ENV PREPARE_DB="false"
+

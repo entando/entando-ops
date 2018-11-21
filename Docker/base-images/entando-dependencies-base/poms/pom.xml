@@ -3,10 +3,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.entando</groupId>
-    <artifactId>entando</artifactId>
+    <artifactId>entando-sample3</artifactId>
     <packaging>war</packaging>
     <version>1.0</version>
-    <name>entando</name>
+    <name>entando-sample3</name>
     <url>http://maven.apache.org/</url>
     <repositories>
         <repository>
@@ -125,12 +125,11 @@
         <skipDerby>true</skipDerby>
         <skipStandalone>true</skipStandalone>
         <entando.version>5.0.1</entando.version>
-        <spring.version>5.0.5.RELEASE</spring.version>
+        <spring.version>5.0.8.RELEASE</spring.version>
         <struts2.version>2.5.17</struts2.version>
-        <cxf.version>3.0.4</cxf.version>
     </properties>
     <build>
-        <finalName>entando</finalName>
+        <finalName>entando-sample3</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
@@ -475,28 +474,28 @@
                             </resources>
                         </configuration>
                     </execution>
-					<!--
-                    <execution>
-                        <id>lesscss-include-in-pagemodels</id>
-                        <phase>process-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/src/main/webapp/WEB-INF/aps/jsp/models/inc/lesscss-active</outputDirectory>
-                            <encoding>UTF-8</encoding>
-                            <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/src/main/webapp/WEB-INF/aps/jsp/models/inc/lesscss-available/${env}</directory>
-                                    <includes>
-                                        <include>lesscss.jsp</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-					-->
+                    <!--
+<execution>
+    <id>lesscss-include-in-pagemodels</id>
+    <phase>process-resources</phase>
+    <goals>
+        <goal>copy-resources</goal>
+    </goals>
+    <configuration>
+        <outputDirectory>${project.basedir}/src/main/webapp/WEB-INF/aps/jsp/models/inc/lesscss-active</outputDirectory>
+        <encoding>UTF-8</encoding>
+        <overwrite>true</overwrite>
+        <resources>
+            <resource>
+                <directory>${project.basedir}/src/main/webapp/WEB-INF/aps/jsp/models/inc/lesscss-available/${env}</directory>
+                <includes>
+                    <include>lesscss.jsp</include>
+                </includes>
+            </resource>
+        </resources>
+    </configuration>
+</execution>
+                    -->
                 </executions>
             </plugin>
             <plugin>
@@ -570,7 +569,7 @@
             <plugin>
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.2.11.v20150529</version>
+                <version>9.4.8.v20180619</version>
                 <configuration>
                     <scanIntervalSeconds>5</scanIntervalSeconds>
                     <webAppSourceDirectory>${basedir}/src/main/webapp</webAppSourceDirectory>
@@ -752,6 +751,12 @@
             <type>war</type>
         </dependency>
         <dependency>
+            <groupId>org.entando.entando.bundles.pages</groupId>
+            <artifactId>entando-page-inspinia_BPM</artifactId>
+            <version>${entando.version}</version>
+            <type>war</type>
+        </dependency>
+        <dependency>
             <groupId>org.entando.entando</groupId>
             <artifactId>entando-engine</artifactId>
             <version>${entando.version}</version>
@@ -854,7 +859,7 @@
             <version>${entando.version}</version>
             <type>war</type>
         </dependency>
-		<dependency>
+        <dependency>
             <groupId>org.entando.entando.plugins</groupId>
             <artifactId>entando-plugin-jpinfinispan</artifactId>
             <version>${entando.version}</version>
