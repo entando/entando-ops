@@ -5,9 +5,10 @@ ENV NPM_CONFIG_LOGLEVEL=warn \
     USE_MOCKS=false  \
     DOMAIN_MARKER=SOME_ARB_STRING_TO_REPLACE_LATER_81231 \
     CLIENT_ID=appbuilder \
-    CLIENT_SECRET=appbuilder_secret
+    CLIENT_SECRET_MARKER=SOME_ARB_STRING_TO_REPLACE_LATER_909812
 
-ENV DOMAIN=$DOMAIN_MARKER
+ENV DOMAIN=$DOMAIN_MARKER \
+    CLIENT_SECRET=$CLIENT_SECRET_MARKER
 
 USER root
 RUN chmod ug+rw /opt
@@ -24,13 +25,9 @@ RUN  source /opt/rh/rh-nodejs8/enable && \
   cd /opt/app-root/src/ && mv app-builder/build /opt/app-builder && rm -rf app-builder entando-components && \
   chmod -R ug+rw /opt/app-builder
 
-COPY start.sh /opt/app-builder/start.sh
-USER root
-RUN chmod a+x /opt/app-builder/start.sh
-
-USER 1001
+COPY --chown=1001:0 start.sh /opt/app-builder/start.sh
 WORKDIR /opt/app-builder
 CMD /opt/app-builder/start.sh
 #because the npm serve package cannot make up its mind
 EXPOSE 5000
-
+ENV CLIENT_SECRET=appbuilder_secret
