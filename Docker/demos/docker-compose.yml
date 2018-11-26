@@ -1,7 +1,7 @@
 version: '2'
 services:
   customer-engine:
-    image: entando/fsi-cc-dispute-customer:5.0.1
+    image: entando/fsi-cc-dispute-customer:5.0.2
     ports:
      - "8081:8080"
     volumes:
@@ -11,14 +11,14 @@ services:
       KIE_SERVER_USERNAME: kieserver
       KIE_SERVER_PASSWORD: kieserver1!
   customer-appbuilder:
-    image: entando/appbuilder:5.0.1
+    image: entando/appbuilder:5.0.2
     ports:
      - "5001:5000"
     environment:
       DOMAIN: http://localhost:8081/fsi-credit-card-dispute-customer
       CLIENT_SECRET: appbuilder_secret
   admin-engine:
-    image: entando/fsi-cc-dispute-admin:5.0.1
+    image: entando/fsi-cc-dispute-admin:5.0.2
     ports:
      - "8082:8080"
     volumes:
@@ -28,7 +28,7 @@ services:
       KIE_SERVER_USERNAME: kieserver
       KIE_SERVER_PASSWORD: kieserver1!
   admin-appbuilder:
-    image: entando/appbuilder:5.0.1
+    image: entando/appbuilder:5.0.2
     ports:
      - "5002:5000"
     environment:

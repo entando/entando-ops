@@ -24,9 +24,9 @@
       {
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/appbuilder:5.0.1"
+          "name": "docker.io/entando/appbuilder:5.0.2"
         },
-        "name": "5.0.1"
+        "name": "5.0.2"
       },
       {
         "from": {

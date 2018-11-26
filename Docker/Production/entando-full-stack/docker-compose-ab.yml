@@ -1,7 +1,7 @@
 version: '2'
 services:
   appbuilder:
-    image: entando/appbuilder:5.0.1
+    image: entando/appbuilder:5.0.2
     ports:
      - "5000:5000"
     environment:

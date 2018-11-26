@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.1
+    version: 5.0.2
     openshift.io/display-name: Entando EAP 7.1 Deployment Template
     openshift.io/provider-display-name: Entando
     description: Entando EAP 7.1 Deployment Template
@@ -30,7 +30,7 @@ parameters:
 - displayName: Entando Image Version
   description: Entando Image Version
   name: ENTANDO_IMAGE_VERSION
-  value: 5.0.1
+  value: 5.0.2
   required: false
 - displayName: The base url to be used to access the Entando rest services.
   description: This must reflect either the HTTPS hostname of the Entando core engine service. Root servlet context is assumed

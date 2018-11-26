@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.1
+    version: 5.0.2
     openshift.io/display-name: Entando Deployments Template
     openshift.io/provider-display-name: Entando
     description: Entando Deployments Template
