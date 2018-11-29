@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+pushd entando-eap71-clustered-openshift
+./build.sh $1
+popd
 pushd entando-eap71-quickstart-openshift
 ./build.sh $1
 popd

@@ -11,26 +11,28 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
 ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=185
+#add the dependencies temporarily to speed up builds. remove from final image
 COPY --chown=185:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
 COPY --chown=185:0 ./standalone-openshift.xml /opt/eap/standalone/configuration
+COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
+
 CMD "${STI_SCRIPTS_PATH}/usage"
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
+ENV DB_SERVICE_PREFIX_MAPPING="portdb-postgresql=PORTDB,servdb-postgresql=SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
-    PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
+    PORTDB_URL="jdbc:postgresql://postgresql:5432/entandoPort" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \
-    PORTDB_DRIVER="derby" \
+    PORTDB_DRIVER="postgresql" \
     PORTDB_USERNAME="agile" \
     PORTDB_PASSWORD="agile" \
-    PORTDB_SERVICE_HOST="dummy" \
-    PORTDB_SERVICE_PORT="1527" \
+    PORTDB_SERVICE_HOST="postgresql" \
+    PORTDB_SERVICE_PORT="5432" \
     SERVDB_NONXA="true" \
     SERVDB_JTA="false" \
-    SERVDB_URL="jdbc:derby:/entando-data/databases/entandoServ;create=true" \
+    SERVDB_URL="jdbc:postgresql://postgresql:5432/entandoServ" \
     SERVDB_JNDI="java:jboss/datasources/entandoServDataSource" \
-    SERVDB_DRIVER="derby" \
+    SERVDB_DRIVER="postgresql" \
     SERVDB_USERNAME="agile" \
     SERVDB_PASSWORD="agile" \
-    SERVDB_SERVICE_HOST="dummy" \
-    SERVDB_SERVICE_PORT="1527" \
-    PREPARE_DB="true"
+    SERVDB_SERVICE_HOST="postgresql" \
+    SERVDB_SERVICE_PORT="5432"

@@ -82,19 +82,21 @@ EOT
 
 }
 function recreate_source_secret(){
-    #Just a place holder for when we may want to instantiate PAM here. We'll probably generate passwords then too
-    echo_header "Creating the BitBucket source secret."
+  echo "Creating the SCM source secret."
+  if [ -n "${SCM_USERNAME}" ] && [ -n "${SCM_PASSWORD}" ]; then
     cat <<EOF | oc replace --force --grace-period 60 -f -
 apiVersion: v1
 kind: Secret
 metadata:
-  name: "${APPLICATION_NAME}-source-secret"
+  name: ${APPLICATION_NAME}-source-secret
+  labels:
+    application: "${APPLICATION_NAME}"
 stringData:
-  username: "username"
-  password: "password"
+  username: ${SCM_USERNAME}
+  password: ${SCM_PASSWORD}
 type: "kubernetes.io/basic-auth"
 EOF
-
+  fi
 }
 
 function recreate_secrets_and_linked_service_accounts() {
@@ -114,7 +116,14 @@ function recreate_entando_application(){
             -p KIE_SERVER_SECRET="${APPLICATION_NAME}-kieserver-secret" \
             -p DB_SECRET="${APPLICATION_NAME}-db-secret" \
             -p SOURCE_SECRET="${APPLICATION_NAME}-source-secret" \
+            -p SOURCE_REPOSITORY_URL=https://bitbucket.org/entando/central-entando.git \
+            -p SOURCE_REPOSITORY_REF=EN-1904 \
             -p ENTANDO_PORT_DATABASE="entandoPortDb" \
+            -p ENTANDO_OIDC_ACTIVE=true \
+            -p ENTANDO_OIDC_AUTH_LOCATION=https://staging.access.entando.com/auth/realms/entando/protocol/openid-connect/auth \
+            -p ENTANDO_OIDC_TOKEN_LOCATION=https://staging.access.entando.com/auth/realms/entando/protocol/openid-connect/token \
+            -p ENTANDO_OIDC_CLIENT_ID=central.entando \
+            -p ENTANDO_OIDC_REDIRECT_BASE_URL=https://staging.central.entando.com \
             -p ENTANDO_SERV_DATABASE="entandoServDb" \
             -p HTTPS_SECRET="entando-app-secret" \
             -p HTTPS_PASSWORD="$HTTPS_PASSWORD" \
@@ -123,15 +132,12 @@ function recreate_entando_application(){
             -p JGROUPS_ENCRYPT_PASSWORD="$JGROUPS_ENCRYPT_PASSWORD" \
             -p JGROUPS_CLUSTER_PASSWORD="$JGROUPS_CLUSTER_PASSWORD" \
             -p JGROUPS_ENCRYPT_NAME="jgroups" \
-            -p IMAGE_STREAM_NAMESPACE="$(oc project -q)" \
+            -p IMAGE_STREAM_NAMESPACE="entando" \
             -p HOSTNAME_HTTPS=$HOSTNAME_HTTPS \
             -p HOSTNAME_HTTP=$HOSTNAME_HTTP \
             |  oc replace --force --grace-period 60  -f -
 #            -p MAVEN_MIRROR_URL="$NEXUS_URL" \
 }
-oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json
-oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-quickstart-openshift.json
-oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql95-openshift.json
 
 recreate_secrets_and_linked_service_accounts
 recreate_entando_application

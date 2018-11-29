@@ -33,4 +33,4 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     SERVDB_PASSWORD="agile" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
-    PREPARE_DB="true"
+    PREPARE_DATA="true"

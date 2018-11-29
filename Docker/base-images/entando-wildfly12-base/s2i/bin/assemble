@@ -240,7 +240,8 @@ if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
 
   cp -v $LOCAL_SOURCE_DIR/configuration/* /wildfly/standalone/configuration/
 fi
-
+#remove all previous Entando data
+rm -Rf /entando-data-templates/* > /dev/null 2>&1
 configure_proxy
 configure_mirrors
 
@@ -287,7 +288,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
-                -Dprofile.log.file.prefix=/entando-data/logs/log \
+                -Dprofile.log.file.prefix=/opt/eap/standalone/log/entando \
                 -Dprofile.resources.path=/entando-data/resources \
                 -Dprofile.resources.path.protected=/entando-data/protected \
                 -Dprofile.index.path=/entando-data/indexdir \
@@ -320,10 +321,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   # of the values we calculated above.
   MAVEN_OPTS=$JAVA_GC_OPTS $JAVA_HEAP_MAX $JAVA_CORE_LIMIT $JAVA_DIAGNOSTICS $MAVEN_OPTS
 
-  if [ "$PREPARE_DB" = "true" ]; then
-    echo "Begin DB preparation"
-    if ! $(dirname ${BASH_SOURCE[0]})/init-db.sh; then
-        echo "DB Preparation failed!"
+  if [ "$PREPARE_DATA" = "true" ]; then
+    echo "Begin initializing DB and resource templates"
+    if ! $(dirname ${BASH_SOURCE[0]})/init-data-from-project.sh; then
+        echo "DB and resource template initialization failed!"
         exit 1
     fi
   fi
@@ -345,6 +346,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 else
   echo "Moving binaries in source directory into $DEPLOY_DIR for later deployment..."
   move_artifacts "." war ear rar jar
+  if ! $(dirname ${BASH_SOURCE[0]})/init-data-from-directory.sh $LOCAL_SOURCE_DIR; then
+    echo "Resource template initialization failed!"
+    exit 1
+  fi
 fi
 
 # Move built artifacts (if any!) from the target/ directory
@@ -357,6 +362,17 @@ fi
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
   move_artifacts "deployments" war ear rar jar
 fi
+if [ -d $LOCAL_SOURCE_DIR/entando-data-templates/resources ]; then
+  mkdir -p /entando-data-templates/resources > /dev/null 2>&1
+  cp -rf $LOCAL_SOURCE_DIR/entando-data-templates/resources/* /entando-data-templates/resources/
+fi
+if [ -d $LOCAL_SOURCE_DIR/entando-data-templates/protected ]; then
+  mkdir -p /entando-data-templates/protected > /dev/null 2>&1
+  cp -rf $LOCAL_SOURCE_DIR/entando-data-templates/protected/* /entando-data-templates/protected/
+fi
+chmod -Rf ug+rw /entando-data-templates/
+chown -Rf $USERID_TO_USE:0 /entando-data-templates/
+
 
 if [ -d $LOCAL_SOURCE_DIR/cfg ]; then
   echo "Copying config files from project..."

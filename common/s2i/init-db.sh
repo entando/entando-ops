@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+#NB!!! This file is copied from common/s2i in the Docker build hook. Only modify the original file!
+
+
+#remove all previous Entando data from parent images
+rm -Rf /entando-data-templates/* > /dev/null 2>&1
+
 #Build the empty database and let 'mvn jetty:run' take care of any SQL file backups where they may exist.
 
 #Hack into the pom to avoid the annotation scanning timeout that we tend to get in Docker builds. By default
@@ -41,7 +47,7 @@ echo "JETTY_PID=${JETTY_PID}"
 tail -f db_creation.log &
 for i in {1..360}
 do
-    sleep 5
+    sleep 15
     if fgrep --quiet "BUILD FAILURE" "db_creation.log"; then
       exit 1
     fi
@@ -55,14 +61,16 @@ do
         (echo "Waiting for Jetty process [$JETTY_PID] to shut down"; sleep 3; ps; kill -9 ${JETTY_PID}; ps) &
         wait ${JETTY_PID}
         if [ "$PORTDB_DRIVER" = "derby" ]; then
+           echo "Copying newly generated DB to /entando-data-templates/"
    #Copy the new database across, overwriting the old database entirely. This ensures a full restore can be effected
-            cp -Rf /entando-data/databases/* /entando-database-templates/
-            echo $(date +%s | sha256sum | base64 | head -c 32) > /entando-database-templates/build_id
-            rm -Rf /entando-data/databases/*
-            chmod -Rf ug+rw /entando-database-templates/
-            chown -Rf $USERID_TO_USE:0 /entando-database-templates/
+            rm -Rf /entando-data-templates/databases > /dev/null 2>&1
+            mkdir -p /entando-data-templates/databases/
+            cp -Rf /entando-data/databases/* /entando-data-templates/databases/
+            chmod -Rf ug+rw /entando-data-templates/databases/
+            chown -Rf $USERID_TO_USE:0 /entando-data-templates/databases/
         fi
         exit 0
     fi
 done
+echo "BUILD TIMED OUT!!!!!"
 exit 1

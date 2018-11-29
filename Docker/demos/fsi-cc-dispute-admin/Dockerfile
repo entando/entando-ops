@@ -15,4 +15,5 @@ FROM entando/entando-eap71-base:${ENTANDO_IMAGE_VERSION}
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=185
 COPY --chown=185:0 --from=wildflys2i /wildfly/standalone/deployments/fsi-credit-card-dispute-backoffice.war /opt/eap/standalone/deployments/
-COPY --chown=185:0 --from=wildflys2i /entando-database-templates /entando-database-templates
+RUN rm -Rf /entando-data-templates/*
+COPY --chown=185:0 --from=wildflys2i /entando-data-templates /entando-data-templates

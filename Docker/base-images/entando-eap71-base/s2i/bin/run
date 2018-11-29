@@ -1,3 +1,3 @@
 #!/bin/bash
-$(dirname ${BASH_SOURCE[0]})/prepare-db.sh
+$(dirname ${BASH_SOURCE[0]})/prepare-data.sh
 exec $JBOSS_HOME/bin/openshift-launch.sh

@@ -30,6 +30,8 @@ if [ -f $LOCAL_SOURCE_DIR/configuration/settings.xml ]; then
 fi
 
 
+#remove all previous Entando data from parent images
+rm -Rf /entando-data-templates/* > /dev/null 2>&1
 configure_proxy
 configure_mirrors
 
@@ -42,10 +44,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   # Add JVM default options
   export MAVEN_OPTS="${MAVEN_OPTS:-$(/opt/run-java/java-default-options)}"
-  if [ "$PREPARE_DB" = "true" ]; then
-    echo "Begin DB preparation"
-    if ! $(dirname ${BASH_SOURCE[0]})/init-db.sh; then
-        echo "DB Preparation failed!"
+  if [ "$PREPARE_DATA" = "true" ]; then
+    echo "Begin initializing DB and resource templates"
+    if ! $(dirname ${BASH_SOURCE[0]})/init-data-from-project.sh; then
+        echo "DB and resource template initialization failed!"
         exit 1
     fi
   fi
@@ -102,6 +104,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   popd &> /dev/null
 else
   copy_artifacts "$LOCAL_SOURCE_DIR" war ear rar jar
+  if ! $(dirname ${BASH_SOURCE[0]})/init-data-from-directory.sh $LOCAL_SOURCE_DIR; then
+    echo "Resource template initialization failed!"
+    exit 1
+  fi
 fi
 
 # copy app data, if specified
@@ -115,6 +121,8 @@ fi
 # directory to the $JBOSS_HOME/standalone/deployments/
 # directory for later deployment
 copy_artifacts "$LOCAL_SOURCE_DIR/deployments" war # ear rar jar
+chmod -Rf ug+rw /entando-data-templates/
+chown -Rf $USERID_TO_USE:0 /entando-data-templates/
 
 if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
   file_count=$(ls -1 $LOCAL_SOURCE_DIR/configuration | wc -l)

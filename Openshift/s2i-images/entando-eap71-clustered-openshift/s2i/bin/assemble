@@ -30,6 +30,8 @@ if [ -f $LOCAL_SOURCE_DIR/configuration/settings.xml ]; then
 fi
 
 
+#remove all previous Entando data from parent images
+rm -Rf /entando-data-templates/* > /dev/null 2>&1
 configure_proxy
 configure_mirrors
 
@@ -42,10 +44,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
 
   # Add JVM default options
   export MAVEN_OPTS="${MAVEN_OPTS:-$(/opt/run-java/java-default-options)}"
-  if [ "$PREPARE_DB" = "true" ]; then
-    echo "Begin DB preparation"
-    if ! $(dirname ${BASH_SOURCE[0]})/init-db.sh; then
-        echo "DB Preparation failed!"
+  if [ "$PREPARE_DATA" = "true" ]; then
+    echo "Begin initializing DB and resource templates"
+    if ! $(dirname ${BASH_SOURCE[0]})/init-resources-from-project.sh; then
+        echo "DB and resource template initialization failed!"
         exit 1
     fi
   fi
@@ -66,12 +68,11 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
-                -Dprofile.log.file.prefix=/opt/eap/standalone/log/entando_ \
-                -Dprofile.resources.path=/entando-resources/resources \
-                -Dprofile.resources.path.protected=/entando-resources/protected \
-                -Dprofile.index.path=/entando-resources/indexdir \
+                -Dprofile.log.file.prefix=/entando-data/logs/log \
+                -Dprofile.resources.path=/entando-data/resources \
+                -Dprofile.resources.path.protected=/entando-data/protected \
+                -Dprofile.index.path=/entando-data/indexdir \
                 -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}"
-
 
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
   echo "Using MAVEN_OPTS '${MAVEN_OPTS}'"
@@ -86,7 +87,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
     echo "Aborting due to error code $ERR from Maven build"
     exit $ERR
   fi
-  if [ -d src/main/webapp/resources
+
   # Expand each ARTIFACT_DIR entry to absolute path by prefixing it with $LOCAL_SOURCE_DIR
   IFS=',' read -a artifact_dir_entries <<< "$ARTIFACT_DIR"
   artifact_dir_entries=($(printf "$LOCAL_SOURCE_DIR/%s\n" "${artifact_dir_entries[@]}" | tr '\n' ','))
@@ -103,6 +104,10 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   popd &> /dev/null
 else
   copy_artifacts "$LOCAL_SOURCE_DIR" war ear rar jar
+  if ! $(dirname ${BASH_SOURCE[0]})/init-data-from-directory.sh $LOCAL_SOURCE_DIR; then
+    echo "Resource template initialization failed!"
+    exit 1
+  fi
 fi
 
 # copy app data, if specified
@@ -116,6 +121,8 @@ fi
 # directory to the $JBOSS_HOME/standalone/deployments/
 # directory for later deployment
 copy_artifacts "$LOCAL_SOURCE_DIR/deployments" war # ear rar jar
+chmod -Rf ug+rw /entando-data-templates/
+chown -Rf $USERID_TO_USE:0 /entando-data-templates/
 
 if [ -d $LOCAL_SOURCE_DIR/configuration ]; then
   file_count=$(ls -1 $LOCAL_SOURCE_DIR/configuration | wc -l)

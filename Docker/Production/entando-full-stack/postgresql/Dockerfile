@@ -1,8 +1,9 @@
 ARG ENTANDO_IMAGE_VERSION
-FROM entando/entando-dependencies-base:$ENTANDO_IMAGE_VERSION as dependencies
+FROM entando/entando-dependencies-full:$ENTANDO_IMAGE_VERSION as dependencies
 
 FROM entando/entando-postgresql95-base:$ENTANDO_IMAGE_VERSION as database-template
 COPY --chown=26:0 --from=dependencies  /opt/app-root/src/.m2 /var/lib/pgsql/.m2
+COPY --chown=26:0 ./s2i/bin/ $STI_SCRIPTS_PATH
 RUN  $STI_SCRIPTS_PATH/init-default-postgresql-db.sh
 
 FROM entando/entando-postgresql95-base:$ENTANDO_IMAGE_VERSION

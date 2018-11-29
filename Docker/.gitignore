@@ -1,7 +1,8 @@
-**/s2i/bin/init-db.sh
-**/s2i/bin/prepare-db.sh
-**/s2i/bin/init-default-db.sh
 **/s2i/bin/determine-driver.sh
+**/s2i/bin/init-data-from-directory.sh
+**/s2i/bin/init-data-from-project.sh
+**/s2i/bin/init-db.sh
+**/s2i/bin/prepare-data.sh
 **/contrib/wfmodules/org/apache/derby
 **/contrib/settings.xml
 **/contrib/maven-setup

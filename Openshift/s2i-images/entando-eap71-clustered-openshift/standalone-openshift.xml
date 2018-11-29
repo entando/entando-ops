@@ -578,7 +578,7 @@
             </servlet-container>
             <handlers>
                 <file name="welcome-content" path="${jboss.home.dir}/welcome-content"/>
-        <file name="cmscontent" path="/entando-resources/welcome-content/cmsresources"/>
+                <file name="cmscontent" path="/entando-data/resources"/>
             </handlers>
             <filters>
                 <response-header name="server-header" header-name="Server" header-value="JBoss-EAP/7"/>

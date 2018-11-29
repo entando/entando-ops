@@ -210,7 +210,7 @@ objects:
           value: "${MAVEN_ARGS_APPEND}"
         - name: ARTIFACT_DIR
           value: "${ARTIFACT_DIR}"
-        - name: PREPARE_DB
+        - name: PREPARE_DATA
           value: "true"
         forcePull: false
         from:
@@ -255,7 +255,7 @@ objects:
           value: "${MAVEN_ARGS_APPEND}"
         - name: ARTIFACT_DIR
           value: "${ARTIFACT_DIR}"
-        - name: PREPARE_DB
+        - name: PREPARE_DATA
           value: "false"
         forcePull: false
         from:

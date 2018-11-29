@@ -10,7 +10,7 @@
       "supports": "jee,java",
       "tags": "builder,eap,java"
     },
-    "name": "entando-eap71-openshift"
+    "name": "entando-eap71-imagick-openshift"
   },
   "spec": {
     "tags": [
