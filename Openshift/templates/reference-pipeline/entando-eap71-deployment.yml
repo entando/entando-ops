@@ -328,6 +328,10 @@ objects:
             value: "true"
           - name: SERVDB_JTA
             value: "true"
+          - name: PORTDB_URL
+            value: ""
+          - name: SERVDB_URL
+            value: ""
           - name: SERVDB_MIN_POOL_SIZE
             value: "${DB_MIN_POOL_SIZE}"
           - name: PORTDB_MIN_POOL_SIZE

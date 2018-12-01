@@ -9,3 +9,5 @@ oc create -f ${IMAGE_STREAM_DIR}/entando-eap71-quickstart-openshift.json -n ${NA
 oc create -f ${IMAGE_STREAM_DIR}/entando-fsi-ccd-demo.json -n ${NAMESPACE}
 oc create -f ${IMAGE_STREAM_DIR}/entando-postgresql95-openshift.json -n ${NAMESPACE}
 oc create -f ${IMAGE_STREAM_DIR}/entando-wildfly12-quickstart-openshift.json -n ${NAMESPACE}
+oc create -f ${IMAGE_STREAM_DIR}/entando-maven-jenkins-slave-openshift39.json -n ${NAMESPACE}
+oc create -f ${IMAGE_STREAM_DIR}/entando-postgresql-jenkins-slave-openshift39.json -n ${NAMESPACE}

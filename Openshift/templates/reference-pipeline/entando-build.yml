@@ -157,10 +157,10 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: entando-eap71-openshift:${ENTANDO_IMAGE_VERSION}
+          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_VERSION}
           namespace: ${IMAGE_STREAM_NAMESPACE}
-        pullSecret:
-          name: "base-image-registry-secret"
+#        pullSecret:
+#          name: "base-image-registry-secret"
     output:
       to:
         kind: DockerImage
@@ -253,20 +253,22 @@ objects:
                                            -Dprofile.application.baseurl.protocol=http \
                                            -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
                                            -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
-                                           -Dprofile.log.file.prefix=/entando-resources/logs/log \
-                                           -Dprofile.resources.path=/entando-resources/welcome-content/cmsresources \
-                                           -Dprofile.resources.path.protected=/entando-resources/protected \
-                                           -Dprofile.index.path=/entando-resources/indexdir \
+                                           -Dprofile.log.file.prefix=/opt/eap/standalone/logs/log \
+                                           -Dprofile.resources.path=/entando-data/resources \
+                                           -Dprofile.resources.path.protected=/entando-data/protected \
+                                           -Dprofile.index.path=/entando-data/indexdir \
                                            -Djava.net.preferIPv4Stack=true
-                                       mkdir target/deployments
-                                       mv target/*.war target/deployments/${APPLICATION_NAME}.war
+                                       mkdir -p target/docker-build-input/entando-data-templates
+                                       cp -Rf src/main/webapp/resources target/docker-build-input/entando-data-templates/
+                                       cp -Rf src/main/webapp/protected target/docker-build-input/entando-data-templates/
+                                       mv target/*.war target/docker-build-input/${APPLICATION_NAME}.war
                                        if [[ -d configuration ]]; then
-                                         cp -Rf configuration target/deployments/
+                                         cp -Rf configuration target/docker-build-input/
                                        fi
                                     """
                           script {
                               openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/deployments", "--wait")
+                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
                               }
                           }
                       }
@@ -396,15 +398,17 @@ objects:
                                            -Dprofile.resources.path.protected=/entando-resources/protected \
                                            -Dprofile.index.path=/entando-resources/indexdir \
                                            -Djava.net.preferIPv4Stack=true
-                                       mkdir target/deployments
-                                       mv target/*.war target/deployments/${APPLICATION_NAME}.war
+                                       mkdir -p target/docker-build-input/entando-data-templates
+                                       cp -Rf src/main/webapp/resources target/docker-build-input/entando-data-templates/
+                                       cp -Rf src/main/webapp/protected target/docker-build-input/entando-data-templates/
+                                       mv target/*.war target/docker-build-input/${APPLICATION_NAME}.war
                                        if [[ -d configuration ]]; then
-                                         cp -Rf configuration target/deployments/
+                                         cp -Rf configuration target/docker-build-input/
                                        fi
                                     """
                           script {
                               openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/deployments", "--wait")
+                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
                               }
                           }
                       }

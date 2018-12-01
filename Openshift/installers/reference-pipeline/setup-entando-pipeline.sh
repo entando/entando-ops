@@ -49,10 +49,10 @@ function create_projects(){
 
 function install_build_image_streams(){
   echo "Installing required images"
-  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
-  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-maven-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
-  install_imagick_image
-}
+  #oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
+  #oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-maven-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
+  #install_imagick_image
+ }
 
 function install_imagick_image(){
   echo "Installing the Entando Imagick Image stream."
@@ -65,7 +65,7 @@ function install_imagick_image(){
         --docker-email=${REDHAT_REGISTRY_USERNAME} \
         -n "${APPLICATION_NAME}-build"
     oc label secret base-image-registry-secret application=entando-central -n "${APPLICATION_NAME}-build"
-    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-openshift.json -n "${APPLICATION_NAME}-build"
+    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-clustered-openshift.json -n "${APPLICATION_NAME}-build"
     oc delete secret base-image-registry-secret -n $IMAGE_STREAM_NAMESPACE 2>/dev/null
     oc create secret docker-registry base-image-registry-secret \
         --docker-server=registry.connect.redhat.com \
@@ -74,7 +74,7 @@ function install_imagick_image(){
         --docker-email=${REDHAT_REGISTRY_USERNAME} \
         -n $IMAGE_STREAM_NAMESPACE
     oc label secret base-image-registry-secret application=entando-central -n $IMAGE_STREAM_NAMESPACE
-    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-openshift.json -n $IMAGE_STREAM_NAMESPACE
+    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-clustered-openshift.json -n $IMAGE_STREAM_NAMESPACE
   else
     echo "Please set the REDHAT_REGISTRY_USERNAME and REDHAT_REGISTRY_PASSWORD variables so that the image can be retrieved from the secure Red Hat registry"
     exit -1
@@ -85,7 +85,6 @@ function install_deployment_image_streams(){
   oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql95-openshift.json -n $IMAGE_STREAM_NAMESPACE
   oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json -n $IMAGE_STREAM_NAMESPACE
 }
-
 
 function recreate_source_secret(){
   echo "Creating the SCM source secret."
@@ -174,10 +173,11 @@ EOF
 }
 
 function deploy_build_template(){
+  echo "######deploy_build_template IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE}"
   oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-build.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION:-5.0.1-SNAPSHOT}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION:-5.0.2}" \
             -p SOURCE_SECRET="${APPLICATION_NAME}-source-secret" \
             -p SOURCE_REPOSITORY_URL="${SOURCE_REPOSITORY_URL:-https://github.com/ampie/entando-sample.git}" \
             -p SOURCE_REPOSITORY_REF="${SOURCE_REPOSITORY_REF:-master}" \
@@ -272,7 +272,7 @@ function deploy_runtime_templates(){
       oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-postgresql95-deployment.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_IMAGE_VERSION="5.0.1-SNAPSHOT" \
+            -p ENTANDO_IMAGE_VERSION="5.0.2" \
             -p ENTANDO_DB_SECRET="${APPLICATION_NAME}-db-secret-$1" \
             | oc replace --force --grace-period 60  -f -
   fi

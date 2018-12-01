@@ -50,13 +50,8 @@ function setup_entando_pipeline(){
   ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME}
 
 }
-if [[ $1 =~ -.* ]]; then
-  echo "The first argument should be one of create/delete"
-  exit -1
-else
-  COMMAND=$1
-  shift
-fi
+COMMAND=$1
+shift
 
 
 case $COMMAND in

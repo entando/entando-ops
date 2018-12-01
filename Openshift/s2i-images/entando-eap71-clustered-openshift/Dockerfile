@@ -20,7 +20,7 @@ CMD "${STI_SCRIPTS_PATH}/usage"
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-postgresql=PORTDB,servdb-postgresql=SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
-    PORTDB_URL="jdbc:postgresql://postgresql:5432/entandoPort" \
+    PORTDB_URL="" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \
     PORTDB_DRIVER="postgresql" \
     PORTDB_USERNAME="agile" \
@@ -29,7 +29,7 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-postgresql=PORTDB,servdb-postgresql=SERVDB
     PORTDB_SERVICE_PORT="5432" \
     SERVDB_NONXA="true" \
     SERVDB_JTA="false" \
-    SERVDB_URL="jdbc:postgresql://postgresql:5432/entandoServ" \
+    SERVDB_URL="" \
     SERVDB_JNDI="java:jboss/datasources/entandoServDataSource" \
     SERVDB_DRIVER="postgresql" \
     SERVDB_USERNAME="agile" \
