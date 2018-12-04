@@ -25,9 +25,7 @@ function log_into_stage_cluster(){
   oc login -u $STAGE_CLUSTER_USERNAME -p $STAGE_CLUSTER_PASSWORD $STAGE_CLUSTER_URL
 }
 
-
-function create_projects(){
-    echo "Creating projects for ${APPLICATION_NAME}"
+function create_stage_projects(){
     log_into_stage_cluster
     oc new-project $APPLICATION_NAME-build
     oc new-project $APPLICATION_NAME-stage
@@ -41,10 +39,17 @@ function create_projects(){
         -p NAMESPACE=openshift \
         -p MEMORY_LIMIT=2048Mi \
         -p ENABLE_OAUTH=true
-#Prod
+}
+function create_prod_projects(){
     log_into_prod_cluster
     oc new-project $APPLICATION_NAME-prod
     oc policy add-role-to-group system:image-puller system:serviceaccounts:$APPLICATION_NAME-prod -n $IMAGE_STREAM_NAMESPACE
+}
+
+function create_projects(){
+    echo "Creating projects for ${APPLICATION_NAME}"
+    create_stage_projects
+    create_prod_projects
 }
 
 function install_build_image_streams(){
@@ -354,14 +359,19 @@ function clear_projects(){
     clear_stage_projects
     clear_prod_projects
 }
-
-function delete_projects(){
-    echo "Deleting projects for ${APPLICATION_NAME}"
+function delete_prod_projects(){
+    log_into_prod_cluster
+    oc delete  project $APPLICATION_NAME-prod
+}
+function delete_stage_projects(){
     log_into_stage_cluster
     oc delete project $APPLICATION_NAME-build
     oc delete project $APPLICATION_NAME-stage
-    log_into_prod_cluster
-    oc delete  project $APPLICATION_NAME-prod
+}
+function delete_projects(){
+    echo "Deleting projects for ${APPLICATION_NAME}"
+    delete_stage_projects
+    delete_prod_projects
 }
 function populate_prod_projects(){
     log_into_prod_cluster
@@ -407,8 +417,20 @@ case $COMMAND in
   create)
     create_projects
   ;;
+  create-stage)
+    create_stage_projects
+  ;;
+  create-prod)
+    create_prod_projects
+  ;;
   delete)
     delete_projects
+  ;;
+  delete-prod)
+    delete_prod_projects
+  ;;
+  delete-stage)
+    delete_stage_projects
   ;;
   populate-prod)
     populate_prod_projects

@@ -3,6 +3,15 @@
 IMAGE_STREAM_DIR=../image-streams
 NAMESPACE=${1:-entando}
 echo $NAMESPACE
+oc delete is entando-eap71-clustered-openshift -n ${NAMESPACE}
+oc delete is entando-eap71-quickstart-openshift -n ${NAMESPACE}
+oc delete is fsi-cc-dispute-customer -n ${NAMESPACE}
+oc delete is fsi-cc-dispute-admin  -n ${NAMESPACE}
+oc delete is entando-postgresql95-openshift -n ${NAMESPACE}
+oc delete is entando-wildfly12-quickstart-openshift -n ${NAMESPACE}
+oc delete is entando-maven-jenkins-slave-openshift39  -n ${NAMESPACE}
+oc delete is entando-postgresql-jenkins-slave-openshift39 -n ${NAMESPACE}
+sleep 2
 oc create -f ${IMAGE_STREAM_DIR}/entando-eap71-clustered-openshift.json -n ${NAMESPACE}
 #oc create -f ${IMAGE_STREAM_DIR}/entando-eap71-imagick-openshift.json -n ${NAMESPACE}
 oc create -f ${IMAGE_STREAM_DIR}/entando-eap71-quickstart-openshift.json -n ${NAMESPACE}
