@@ -1,0 +1,663 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  annotations:
+    iconClass: icon-eap
+    tags: maven jenkins
+    version: 5.0.2
+    openshift.io/display-name: Entando Build Configs for EAP and PostgreSQL
+    openshift.io/provider-display-name: Entando
+    description: Entando Build Configs for EAP and PostgreSQL
+    template.openshift.io/long-description: Entando Build Configs for EAP and PostgreSQL
+    template.openshift.io/documentation-url: https://central.entando.com/
+    template.openshift.io/support-url: https://central.entando.com
+  name: entando-eap71-postgresql-jenkins
+labels:
+  template: entando-eap71-postgresql-jenkins
+message: 'A new  set of Entando Build Configs for EAP and PostgreSQL  has been created'
+parameters:
+- displayName: Application Name
+  description: The name for the application.
+  name: APPLICATION_NAME
+  value: entando-sample
+  required: false
+- displayName: Entando Image Stream Tag
+  description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
+  name: ENTANDO_IMAGE_VERSION
+  value: 5.0.2
+  required: false
+- displayName: Entando Image Stream Namespace
+  description: The Namespace containing the standard Entando Image Streams
+  name: IMAGE_STREAM_NAMESPACE
+  value: openshift
+  required: false
+- displayName: Git Repository URL
+  description: Git source URI for application
+  name: SOURCE_REPOSITORY_URL
+  value: https://github.com/ampie/entando-sample.git
+  required: true
+- displayName: Git Reference
+  description: Git branch/tag reference
+  name: SOURCE_REPOSITORY_REF
+  value: master
+  required: false
+- displayName: Source Secret
+  description: Source Secret containing the Username and Password for the source repository
+  name: SOURCE_SECRET
+  value: entando-source-secret
+  required: false
+- displayName: Context Directory
+  description: Path within Git project to build; empty for root project directory.
+  name: CONTEXT_DIR
+  value: ''
+  required: false
+- displayName: Entando Database Secret for the Staging environment
+  description: The name of the secret containing the 'username' and 'password' of
+    the user that will access the Postgresql Port database, the 'adminUsername' 
+    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url' 
+    defining the connection string.
+  name: ENTANDO_DB_SECRET_STAGE
+  value: entando-secret-stage
+  required: true
+- displayName: Entando Database Secret for the Production environment
+  description: The name of the secret containing the 'username' and 'password' of
+    the user that will access the Postgresql Serv database, the 'adminUsername'
+    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url'
+    defining the connection string.
+  name: ENTANDO_DB_SECRET_PROD
+  value: entando-servdb-secret-prod
+  required: true
+- displayName: Maven mirror URL
+  description: Maven mirror to use for S2I builds
+  name: MAVEN_MIRROR_URL
+  value: ''
+  required: false
+- displayName: Maven Additional Arguments
+  description: Maven additional arguments to use for S2I builds
+  name: MAVEN_ARGS_APPEND
+  value: ''
+  required: false
+- description: List of directories from which archives will be copied into the deployment
+    folder. If unspecified, all archives in /target will be copied.
+  name: ARTIFACT_DIR
+  value: ''
+  required: false
+- displayName: Production Cluster URL
+  description: Production Cluster URL
+  name: PRODUCTION_CLUSTER_URL
+  value: ''
+  required: false
+- displayName: Production Cluster Secret
+  description: Production Cluster Secret
+  name: PRODUCTION_CLUSTER_SECRET
+  value: ''
+  required: false
+- displayName: Production Cluster Token
+  description: Production Cluster Token
+  name: PRODUCTION_CLUSTER_TOKEN
+  value: ''
+  required: false
+- displayName: External Docker Registry URL
+  description: External Docker Registry  URL
+  name: EXTERNAL_DOCKER_REGISTRY_URL
+  value: ''
+  required: false
+- displayName: External Docker Project
+  description: External Docker Project
+  name: EXTERNAL_DOCKER_PROJECT
+  value: ''
+  required: false
+- displayName: External Docker Registry Secret
+  description: External Docker Registry Secret
+  name: EXTERNAL_DOCKER_REGISTRY_SECRET
+  value: ''
+  required: false
+objects:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: entando-maven-jenkins-slave-openshift39
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    tags:
+    - annotations:
+        role: jenkins-slave
+        slave-label: entando-maven
+      from:
+        kind: ImageStreamTag
+        name: entando-maven-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
+        namespace: ${IMAGE_STREAM_NAMESPACE}
+      name: latest
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: entando-postgresql-jenkins-slave-openshift39
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    tags:
+    - annotations:
+        role: jenkins-slave
+        slave-label: entando-postgresql
+      from:
+        kind: ImageStreamTag
+        name: entando-postgresql-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
+        namespace: ${IMAGE_STREAM_NAMESPACE}
+      name: latest
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-docker-build"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      sourceStrategy:
+        from:
+          kind: ImageStreamTag
+          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_VERSION}
+          namespace: ${IMAGE_STREAM_NAMESPACE}
+#        pullSecret:
+#          name: "base-image-registry-secret"
+    output:
+      to:
+        kind: DockerImage
+        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest"
+      pushSecret:
+        name: "${EXTERNAL_DOCKER_REGISTRY_SECRET}"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-tag-as-stage"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest"
+    source:
+      type: Docker
+      dockerfile: |-
+         FROM ${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest
+    output:
+      to:
+        kind: DockerImage
+        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage"
+      pushSecret:
+        name: "${EXTERNAL_DOCKER_REGISTRY_SECRET}"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-tag-as-prod"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage"
+    source:
+      type: Docker
+      dockerfile: |-
+         FROM ${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage
+    output:
+      to:
+        kind: DockerImage
+        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:prod"
+      pushSecret:
+        name: "${EXTERNAL_DOCKER_REGISTRY_SECRET}"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-build-and-promote-to-stage-with-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    source:
+      git:
+        ref: "${SOURCE_REPOSITORY_REF}"
+        uri: "${SOURCE_REPOSITORY_URL}"
+      type: Git
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage("Build ${APPLICATION_NAME} Image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
+                          sh """
+                                      if [ -n "${CONTEXT_DIR}" ]; then
+                                        cd ""
+                                      fi
+                                      mvn -Popenshift package \
+                                           -B \
+                                           --settings $HOME/.m2/settings.xml \
+                                           -Dmaven.repo.local=$HOME/.m2/repository \
+                                           -Dprofile.portDataSourceClassName="org.postgresql.Driver" \
+                                           -Dprofile.servDataSourceClassName="org.postgresql.Driver" \
+                                           -Djboss=jboss \
+                                           -Dproject.build.sourceEncoding=UTF-8 \
+                                           -Denv.db.environment=production \
+                                           -Dprofile.config.version=production \
+                                           -Dprofile.application.baseurl.protocol=http \
+                                           -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
+                                           -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
+                                           -Dprofile.log.file.prefix=/opt/eap/standalone/logs/log \
+                                           -Dprofile.resources.path=/entando-data/resources \
+                                           -Dprofile.resources.path.protected=/entando-data/protected \
+                                           -Dprofile.index.path=/entando-data/indexdir \
+                                           -Djava.net.preferIPv4Stack=true
+                                       mkdir -p target/docker-build-input/entando-data-templates
+                                       cp -Rf src/main/webapp/resources target/docker-build-input/entando-data-templates/
+                                       cp -Rf src/main/webapp/protected target/docker-build-input/entando-data-templates/
+                                       mv target/*.war target/docker-build-input/${APPLICATION_NAME}.war
+                                       if [[ -d configuration ]]; then
+                                         cp -Rf configuration target/docker-build-input/
+                                       fi
+                                    """
+                          script {
+                              openshift.withCluster() {
+                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
+                              }
+                          }
+                      }
+                  }
+                  stage("Bring down ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject('${APPLICATION_NAME}-stage'){
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}')
+                                    deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+
+                          }
+                      }
+                  }
+                  stage("Prepare ${APPLICATION_NAME} Database ") {
+                      agent {
+                          label 'entando-postgresql'
+                      }
+                      steps {
+                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
+                                            usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                              sh '''
+                                    #!/bin/bash
+                                    #Hack to populate all the ENV Variables
+                                    source ${HOME}/export-db-variables.sh "${PASSWORD}"
+                                    if [ -n "${CONTEXT_DIR}" ]; then
+                                       cd ""
+                                    fi
+                                    set -e
+                                    ${HOME}/backup-dbs.sh
+                                    ${HOME}/recreate-dbs.sh
+                                    ${HOME}/init-postgresql-db.sh
+                                  '''
+                          }
+                      }
+                      post {
+                          failure {
+                              withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
+                                                usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                                  sh '''
+                                      #!/bin/bash
+                                      #Hack to populate all the ENV Variables
+                                      source ${HOME}/export-db-variables.sh "${PASSWORD}"
+                                      if [ -n "${CONTEXT_DIR}" ]; then
+                                         cd ""
+                                      fi
+                                      ${HOME}/restore-dbs.sh
+                                     '''
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build"){
+                                    openshift.selector("bc", "${APPLICATION_NAME}-tag-as-stage").startBuild("--wait")
+                                  }
+                                  openshift.withProject("${APPLICATION_NAME}-stage"){
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
+                                    def rolloutManager=deploymentConfig.rollout()
+                                    rolloutManager.latest()
+                                    deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-build-and-promote-to-stage-without-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    source:
+      git:
+        ref: "${SOURCE_REPOSITORY_REF}"
+        uri: "${SOURCE_REPOSITORY_URL}"
+      type: Git
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage("Build ${APPLICATION_NAME} Image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
+                          sh """
+                                      if [ -n "${CONTEXT_DIR}" ]; then
+                                        cd ""
+                                      fi
+                                      mvn -Popenshift package \
+                                           -B \
+                                           --settings $HOME/.m2/settings.xml \
+                                           -Dmaven.repo.local=$HOME/.m2/repository \
+                                           -Dprofile.portDataSourceClassName="org.postgresql.Driver" \
+                                           -Dprofile.servDataSourceClassName="org.postgresql.Driver" \
+                                           -Djboss=jboss \
+                                           -Dproject.build.sourceEncoding=UTF-8 \
+                                           -Denv.db.environment=production \
+                                           -Dprofile.config.version=production \
+                                           -Dprofile.application.baseurl.protocol=http \
+                                           -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
+                                           -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
+                                           -Dprofile.log.file.prefix=/entando-resources/logs/log \
+                                           -Dprofile.resources.path=/entando-resources/welcome-content/cmsresources \
+                                           -Dprofile.resources.path.protected=/entando-resources/protected \
+                                           -Dprofile.index.path=/entando-resources/indexdir \
+                                           -Djava.net.preferIPv4Stack=true
+                                       mkdir -p target/docker-build-input/entando-data-templates
+                                       cp -Rf src/main/webapp/resources target/docker-build-input/entando-data-templates/
+                                       cp -Rf src/main/webapp/protected target/docker-build-input/entando-data-templates/
+                                       mv target/*.war target/docker-build-input/${APPLICATION_NAME}.war
+                                       if [[ -d configuration ]]; then
+                                         cp -Rf configuration target/docker-build-input/
+                                       fi
+                                    """
+                          script {
+                              openshift.withCluster() {
+                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
+                              }
+                          }
+                      }
+                  }
+                  stage("Bring down ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject('${APPLICATION_NAME}-stage'){
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}')
+                                    deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build"){
+                                    openshift.selector("bc", "${APPLICATION_NAME}-tag-as-stage").startBuild("--wait")
+                                  }
+                                  openshift.withProject("${APPLICATION_NAME}-stage"){
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
+                                    def rolloutManager=deploymentConfig.rollout()
+                                    rolloutManager.latest()
+                                    deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-promote-to-production-with-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage('Bring down ${APPLICATION_NAME} Prod Deployment') {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject('${APPLICATION_NAME}-prod') {
+                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}')
+                                      deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage('Prepare ${APPLICATION_NAME} Production Database') {
+                      agent {
+                          label 'entando-postgresql'
+                      }
+                      steps {
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${PRODUCTION_CLUSTER_SECRET}',
+                                            usernameVariable: 'CLUSTER_USERNAME', passwordVariable: 'CLUSTER_PASSWORD']]) {
+                              sh '''
+                                            #!/bin/bash
+                                            oc login -u $CLUSTER_USERNAME -p $CLUSTER_PASSWORD https://${PRODUCTION_CLUSTER_URL} --insecure-skip-tls-verify
+                                            PG_POD=$(oc get pods -n ${APPLICATION_NAME}-prod -l deploymentConfig=${APPLICATION_NAME}-postgresql | grep '${APPLICATION_NAME}-[a-zA-Z0-9\\-]*' -o)
+                                            nohup oc port-forward $PG_POD 5432:5432  -n ${APPLICATION_NAME}-prod  >  forwarding.log 2>&1&
+                                            for i in {1..60}
+                                            do
+                                                sleep 5
+                                                cat forwarding.log
+                                                if fgrep --quiet "Forwarding from" forwarding.log
+                                                then
+                                                    exit 0
+                                                fi
+                                            done
+                                            exit -1
+                                        '''
+                          }
+                          git url: '${SOURCE_REPOSITORY_URL}', branch: '${SOURCE_REPOSITORY_REF}', credentialsId: '${APPLICATION_NAME}-build-${SOURCE_SECRET}'
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
+                                            usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD']]) {
+                              sh '''
+                                            #!/bin/bash
+                                            #Hack to populate all the ENV Variables
+                                            source ${HOME}/export-db-variables.sh "${DB_PASSWORD}"
+                                            if [ -n "${CONTEXT_DIR}" ]; then
+                                               cd "${CONTEXT_DIR}"
+                                            fi
+                                            set -e
+                                            export PORTDB_SERVICE_HOST=localhost
+                                            export SERVDB_SERVICE_HOST=localhost
+                                            export PORTDB_SERVICE_PORT=5432
+                                            export SERVDB_SERVICE_PORT=5432
+                                            export PORTDB_URL="jdbc:postgresql://${PORTDB_SERVICE_HOST}:${PORTDB_SERVICE_PORT}/${PORTDB_DATABASE}"
+                                            export SERVDB_URL="jdbc:postgresql://${SERVDB_SERVICE_HOST}:${SERVDB_SERVICE_PORT}/${SERVDB_DATABASE}"
+                                            ${HOME}/backup-dbs.sh
+                                            ${HOME}/recreate-dbs.sh
+                                            ${HOME}/init-postgresql-db.sh
+                                        '''
+                          }
+                      }
+
+                      post {
+                          failure {
+                              withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
+                                                usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                                  sh '''
+                                                #!/bin/bash
+                                                #Hack to populate all the ENV Variables
+                                                source ${HOME}/export-db-variables.sh "${PASSWORD}"
+                                                if [ -n "${CONTEXT_DIR}" ]; then
+                                                   cd "${CONTEXT_DIR}"
+                                                fi
+                                                export PORTDB_SERVICE_HOST=localhost
+                                                export SERVDB_SERVICE_HOST=localhost
+                                                export PORTDB_SERVICE_PORT=5432
+                                                export SERVDB_SERVICE_PORT=5432
+                                                export PORTDB_URL="jdbc:postgresql://${PORTDB_SERVICE_HOST}:${PORTDB_SERVICE_PORT}/${PORTDB_DATABASE}"
+                                                export SERVDB_URL="jdbc:postgresql://${SERVDB_SERVICE_HOST}:${SERVDB_SERVICE_PORT}/${SERVDB_DATABASE}"
+                                                ${HOME}/restore-dbs.sh
+                                            '''
+                              }
+                          }
+                      }
+                  }
+                  stage("Push ${APPLICATION_NAME}:prod image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build") {
+                                      openshift.selector("bc", "${APPLICATION_NAME}-tag-as-prod").startBuild("--wait")
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject("${APPLICATION_NAME}-prod") {
+                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}")
+                                      def rolloutManager = deploymentConfig.rollout()
+                                      rolloutManager.latest()
+                                      deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-promote-to-production-without-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage('Bring down ${APPLICATION_NAME} Prod Deployment') {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject('${APPLICATION_NAME}-prod') {
+                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}')
+                                      deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Push ${APPLICATION_NAME}:prod image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build") {
+                                      openshift.selector("bc", "${APPLICATION_NAME}-tag-as-prod").startBuild("--wait")
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject("${APPLICATION_NAME}-prod") {
+                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}")
+                                      def rolloutManager = deploymentConfig.rollout()
+                                      rolloutManager.latest()
+                                      deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: "${APPLICATION_NAME}-entando-build-claim"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi

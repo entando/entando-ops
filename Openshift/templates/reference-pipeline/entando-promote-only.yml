@@ -149,27 +149,6 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-docker-build"
-    labels:
-      application: "${APPLICATION_NAME}"
-  spec:
-    strategy:
-      sourceStrategy:
-        from:
-          kind: ImageStreamTag
-          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_VERSION}
-          namespace: ${IMAGE_STREAM_NAMESPACE}
-#        pullSecret:
-#          name: "base-image-registry-secret"
-    output:
-      to:
-        kind: DockerImage
-        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest"
-      pushSecret:
-        name: "${EXTERNAL_DOCKER_REGISTRY_SECRET}"
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
     name: "${APPLICATION_NAME}-tag-as-stage"
     labels:
       application: "${APPLICATION_NAME}"
@@ -214,7 +193,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-jenkins-pipeline"
+    name: "${APPLICATION_NAME}-promote-to-stage-with-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -230,49 +209,6 @@ objects:
           pipeline {
               agent none
               stages {
-                  stage("Build ${APPLICATION_NAME} Image") {
-                      agent {
-                          label "entando-maven"
-                      }
-                      steps {
-                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
-                          sh """
-                                      if [ -n "${CONTEXT_DIR}" ]; then
-                                        cd ""
-                                      fi
-                                      mvn -Popenshift package \
-                                           -B \
-                                           --settings $HOME/.m2/settings.xml \
-                                           -Dmaven.repo.local=$HOME/.m2/repository \
-                                           -Dprofile.portDataSourceClassName="org.postgresql.Driver" \
-                                           -Dprofile.servDataSourceClassName="org.postgresql.Driver" \
-                                           -Djboss=jboss \
-                                           -Dproject.build.sourceEncoding=UTF-8 \
-                                           -Denv.db.environment=production \
-                                           -Dprofile.config.version=production \
-                                           -Dprofile.application.baseurl.protocol=http \
-                                           -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
-                                           -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
-                                           -Dprofile.log.file.prefix=/opt/eap/standalone/logs/log \
-                                           -Dprofile.resources.path=/entando-data/resources \
-                                           -Dprofile.resources.path.protected=/entando-data/protected \
-                                           -Dprofile.index.path=/entando-data/indexdir \
-                                           -Djava.net.preferIPv4Stack=true
-                                       mkdir -p target/docker-build-input/entando-data-templates
-                                       cp -Rf src/main/webapp/resources target/docker-build-input/entando-data-templates/
-                                       cp -Rf src/main/webapp/protected target/docker-build-input/entando-data-templates/
-                                       mv target/*.war target/docker-build-input/${APPLICATION_NAME}.war
-                                       if [[ -d configuration ]]; then
-                                         cp -Rf configuration target/docker-build-input/
-                                       fi
-                                    """
-                          script {
-                              openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
-                              }
-                          }
-                      }
-                  }
                   stage("Bring down ${APPLICATION_NAME} Deployment") {
                       agent {
                           label "entando-maven"
@@ -354,7 +290,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-jenkins-pipeline-without-db-migration"
+    name: "${APPLICATION_NAME}-promote-to-stage-without-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -370,49 +306,6 @@ objects:
           pipeline {
               agent none
               stages {
-                  stage("Build ${APPLICATION_NAME} Image") {
-                      agent {
-                          label "entando-maven"
-                      }
-                      steps {
-                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
-                          sh """
-                                      if [ -n "${CONTEXT_DIR}" ]; then
-                                        cd ""
-                                      fi
-                                      mvn -Popenshift package \
-                                           -B \
-                                           --settings $HOME/.m2/settings.xml \
-                                           -Dmaven.repo.local=$HOME/.m2/repository \
-                                           -Dprofile.portDataSourceClassName="org.postgresql.Driver" \
-                                           -Dprofile.servDataSourceClassName="org.postgresql.Driver" \
-                                           -Djboss=jboss \
-                                           -Dproject.build.sourceEncoding=UTF-8 \
-                                           -Denv.db.environment=production \
-                                           -Dprofile.config.version=production \
-                                           -Dprofile.application.baseurl.protocol=http \
-                                           -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
-                                           -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
-                                           -Dprofile.log.file.prefix=/entando-resources/logs/log \
-                                           -Dprofile.resources.path=/entando-resources/welcome-content/cmsresources \
-                                           -Dprofile.resources.path.protected=/entando-resources/protected \
-                                           -Dprofile.index.path=/entando-resources/indexdir \
-                                           -Djava.net.preferIPv4Stack=true
-                                       mkdir -p target/docker-build-input/entando-data-templates
-                                       cp -Rf src/main/webapp/resources target/docker-build-input/entando-data-templates/
-                                       cp -Rf src/main/webapp/protected target/docker-build-input/entando-data-templates/
-                                       mv target/*.war target/docker-build-input/${APPLICATION_NAME}.war
-                                       if [[ -d configuration ]]; then
-                                         cp -Rf configuration target/docker-build-input/
-                                       fi
-                                    """
-                          script {
-                              openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
-                              }
-                          }
-                      }
-                  }
                   stage("Bring down ${APPLICATION_NAME} Deployment") {
                       agent {
                           label "entando-maven"
@@ -455,33 +348,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-jenkins-test-pipeline"
-    labels:
-      application: "${APPLICATION_NAME}"
-  spec:
-    strategy:
-      type: JenkinsPipeline
-      jenkinsPipelineStrategy:
-        jenkinsfile: |-
-          pipeline {
-              agent none
-              stages {
-                  stage("Test stage for ${APPLICATION_NAME}") {
-                      agent {
-                          label "entando-maven"
-                      }
-                      steps {
-                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
-                      }
-                  }
-              }
-          }
-    triggers:
-#    - type: ConfigChange
-- kind: BuildConfig
-  apiVersion: v1
-  metadata:
-    name: "${APPLICATION_NAME}-production-deploy"
+    name: "${APPLICATION_NAME}-promote-to-production-with-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -615,7 +482,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-production-deploy-without-db-migration"
+    name: "${APPLICATION_NAME}-promote-to-production-without-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:

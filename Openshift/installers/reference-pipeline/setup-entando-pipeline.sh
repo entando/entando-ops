@@ -178,8 +178,9 @@ EOF
 }
 
 function deploy_build_template(){
-  echo "######deploy_build_template IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE}"
-  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-build.yml \
+  echo "Deploying Build Templates IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE}"
+  if [ $IMAGE_PROMOTION_ONLY = "true" ]; then
+    oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-promote-only.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
             -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION:-5.0.2}" \
@@ -195,6 +196,25 @@ function deploy_build_template(){
             -p EXTERNAL_DOCKER_PROJECT="${EXTERNAL_DOCKER_PROJECT}" \
             -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
           |  oc replace --force --grace-period 60  -f -
+  else
+    oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-build-and-promote.yml \
+            -p APPLICATION_NAME="${APPLICATION_NAME}" \
+            -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION:-5.0.2}" \
+            -p SOURCE_SECRET="${APPLICATION_NAME}-source-secret" \
+            -p SOURCE_REPOSITORY_URL="${SOURCE_REPOSITORY_URL:-https://github.com/ampie/entando-sample.git}" \
+            -p SOURCE_REPOSITORY_REF="${SOURCE_REPOSITORY_REF:-master}" \
+            -p ENTANDO_DB_SECRET_STAGE="${APPLICATION_NAME}-db-secret-stage" \
+            -p ENTANDO_DB_SECRET_PROD="${APPLICATION_NAME}-db-secret-prod" \
+            -p PRODUCTION_CLUSTER_URL="${PRODUCTION_CLUSTER_URL}" \
+            -p PRODUCTION_CLUSTER_SECRET="${APPLICATION_NAME}-production-cluster-secret" \
+            -p EXTERNAL_DOCKER_REGISTRY_URL="${EXTERNAL_DOCKER_REGISTRY_URL}" \
+            -p EXTERNAL_DOCKER_REGISTRY_SECRET="${APPLICATION_NAME}-external-registry-secret" \
+            -p EXTERNAL_DOCKER_PROJECT="${EXTERNAL_DOCKER_PROJECT}" \
+            -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
+          |  oc replace --force --grace-period 60  -f -
+
+  fi
 }
 
 
@@ -380,6 +400,9 @@ function populate_prod_projects(){
 }
 
 function populate_stage_projects(){
+    if [[ -z "${PRODUCTION_CLUSTER_TOKEN}" ]]; then
+      log_into_prod_cluster
+    fi
     log_into_stage_cluster
     install_deployment_image_streams
     populate_build_project
@@ -405,6 +428,9 @@ case $i in
     -isn=*|--image-stream-namespace=*)
       IMAGE_STREAM_NAMESPACE="${i#*=}"
       shift # past argument=value
+    ;;
+    --image-promotion-only)
+      IMAGE_PROMOTION_ONLY="true"
     ;;
     *)
     echo "Unknown option: $i"

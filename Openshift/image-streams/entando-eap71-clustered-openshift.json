@@ -18,6 +18,10 @@
           "supports": "jee,java",
           "tags": "builder,eap,java"
         },
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-clustered-openshift:5.0.2"
+        },
         "name": "latest"
       },
       {

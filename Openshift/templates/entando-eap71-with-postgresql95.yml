@@ -307,7 +307,7 @@ objects:
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
-      description: The database server's port.
+      description: The Port database server's port.
 - kind: Service
   apiVersion: v1
   spec:
@@ -321,7 +321,7 @@ objects:
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
-      description: The database server's port.
+      description: The Serv database server's port.
 - kind: Service
   apiVersion: v1
   spec:

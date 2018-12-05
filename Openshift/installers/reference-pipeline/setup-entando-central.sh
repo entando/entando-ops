@@ -47,7 +47,7 @@ EOF
 }
 
 function setup_entando_pipeline(){
-  ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME}
+  setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME}
 
 }
 COMMAND=$1
@@ -57,10 +57,10 @@ shift
 case $COMMAND in
   populate)
     setup_entando_pipeline
-    ./setup-entando-pipeline.sh log-into-stage
+    setup-entando-pipeline.sh log-into-stage
     create_bitbucket_webhook_secret
     prepare_redhat_route stage
-    ./setup-entando-pipeline.sh log-into-prod
+    setup-entando-pipeline.sh log-into-prod
     prepare_redhat_route prod
   ;;
   *)

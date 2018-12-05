@@ -3,13 +3,13 @@ kind: Template
 apiVersion: v1
 metadata:
   annotations:
-    iconClass: icon-eap
-    tags: eap,javaee,java,jboss
+    iconClass: icon-wildfly
+    tags: javaee,java,jboss
     version: 5.0.2
-    openshift.io/display-name: Entando Template for Demos
+    openshift.io/display-name: Template to setup the Full Entando Stack
     openshift.io/provider-display-name: Entando
-    description: An template that facilitates the installation of one of the Entando demos
-    template.openshift.io/long-description: An template that facilitates the installation of one of the Entando demos
+    description: An template that facilitates the installation of the Full Entando Stack
+    template.openshift.io/long-description: An template that facilitates the installation of the Full Entando Stack
     template.openshift.io/documentation-url: https://central.entando.com/
     template.openshift.io/support-url: https://central.entando.com
   name: entando-full-stack
@@ -67,11 +67,11 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "ccd-admin-runtime"
+      deploymentConfig: "entando-full-stack-runtime"
   metadata:
-    name: "ccd-admin-runtime"
+    name: "entando-full-stack-runtime"
     labels:
-      application: "ccd-admin-runtime"
+      application: "entando-full-stack"
     annotations:
       description: The Entando Runtime server's http port.
 - kind: Service
@@ -81,46 +81,45 @@ objects:
     - port: 5000
       targetPort: 5000
     selector:
-      deploymentConfig: "ccd-admin-appbuilder"
+      deploymentConfig: "appbuilder"
   metadata:
-    name: "ccd-admin-appbuilder"
+    name: "appbuilder"
     labels:
-      application: "ccd-admin-appbuilder"
+      application: "entando-full-stack"
     annotations:
       description: The Entando AppBuilder http port.
 - kind: Route
   apiVersion: v1
-  id: "ccd-admin-runtime-http"
+  id: "entando-full-stack-runtime-http"
   metadata:
-    name: "ccd-admin-runtime-http"
+    name: "entando-full-stack-runtime-http"
     labels:
-      application: "ccd-admin"
+      application: "entando-full-stack"
     annotations:
       description: Route for the Entando Runtime's http service.
   spec:
-    host: "ccd-admin.${DOMAIN_SUFFIX}"
-    path: "/fsi-credit-card-dispute-backoffice"
+    host: "entando-full-stack.${DOMAIN_SUFFIX}"
     to:
-      name: "ccd-admin-runtime"
+      name: "entando-full-stack-runtime"
 - kind: Route
   apiVersion: v1
-  id: "ccd-admin-appbuilder"
+  id: "entando-full-stack-appbuilder"
   metadata:
-    name: "ccd-admin-appbuilder"
+    name: "entando-full-stack-appbuilder"
     labels:
-      application: "ccd-admin-appbuilder"
+      application: "entando-full-stack"
     annotations:
       description: Route for application's http service.
   spec:
-    host: "ccd-admin-appbuilder.${DOMAIN_SUFFIX}"
+    host: "entando-full-stack-appbuilder.${DOMAIN_SUFFIX}"
     to:
-      name: "ccd-admin-appbuilder"
+      name: "appbuilder"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "ccd-admin-runtime"
+    name: "entando-full-stack-runtime"
     labels:
-      application: "ccd-admin"
+      application: "entando-full-stack"
   spec:
     strategy:
       type: Recreate
@@ -129,26 +128,26 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "ccd-admin-runtime"
+        - "entando-full-stack-runtime"
         from:
           kind: ImageStreamTag
-          name: "fsi-cc-dispute-admin:${IMAGE_STREAM_TAG}"
+          name: "entando-sample-full:${IMAGE_STREAM_TAG}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
     selector:
-      deploymentConfig: "ccd-admin-runtime"
+      deploymentConfig: "entando-full-stack-runtime"
     template:
       metadata:
-        name: "ccd-admin-runtime"
+        name: "entando-full-stack-runtime"
         labels:
-          deploymentConfig: "ccd-admin-runtime"
-          application: "ccd-admin"
+          deploymentConfig: "entando-full-stack-runtime"
+          application: "entando-full-stack"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "ccd-admin-runtime"
-          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-admin:${IMAGE_STREAM_TAG}"
+        - name: "entando-full-stack-runtime"
+          image: "${IMAGE_STREAM_NAMESPACE}/entando-sample-full:${IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
@@ -158,21 +157,22 @@ objects:
               command:
               - "/bin/bash"
               - "-c"
-              - "/opt/eap/bin/livenessProbe.sh"
+              - " /wildfly/bin/jboss-cli.sh --connect --commands=ls | grep 'server-state=running'"
             initialDelaySeconds: 60
           readinessProbe:
             exec:
               command:
               - "/bin/bash"
               - "-c"
-              - "/opt/eap/bin/readinessProbe.sh"
+              - "/wildfly/bin/jboss-cli.sh --connect --commands='ls deployment' |
+                grep war"
           ports:
           - name: http
             containerPort: 8080
             protocol: TCP
           volumeMounts:
           - mountPath: "/entando-data"
-            name: "ccd-admin-entando-pvol"
+            name: "entando-full-stack-pvol"
           env:
           - name: KIE_SERVER_BASE_URL
             value: "${KIE_SERVER_BASE_URL}"
@@ -185,17 +185,17 @@ objects:
               fieldRef:
                 fieldPath: status.podIP
         volumes:
-        - name: "ccd-admin-entando-pvol"
+        - name: "entando-full-stack-pvol"
           persistentVolumeClaim:
-            claimName: "ccd-admin-entando-claim"
+            claimName: "entando-full-stack-claim"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "ccd-admin-appbuilder"
+    name: "entando-full-stack-appbuilder"
     generation: 1
     creationTimestamp:
     labels:
-      application: "ccd-admin-appbuilder"
+      application: "entando-full-stack"
     annotations: {}
   spec:
     strategy:
@@ -206,30 +206,30 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "ccd-admin-appbuilder"
+        - "entando-full-stack-appbuilder"
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
           name: appbuilder:${IMAGE_STREAM_TAG}
     replicas: 1
     selector:
-      deploymentConfig: "ccd-admin-appbuilder"
+      deploymentConfig: "entando-full-stack-appbuilder"
     template:
       metadata:
         creationTimestamp:
         labels:
-          deploymentConfig: "ccd-admin-appbuilder"
+          deploymentConfig: "entando-full-stack-appbuilder"
         annotations: {}
       spec:
         containers:
-        - name: "ccd-admin-appbuilder"
+        - name: "entando-full-stack-appbuilder"
           image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://ccd-admin.${DOMAIN_SUFFIX}/fsi-credit-card-dispute-backoffice
+            value: http://entando-full-stack.${DOMAIN_SUFFIX}/entando
           - name: CLIENT_SECRET
             value: appbuilder_secret
           resources: {}
@@ -244,200 +244,9 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: "ccd-admin-entando-claim"
+    name: "entando-full-stack-claim"
     labels:
-      application: "ccd-admin"
-  spec:
-    accessModes:
-    - ReadWriteOnce
-    resources:
-      requests:
-        storage: "${VOLUME_CAPACITY}"
-- kind: Service
-  apiVersion: v1
-  spec:
-    ports:
-    - port: 8080
-      targetPort: 8080
-    selector:
-      deploymentConfig: "ccd-customer-runtime"
-  metadata:
-    name: "ccd-customer-runtime"
-    labels:
-      application: "ccd-customer-runtime"
-    annotations:
-      description: The Entando Runtime server's http port.
-- kind: Service
-  apiVersion: v1
-  spec:
-    ports:
-    - port: 5000
-      targetPort: 5000
-    selector:
-      deploymentConfig: "ccd-customer-appbuilder"
-  metadata:
-    name: "ccd-customer-appbuilder"
-    labels:
-      application: "ccd-customer-appbuilder"
-    annotations:
-      description: The Entando AppBuilder http port.
-- kind: Route
-  apiVersion: v1
-  id: "ccd-customer-runtime-http"
-  metadata:
-    name: "ccd-customer-runtime-http"
-    labels:
-      application: "ccd-customer"
-    annotations:
-      description: Route for the Entando Runtime's http service.
-  spec:
-    host: "ccd-customer.${DOMAIN_SUFFIX}"
-    path: "/fsi-credit-card-dispute-customer"
-    to:
-      name: "ccd-customer-runtime"
-- kind: Route
-  apiVersion: v1
-  id: "ccd-customer-appbuilder"
-  metadata:
-    name: "ccd-customer-appbuilder"
-    labels:
-      application: "ccd-customer-appbuilder"
-    annotations:
-      description: Route for application's http service.
-  spec:
-    host: "ccd-customer-appbuilder.${DOMAIN_SUFFIX}"
-    to:
-      name: "ccd-customer-appbuilder"
-- kind: DeploymentConfig
-  apiVersion: v1
-  metadata:
-    name: "ccd-customer-runtime"
-    labels:
-      application: "ccd-customer"
-  spec:
-    strategy:
-      type: Recreate
-    triggers:
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "ccd-customer-runtime"
-        from:
-          kind: ImageStreamTag
-          name: "fsi-cc-dispute-customer:${IMAGE_STREAM_TAG}"
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-    - type: ConfigChange
-    replicas: 1
-    selector:
-      deploymentConfig: "ccd-customer-runtime"
-    template:
-      metadata:
-        name: "ccd-customer-runtime"
-        labels:
-          deploymentConfig: "ccd-customer-runtime"
-          application: "ccd-customer"
-      spec:
-        terminationGracePeriodSeconds: 75
-        containers:
-        - name: "ccd-customer-runtime"
-          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-customer:${IMAGE_STREAM_TAG}"
-          imagePullPolicy: Always
-          resources:
-            limits:
-              memory: "${MEMORY_LIMIT}"
-          livenessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/livenessProbe.sh"
-            initialDelaySeconds: 60
-          readinessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/readinessProbe.sh"
-          ports:
-          - name: http
-            containerPort: 8080
-            protocol: TCP
-          volumeMounts:
-          - mountPath: "/entando-data"
-            name: "ccd-customer-entando-pvol"
-          env:
-          - name: KIE_SERVER_BASE_URL
-            value: "${KIE_SERVER_BASE_URL}"
-          - name: KIE_SERVER_USERNAME
-            value: "${KIE_SERVER_USERNAME}"
-          - name: KIE_SERVER_PASSWORD
-            value: "${KIE_SERVER_PASSWORD}"
-          - name: POD_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-        volumes:
-        - name: "ccd-customer-entando-pvol"
-          persistentVolumeClaim:
-            claimName: "ccd-customer-entando-claim"
-- kind: DeploymentConfig
-  apiVersion: v1
-  metadata:
-    name: "ccd-customer-appbuilder"
-    generation: 1
-    creationTimestamp:
-    labels:
-      application: "ccd-customer-appbuilder"
-    annotations: {}
-  spec:
-    strategy:
-      type: Recreate
-    triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - "ccd-customer-appbuilder"
-        from:
-          kind: ImageStreamTag
-          namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${IMAGE_STREAM_TAG}
-    replicas: 1
-    selector:
-      deploymentConfig: "ccd-customer-appbuilder"
-    template:
-      metadata:
-        creationTimestamp:
-        labels:
-          deploymentConfig: "ccd-customer-appbuilder"
-        annotations: {}
-      spec:
-        containers:
-        - name: "ccd-customer-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
-          ports:
-          - containerPort: 5000
-            protocol: TCP
-          env:
-          - name: DOMAIN
-            value: http://ccd-customer.${DOMAIN_SUFFIX}/fsi-credit-card-dispute-customer
-          resources: {}
-          terminationMessagePath: "/dev/termination-log"
-          terminationMessagePolicy: File
-          imagePullPolicy: IfNotPresent
-        restartPolicy: Always
-        terminationGracePeriodSeconds: 30
-        dnsPolicy: ClusterFirst
-        securityContext: {}
-        schedulerName: default-scheduler
-- apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: "ccd-customer-entando-claim"
-    labels:
-      application: "ccd-customer"
+      application: "entando-full-stack"
   spec:
     accessModes:
     - ReadWriteOnce

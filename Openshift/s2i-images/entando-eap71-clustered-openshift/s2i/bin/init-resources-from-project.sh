@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-#NB!!! This file is copied from common/s2i in the Docker build hook. Only modify the original file!
-
 #remove all previous Entando data from parent images
 rm -Rf /entando-data-templates/* > /dev/null 2>&1
 if [ -d src/main/webapp/resources ]; then

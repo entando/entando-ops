@@ -11,6 +11,7 @@ oc delete is entando-postgresql95-openshift -n ${NAMESPACE}
 oc delete is entando-wildfly12-quickstart-openshift -n ${NAMESPACE}
 oc delete is entando-maven-jenkins-slave-openshift39  -n ${NAMESPACE}
 oc delete is entando-postgresql-jenkins-slave-openshift39 -n ${NAMESPACE}
+oc delete is entando-sample-full -n ${NAMESPACE}
 sleep 2
 oc create -f ${IMAGE_STREAM_DIR}/entando-eap71-clustered-openshift.json -n ${NAMESPACE}
 #oc create -f ${IMAGE_STREAM_DIR}/entando-eap71-imagick-openshift.json -n ${NAMESPACE}
@@ -20,3 +21,4 @@ oc create -f ${IMAGE_STREAM_DIR}/entando-postgresql95-openshift.json -n ${NAMESP
 oc create -f ${IMAGE_STREAM_DIR}/entando-wildfly12-quickstart-openshift.json -n ${NAMESPACE}
 oc create -f ${IMAGE_STREAM_DIR}/entando-maven-jenkins-slave-openshift39.json -n ${NAMESPACE}
 oc create -f ${IMAGE_STREAM_DIR}/entando-postgresql-jenkins-slave-openshift39.json -n ${NAMESPACE}
+oc create -f ${IMAGE_STREAM_DIR}/entando-sample-full.json -n ${NAMESPACE}
