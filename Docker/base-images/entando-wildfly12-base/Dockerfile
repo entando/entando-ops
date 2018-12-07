@@ -10,7 +10,8 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.display-name="Entando on WildFly 12.0.0.Final"
 ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
-    USERID_TO_USE=1001
+    USERID_TO_USE=1001 \
+    STI_SCRIPTS_PATH="/usr/libexec/s2i"
 
 COPY --chown=1001:0 ./contrib/wildfly-configuration/standalone.xml /wildfly/standalone/configuration/standalone.xml
 COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
