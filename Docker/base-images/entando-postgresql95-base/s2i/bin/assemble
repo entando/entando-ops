@@ -1,5 +1,4 @@
 #!/bin/bash
-echo "Full Environment Settings:"
 # insert settings for mirrors/repository managers into settings.xml if supplied
 function configure_mirrors() {
   if [ -n "$MAVEN_MIRROR_URL" ]; then

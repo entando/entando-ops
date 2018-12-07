@@ -2,13 +2,13 @@
 #export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/EN-2085"
 export ENTANDO_OPS_HOME=../../..
 IMAGE_STREAM_NAMESPACE=entando
-
+CONFIG_DIR=$(dirname $0)
 function read_config(){
   source $(dirname $0)/clear-vars.sh
-  if [ -f $(dirname $0)/$1.conf ]; then
-    source $(dirname $0)/$1.conf
+  if [ -f $CONFIG_DIR/$1.conf ]; then
+    source $CONFIG_DIR/$1.conf
   else
-    echo "Config file for $1 not found. Expected file: $(dirname $0)/$1.conf)"
+    echo "Config file for $1 not found. Expected file: $CONFIG_DIR/$1.conf)"
     exit -1
   fi
 }
@@ -423,6 +423,10 @@ do
 case $i in
     -an=*|--application-name=*)
       APPLICATION_NAME="${i#*=}"
+      shift # past argument=value
+    ;;
+    -cfd=*|--config-dir=*)
+      CONFIG_DIR="${i#*=}"
       shift # past argument=value
     ;;
     -isn=*|--image-stream-namespace=*)

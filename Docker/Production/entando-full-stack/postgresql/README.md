@@ -1,2 +1,37 @@
-This is a base image and cannot be run on its own. It provides all the PostgreSQL and Java/Maven build infrastructure
-to allow extending images to build a local PostgreSQL database that would support Entando.
+# Entando Full Stack PostgreSQL Image
+
+This image contains a sample of the Entando PORT and SERV databases in PostgreSQL format. These databases can be used to back 
+the Entando Full Stack Engine API image. They have been pre-populated with the default data required by all the the standard Entando plugins. 
+On startup, these sample databases are copied to the /var/lib/pgsql/data directory where PostgreSQL stores its data, where it is typically
+mapped to a persistent volume on the Docker host. Deleting this volume would reset the database to the original state.
+
+
+## Environment Variables
+
+This image has been pre-built with specific values for the standard environment variables that the Entando PostgreSQL Base Image supports.
+Please do not change any of the values as it could potentially interfere with the behaviour of the image. THe following environment
+variable values have been set and can be used to connect to the PORT and SERV databases respectively.
+ 
+**PORTDB_DATABASE**=portdb
+**PORTDB_USERNAME**=portdb
+**PORTDB_PASSWORD**=portdb
+**SERVDB_DATABASE**=servdb
+**SERVDB_USERNAME**=servdb
+**SERVDB_PASSWORD**=servdb
+**ADMIN_PASSWORD**=adminpwd
+
+## Ports
+
+**5432**: this image exposes the PostgreSQL database server at the standard port of 5432
+
+## Volumes
+
+**/var/lib/pgsql/data**: this image inherits the standard PostgreSQL volume from a parent image. This is where the 
+sample databases are copied to and where subsequence modifications to them will be persisted.
+
+## How to run
+
+```
+docker volume create entando-pg-data 
+docker run -it --rm -d -p 5432:5432 -v entando-pg-data://var/lib/pgsql/data entando/postgresql:5.0.2
+```

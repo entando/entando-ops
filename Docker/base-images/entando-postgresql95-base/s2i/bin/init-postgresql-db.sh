@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
-export PORTDB_USERNAME=$POSTGRESQL_USER
-export SERVDB_USERNAME=$POSTGRESQL_USER
-export PORTDB_PASSWORD=$POSTGRESQL_PASSWORD
-export SERVDB_PASSWORD=$POSTGRESQL_PASSWORD
-export PORTDB_URL="jdbc:postgresql://localhost:5432/${POSTGRESQL_DATABASE}"
-export SERVDB_URL="jdbc:postgresql://localhost:5432/${POSTGRESQL_DATABASE2}"
+export PORTDB_URL="jdbc:postgresql://localhost:5432/${PORTDB_DATABASE}"
+export SERVDB_URL="jdbc:postgresql://localhost:5432/${SERVDB_DATABASE}"
 export PORTDB_DRIVER="postgresql"
 export SERVDB_DRIVER="postgresql"
 $(dirname ${BASH_SOURCE[0]})/start-pg-and-wait.sh

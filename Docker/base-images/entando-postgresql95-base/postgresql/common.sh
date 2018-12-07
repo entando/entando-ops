@@ -1,4 +1,6 @@
 # Configuration settings.
+source $(dirname ${BASH_SOURCE[0]})/translate-variables.sh
+
 export POSTGRESQL_MAX_CONNECTIONS=${POSTGRESQL_MAX_CONNECTIONS:-100}
 export POSTGRESQL_MAX_PREPARED_TRANSACTIONS=${POSTGRESQL_MAX_PREPARED_TRANSACTIONS:-0}
 
@@ -189,15 +191,19 @@ EOF
 function create_users() {
   if [[ ",$postinitdb_actions," = *,simple_db,* ]]; then
     createuser "$POSTGRESQL_USER"
+    echo "User $POSTGRESQL_USER created"
     createdb --owner="$POSTGRESQL_USER" "$POSTGRESQL_DATABASE"
-    echo "Database $POSTGRESQL_DATABASE created"
-    if [[ -v POSTGRESQL_DATABASE2 ]]; then
-      if [[ $POSTGRESQL_DATABASE2 != $POSTGRESQL_DATABASE ]]; then
-        createdb --owner="$POSTGRESQL_USER" "$POSTGRESQL_DATABASE2"
-        echo "Database $POSTGRESQL_DATABASE2 created"
-      fi
+    echo "Database $POSTGRESQL_DATABASE created for $POSTGRESQL_USER"
+    if [[ -v POSTGRESQL_USER2 ]] &&  [[ $POSTGRESQL_USER2 != $POSTGRESQL_USER ]]; then
+      createuser "$POSTGRESQL_USER2"
+      echo "User $POSTGRESQL_USER2 created"
+    else
+      export POSTGRESQL_USER2="${POSTGRESQL_USER}"
     fi
-
+    if [[ -v POSTGRESQL_DATABASE2 ]] &&  [[ $POSTGRESQL_DATABASE2 != $POSTGRESQL_DATABASE ]]; then
+      createdb --owner="$POSTGRESQL_USER2" "$POSTGRESQL_DATABASE2"
+      echo "Database $POSTGRESQL_DATABASE2 created for $POSTGRESQL_USER2"
+    fi
   fi
 
   if [ -v POSTGRESQL_MASTER_USER ]; then

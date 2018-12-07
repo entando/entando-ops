@@ -131,27 +131,37 @@ objects:
           - mountPath: "/var/lib/pgsql/data"
             name: "${APPLICATION_NAME}-postgresql-pvol"
           env:
-          - name: POSTGRESQL_PASSWORD
+          - name: PORTDB_PASSWORD
             valueFrom:
               secretKeyRef:
-                key: password
+                key: portDbPassword
                 name: "${ENTANDO_DB_SECRET}"
-          - name: POSTGRESQL_USER
+          - name: PORTDB_USERNAME
             valueFrom:
               secretKeyRef:
-                key: username
+                key: portDbUsername
                 name: "${ENTANDO_DB_SECRET}"
-          - name: POSTGRESQL_DATABASE
+          - name: PORTDB_DATABASE
             valueFrom:
               secretKeyRef:
                 key: portDb
                 name: "${ENTANDO_DB_SECRET}"
-          - name: POSTGRESQL_DATABASE2
+          - name: SERVDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: servDbPassword
+                name: "${ENTANDO_DB_SECRET}"
+          - name: SERVDB_USERNAME
+            valueFrom:
+              secretKeyRef:
+                key: servDbUsername
+                name: "${ENTANDO_DB_SECRET}"
+          - name: SERVDB_DATABSE
             valueFrom:
               secretKeyRef:
                 key: servDb
                 name: "${ENTANDO_DB_SECRET}"
-          - name: POSTGRESQL_ADMIN_PASSWORD
+          - name: ADMIN_PASSWORD
             valueFrom:
               secretKeyRef:
                 key: adminPassword

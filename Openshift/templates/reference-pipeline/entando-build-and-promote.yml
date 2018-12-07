@@ -393,10 +393,10 @@ objects:
                                            -Dprofile.application.baseurl.protocol=http \
                                            -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
                                            -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
-                                           -Dprofile.log.file.prefix=/entando-resources/logs/log \
-                                           -Dprofile.resources.path=/entando-resources/welcome-content/cmsresources \
-                                           -Dprofile.resources.path.protected=/entando-resources/protected \
-                                           -Dprofile.index.path=/entando-resources/indexdir \
+                                           -Dprofile.log.file.prefix=/opt/eap/standalone/log/entando \
+                                           -Dprofile.resources.path=/entando-data/resources \
+                                           -Dprofile.resources.path.protected=/entando-data/protected \
+                                           -Dprofile.index.path=/entando-data/indexdir \
                                            -Djava.net.preferIPv4Stack=true
                                        mkdir -p target/docker-build-input/entando-data-templates
                                        cp -Rf src/main/webapp/resources target/docker-build-input/entando-data-templates/
