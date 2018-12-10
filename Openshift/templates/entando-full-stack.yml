@@ -6,7 +6,7 @@ metadata:
     iconClass: icon-wildfly
     tags: javaee,java,jboss
     version: 5.0.2
-    openshift.io/display-name: Template to setup the Full Entando Stack
+    openshift.io/display-name: Template to setup the Full Entando Stack App
     openshift.io/provider-display-name: Entando
     description: An template that facilitates the installation of the Full Entando Stack
     template.openshift.io/long-description: An template that facilitates the installation of the Full Entando Stack
@@ -17,48 +17,57 @@ labels:
   template: entando-demo
 message: A new Entando Demo has been created in your project.
 parameters:
+
 - displayName: Domain suffix
-  description: Domain suffix
   name: DOMAIN_SUFFIX
+  description: Domain suffix will be appended to the various service names to form a full domain name for the Route of the
+    mapped to the service. This parameter is required to ensure that the AppBuider points to the externally accessible
+    URL that serves Entando Full Stack Engine App.
   value: ""
   required: true
-- displayName: Entando Image Stream Tag
-  description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
+
+- displayName: Image Stream Tag
   name: IMAGE_STREAM_TAG
+  description: The Image Stream Tag to use for each of the Entando Images for which there is a DeploymentConfig. This
+    Image Stream Tag should which generally corresponds with the Entando version to be used.
   value: 5.0.2
   required: false
-- displayName: KIE Server base url
-  description: KIE Server base url
-  name: KIE_SERVER_BASE_URL
-  value: 'http://entando-kieserver701.apps.serv.run/'
-  required: false
-- displayName: KIE Server Username
-  description: KIE Server Username
-  name: KIE_SERVER_USERNAME
-  value: 'kieserver'
-  required: false
-- displayName: KIE Server Password
-  description: KIE Server Password
-  name: KIE_SERVER_PASSWORD
-  value: 'kieserver1!'
-  required: false
-- displayName: Database Volume Capacity
-  description: Size of persistent storage for database volume.
-  name: VOLUME_CAPACITY
-  value: 1Gi
-  required: false
+
 - displayName: ImageStream Namespace
+  name: IMAGE_STREAM_NAMESPACE
   description: Namespace in which the ImageStreams for Entando  images are
     installed. These ImageStreams are normally installed in the openshift namespace.
     You should only need to modify this if you've installed the ImageStreams in a
     different namespace/project.
-  name: IMAGE_STREAM_NAMESPACE
   value: openshift
   required: true
-- description: Container memory limit
-  name: MEMORY_LIMIT
-  value: 2Gi
+
+
+- displayName: KIE Server base url
+  name: KIE_SERVER_BASE_URL
+  description: KIE Server base url
+  value: 'http://entando-kieserver701.apps.serv.run/'
   required: false
+
+- displayName: KIE Server Username
+  name: KIE_SERVER_USERNAME
+  description: KIE Server Username
+  value: 'kieserver'
+  required: false
+
+- displayName: KIE Server Password
+  name: KIE_SERVER_PASSWORD
+  description: KIE Server Password
+  value: 'kieserver1!'
+  required: false
+
+- displayName: Database Volume Capacity
+  name: VOLUME_CAPACITY
+  description: Size of persistent storage for database volume.
+  value: 1Gi
+  required: false
+
+
 objects:
 - kind: Service
   apiVersion: v1
@@ -151,7 +160,7 @@ objects:
           imagePullPolicy: Always
           resources:
             limits:
-              memory: "${MEMORY_LIMIT}"
+              memory: "2Gi"
           livenessProbe:
             exec:
               command:

@@ -45,8 +45,8 @@ parameters:
   name: ENTANDO_WEB_CONTEXT
   value: ''
   required: true
-- displayName: KIE Server base url
-  description: KIE Server base url
+- displayName: KIE Server Base URL
+  description: KIE Server Base URL
   name: KIE_SERVER_BASE_URL
   value: ''
   required: false
