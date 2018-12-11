@@ -38,17 +38,17 @@ parameters:
 - displayName: Custom http Route Hostname
   description: 'Custom hostname for http service route.  Leave blank for default hostname,
     e.g.: <application-name>-<project>.<default-domain-suffix>'
-  name: HOSTNAME_HTTP
+  name: ENTANDO_RUNTIME_HOSTNAME_HTTP
   value: ''
   required: false
 - displayName: Custom https Route Hostname
   description: 'Custom hostname for https service route.  Leave blank for default
     hostname, e.g.: secure-<application-name>-<project>.<default-domain-suffix>'
-  name: HOSTNAME_HTTPS
+  name: ENTANDO_RUNTIME_HOSTNAME_HTTPS
   value: ''
   required: false
 - displayName: The base url to be used to access the Entando rest services.
-  description: NB!! This must reflect either HOSTNAME_HTTPS or HOSTNAME_HTTP, as well
+  description: NB!! This must reflect either ENTANDO_RUNTIME_HOSTNAME_HTTPS or ENTANDO_RUNTIME_HOSTNAME_HTTP, as well
     as any web context root that may be used
   name: ENTANDO_BASEURL
   value: ''
@@ -226,32 +226,6 @@ parameters:
   name: AUTO_DEPLOY_EXPLODED
   value: 'false'
   required: false
-- displayName: Activate OIDC Connector
-  description: true if the OIDC Connector should be activated.
-  name: ENTANDO_OIDC_ACTIVE
-  value: 'false'
-  required: false
-- displayName: OIDC Authorization Location
-  description: The URL that OIDC can redirect to in order to authorize the user.
-  name: ENTANDO_OIDC_AUTH_LOCATION
-  value: ''
-  required: false
-- displayName: OIDC Token Location
-  description: The URL from which Entando can retrieve the OIDC token after user authorization.
-  name: ENTANDO_OIDC_TOKEN_LOCATION
-  value: ''
-  required: false
-- displayName: OIDC Client ID
-  description: The CLient ID uniquely identifying this Entando instance with the identity provider
-  name: ENTANDO_OIDC_CLIENT_ID
-  value: ''
-  required: false
-- displayName: OIDC Redirect Base URL
-  description: The base url of all possible acceptable redirect URL's that could be sent to the identity
-    provider. Optional - calculated from the received url.
-  name: ENTANDO_OIDC_REDIRECT_BASE_URL
-  value: ''
-  required: false
 - displayName: Maven mirror URL
   description: Maven mirror to use for S2I builds
   name: MAVEN_MIRROR_URL
@@ -374,7 +348,7 @@ objects:
     annotations:
       description: Route for application's http service.
   spec:
-    host: "${HOSTNAME_HTTP}"
+    host: "${ENTANDO_RUNTIME_HOSTNAME_HTTP}"
     to:
       name: "${APPLICATION_NAME}"
 - kind: Route
@@ -387,7 +361,7 @@ objects:
     annotations:
       description: Route for application's http service.
   spec:
-    host: appbuilder.${HOSTNAME_HTTP}
+    host: appbuilder.${ENTANDO_RUNTIME_HOSTNAME_HTTP}
     to:
       name: "${APPLICATION_NAME}-appbuilder"
 - kind: Route
@@ -400,7 +374,7 @@ objects:
     annotations:
       description: Route for application's https service.
   spec:
-    host: "${HOSTNAME_HTTPS}"
+    host: "${ENTANDO_RUNTIME_HOSTNAME_HTTPS}"
     to:
       name: secure-${APPLICATION_NAME}
     tls:
