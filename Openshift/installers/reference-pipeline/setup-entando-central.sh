@@ -8,7 +8,7 @@ function prepare_redhat_route(){
     echo "$1 config file not found. Expected file: $(dirname $0)/$1.conf)"
     exit -1
   fi
-  echo "Creating the Red Hat route for $1: ${APPLICATION_NAME}, ${ENGINE_API_DOMAIN}"
+  echo "Creating the Red Hat route for $1: ${APPLICATION_NAME}, ${ENTANDO_RUNTIME_HOSTNAME}"
   cat <<EOF | oc replace -n "${APPLICATION_NAME}-$1" --force --grace-period 60 -f -
 apiVersion: v1
 kind: Route
@@ -17,7 +17,7 @@ metadata:
   labels:
     application: "${APPLICATION_NAME}"
 spec:
-  host: ${REDHAT_ENGINE_API_DOMAIN}
+  host: ${REDHAT_ENTANDO_RUNTIME_HOSTNAME}
   port:
     targetPort: 8080
   tls:

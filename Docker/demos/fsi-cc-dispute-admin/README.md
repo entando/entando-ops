@@ -13,15 +13,19 @@ any of the database related variables. The only variables that can be changed ar
 Red Hat Process Automation Manager environment in use
 
 **KIE_SERVER_BASE_URL**: The base URL where a KIE Server instance is hosted, e.g. http://entando-kieserver701.apps.serv.run/
+
 **KIE_SERVER_USERNAME**: The username of a user that be used to log into the above-mentioned KIE Server
+
 **KIE_SERVER_PASSWORD**: The password of the above-mentioned KIE Server user.
  
 
 ## Ports
 
 **8080**: the EAP HTTP service is exposed on port 8080 
+
 **8443**: the EAP HTTPS service is optionally exposed on port 8443, if the necessary keystores are provided as per the official Red Hat documentation 
-**8787**: the Jolokia monitoring port 
+
+**8778**: the Jolokia monitoring port 
 
 ## Volumes
 

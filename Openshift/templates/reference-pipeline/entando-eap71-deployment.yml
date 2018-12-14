@@ -34,11 +34,11 @@ parameters:
   required: false
 - displayName: The base url to be used to access the Entando rest services.
   description: This must reflect either the HTTPS hostname of the Entando core engine service. Root servlet context is assumed
-  name: ENGINE_API_DOMAIN
+  name: ENTANDO_RUNTIME_HOSTNAME
   required: true
 - displayName: The base url to be used to access the Entando rest services.
   description: This must reflect either the HTTPS hostname of the Entando AppBuilder service. Root servlet context is assumed
-  name: APP_BUILDER_DOMAIN
+  name: ENTANDO_APP_BUILDER_HOSTNAME_HTTP
   required: true
 - displayName: Entando Port Database Secret
   description: The name of the secret containing the 'username' and 'password' of
@@ -437,7 +437,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: "https://${ENGINE_API_DOMAIN}"
+            value: "https://${ENTANDO_RUNTIME_HOSTNAME}"
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File
@@ -454,7 +454,7 @@ objects:
       application: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}-engine
   spec:
-    host: ${ENGINE_API_DOMAIN}
+    host: ${ENTANDO_RUNTIME_HOSTNAME}
     port:
       targetPort: 8080
     tls:
@@ -471,7 +471,7 @@ objects:
       application: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}-appbuilder
   spec:
-    host: ${APP_BUILDER_DOMAIN}
+    host: ${ENTANDO_APP_BUILDER_HOSTNAME_HTTP}
     port:
       targetPort: 5000
     tls:

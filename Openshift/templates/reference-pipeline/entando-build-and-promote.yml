@@ -149,7 +149,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-docker-build"
+    name: "${APPLICATION_NAME}-s2i-build"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -268,7 +268,7 @@ objects:
                                     """
                           script {
                               openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
+                                  openshift.selector("bc", "${APPLICATION_NAME}-s2i-build").startBuild("--from-dir=target/docker-build-input", "--wait")
                               }
                           }
                       }
@@ -408,7 +408,7 @@ objects:
                                     """
                           script {
                               openshift.withCluster() {
-                                  openshift.selector("bc", "${APPLICATION_NAME}-docker-build").startBuild("--from-dir=target/docker-build-input", "--wait")
+                                  openshift.selector("bc", "${APPLICATION_NAME}-s2i-build").startBuild("--from-dir=target/docker-build-input", "--wait")
                               }
                           }
                       }

@@ -29,11 +29,11 @@ allow users to log in with their own usernames and passwords.
 
 ## How to run
 
-`docker run -it --rm -d -p 8080:5000 -e DOMAIN=http://your-entando-domain-app-url entando/appbuilder -e CLIENT_SECRET='appbuilder_secret`
+`docker run -it --rm -d -p 8080:5000 -e DOMAIN=http://your-entando-domain-app-url entando/appbuilder -e CLIENT_SECRET='appbuilder_secret'`
 
 ## Exposed ports
 
-`5000`
+`5000` - the standard port that NodeJS's web server runs on.
 
 ## Volumes
 
