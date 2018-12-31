@@ -5,7 +5,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     STI_SCRIPTS_PATH="/usr/libexec/s2i" \
     USERID_TO_USE=1001
 
-COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
+COPY --chown=1001:0 s2i/bin ${STI_SCRIPTS_PATH}
 
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
