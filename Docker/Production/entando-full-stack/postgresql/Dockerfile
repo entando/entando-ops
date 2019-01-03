@@ -1,17 +1,18 @@
 ARG ENTANDO_IMAGE_VERSION
-FROM entando/entando-dependencies-full:$ENTANDO_IMAGE_VERSION as dependencies
+FROM entando/engine-api:$ENTANDO_IMAGE_VERSION as server-image
 
 FROM entando/entando-postgresql95-base:$ENTANDO_IMAGE_VERSION as database-template
-COPY --chown=26:0 --from=dependencies  /opt/app-root/src/.m2 /var/lib/pgsql/.m2
-COPY --chown=26:0 ./s2i/bin/ $STI_SCRIPTS_PATH
 ENV PORTDB_DATABASE=portdb \
     PORTDB_USERNAME=portdb \
     PORTDB_PASSWORD=portdb \
     SERVDB_DATABASE=servdb \
     SERVDB_USERNAME=servdb \
     SERVDB_PASSWORD=servdb \
-    ADMIN_PASSWORD=adminpwd
-RUN  source /usr/share/container-scripts/postgresql/translate-variables.sh && $STI_SCRIPTS_PATH/init-default-postgresql-db.sh
+    ADMIN_PASSWORD=adminpwd \
+    SERVDB_JNDI="java:jboss/datasources/entandoServDataSource" \
+    PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource"
+COPY --chown=26:0 --from=server-image /wildfly/standalone/deployments/entando.war /tmp/entando.war
+RUN  source /usr/share/container-scripts/postgresql/translate-variables.sh && $STI_SCRIPTS_PATH/init-postgresql-from-war.sh --war-file=/tmp/entando.war
 
 FROM entando/entando-postgresql95-base:$ENTANDO_IMAGE_VERSION
 LABEL io.openshift.s2i.destination="/opt/s2i/destination" \

@@ -8,6 +8,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
 COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 ./settings.xml $HOME/.m2/settings.xml
 COPY --chown=1001:0 ./wfmodules $HOME/wildfly/modules
+COPY --chown=1001:0 ./jetty-runner $HOME/jetty-runner
 
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
@@ -32,6 +33,6 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
 USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
     mkdir -p /entando-data-templates && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/ && \
-    ${STI_SCRIPTS_PATH}/init-db-and-dependencies.sh
+    ${STI_SCRIPTS_PATH}/init-dependencies.sh
 USER $USERID_TO_USE
 #Now we have all the dependencies sitting at $HOME./m2/settings

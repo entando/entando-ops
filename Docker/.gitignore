@@ -2,6 +2,8 @@
 **/s2i/bin/init-data-from-directory.sh
 **/s2i/bin/init-data-from-project.sh
 **/s2i/bin/init-db.sh
+**/s2i/bin/init-db-from-war.sh
+**/s2i/bin/init-derby-from-war.sh
 **/s2i/bin/prepare-data.sh
 **/contrib/wfmodules/org/apache/derby
 **/contrib/settings.xml

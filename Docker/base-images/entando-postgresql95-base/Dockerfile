@@ -29,12 +29,16 @@ ENV PORTDB_USERNAME=agile \
     PORTDB_DATABASE=entandoPort \
     SERVDB_DATABASE=entandoServ \
     POSTGRESQL_MAX_PREPARED_TRANSACTIONS=0 \
-    POSTGRESQL_SHARED_BUFFERS=32MB
+    POSTGRESQL_SHARED_BUFFERS=32MB \
+    PREPARE_DATA=true
 
 COPY --chown=26:0 ./postgresql /usr/share/container-scripts/postgresql
 COPY --chown=26:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
+COPY --chown=26:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
 COPY --chown=26:0 ./s2i/bin/ $STI_SCRIPTS_PATH
-RUN mkdir -p /opt/s2i/destination && chmod -R ug+rw /opt/s2i/destination && chown -R $USERID_TO_USE:0 /opt/s2i/destination
+RUN mkdir -p /opt/s2i/destination && chmod -R ug+rw /opt/s2i/destination && chown -R $USERID_TO_USE:0 /opt/s2i/destination && \
+    mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
+    mkdir -p /entando-data-templates/databases  && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/
 USER $USERID_TO_USE
 #And end by making the user postgres again
 CMD "${STI_SCRIPTS_PATH}/run"

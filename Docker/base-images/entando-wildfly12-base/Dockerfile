@@ -16,8 +16,8 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
 COPY --chown=1001:0 ./contrib/wildfly-configuration/standalone.xml /wildfly/standalone/configuration/standalone.xml
 COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/wildfly/modules /wildfly/modules
+COPY --chown=1001:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
-COPY --chown=1001:0 --from=dependencies /entando-data-templates /entando-data-templates
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
@@ -37,9 +37,12 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     SERVDB_PASSWORD="agile" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
-    PREPARE_DATA="true"
+    PREPARE_DATA="true" \
+    DEPLOYMENTS_DIR="/wildfly/standalone/deployments"
+
 USER root
-RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/
+RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
+    mkdir -p /entando-data-templates/databases  && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/
 USER $USERID_TO_USE
 
 CMD "${STI_SCRIPTS_PATH}/run"

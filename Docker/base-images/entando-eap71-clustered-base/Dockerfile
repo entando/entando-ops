@@ -10,9 +10,9 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
 ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=185
+
 COPY --chown=185:0 ./standalone-openshift.xml /opt/eap/standalone/configuration
 
-CMD "${STI_SCRIPTS_PATH}/usage"
 ENV DB_SERVICE_PREFIX_MAPPING="portdb-postgresql=PORTDB,servdb-postgresql=SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \

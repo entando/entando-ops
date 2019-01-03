@@ -13,7 +13,7 @@ if ! cp -rf src/main/webapp/protected/* /entando-data-templates/protected/ ; the
   exit 1
 fi
 fi
-echo $(date +%s | sha256sum | base64 | head -c 32) > /entando-data-templates/build_id
+echo $(date +%s) > /entando-data-templates/build_id
 chmod -Rf ug+rw /entando-data-templates/
 chown -Rf $USERID_TO_USE:0 /entando-data-templates/
 exit 0

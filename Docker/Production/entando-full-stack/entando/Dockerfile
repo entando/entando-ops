@@ -3,9 +3,11 @@ FROM entando/entando-dependencies-full:$ENTANDO_IMAGE_VERSION AS dependencies
 ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION=${ENTANDO_VERSION}
 RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
-    curl -L "https://github.com/entando/entando-sample-full/archive/v${ENTANDO_VERSION}.zip" -o entando-sample-full.zip  && \
+    BRANCH=${ENTANDO_VERSION%-*} && \
+    if [[ "$ENTANDO_VERSION" = *"-SNAPSHOT" ]]; then  BRANCH="${BRANCH}-dev";  else  BRANCH="${BRANCH}"; fi && \
+    curl -L "https://github.com/entando/entando-sample-full/archive/v${BRANCH}.zip" -o entando-sample-full.zip  && \
     unzip entando-sample-full.zip  && \
-    cd entando-sample-full-${ENTANDO_VERSION}  && \
+    cd entando-sample-full-${BRANCH}  && \
     mvn clean package -Popenshift -DskipTests \
             --batch-mode --settings $HOME/.m2/settings.xml \
             -Dprofile.portDataSourceClassName="org.apache.derby.jdbc.EmbeddedDriver" \
@@ -21,10 +23,8 @@ RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
             -Dprofile.resources.path=/entando-data/resources \
             -Dprofile.resources.path.protected=/entando-data/protected \
             -Dprofile.index.path=/entando-data/indexdir \
-            -Djava.net.preferIPv4Stack=true
+            -Djava.net.preferIPv4Stack=true && \
+    mv target/entando-sample-full.war ../
 FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION
-RUN rm -Rf /entando-data-templates/*
-COPY --chown=185:0 --from=dependencies /entando-data-templates /entando-data-templates
-COPY --chown=1001:0 --from=dependencies /tmp/entando/entando-sample-full-${ENTANDO_VERSION}/target/entando-sample-full.war /wildfly/standalone/deployments/entando.war
-ENV PREPARE_DATA="false"
-
+COPY --chown=1001:0 --from=dependencies /tmp/entando/entando-sample-full.war /wildfly/standalone/deployments/entando.war
+RUN $STI_SCRIPTS_PATH/init-derby-from-war.sh --war-file=/wildfly/standalone/deployments/entando.war

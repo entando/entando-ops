@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 #NB!!! This file is copied from common/s2i in the Docker build hook. Only modify the original file!
-
+#Copies all directories across from $1/entando-data-templates to /entando-data-templates
+#Does NOT initialize a derby database as this script should only be used in clustered environments
+#deprecation considered as the database can be built from the WAR file and the resource files can be extracted from the WAR file too
 
 #remove all previous Entando data from parent images
 rm -Rf /entando-data-templates/* > /dev/null 2>&1
