@@ -45,7 +45,8 @@ cp -Rf protected /entando-data/
 
 #Copy all the apache commons jars across to support database connection pools in Jetty. This allows for the jetty.xml to be generic.
 mkdir commons-lib
-cp WEB-INF/lib/commons*.jar commons-lib/
+mv WEB-INF/lib/commons-pool*.jar commons-lib/
+mv WEB-INF/lib/commons-dbcp*.jar commons-lib/
 
 cp /jetty-runner/jetty.xml .
 jetty_command="java \

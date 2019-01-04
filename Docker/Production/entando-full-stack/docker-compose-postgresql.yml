@@ -1,24 +1,27 @@
 version: '2'
 services:
   engine-api:
-    image: entando/engine-api:5.0.2
+    image: entando/engine-api:5.0.3-SNAPSHOT
     ports:
      - "8080:8080"
     volumes:
      - entando-volume:/entando-data
     environment:
-      PORTDB_URL: jdbc:postgresql://postgresql:5432/entandoPort
-      SERVDB_URL: jdbc:postgresql://postgresql:5432/entandoServ
-      PORTDB_DRIVER: postgresql
-      SERVDB_DRIVER: postgresql
+      PORTDB_URL: jdbc:postgresql://postgresql:5432/portdb
+      SERVDB_URL: jdbc:postgresql://postgresql:5432/servdb
+      PORTDB_USERNAME: agile
+      SERVDB_USERNAME: agile
+      PORTDB_PASSWORD: agile
+      SERVDB_PASSWORD: agile
+
   postgresql:
-    image: entando/postgresql:5.0.2
+    image: entando/postgresql:5.0.3-SNAPSHOT
     ports:
      - "5432:5432"
     volumes:
      - entando-pg-volume:/var/lib/pgsql/data
   appbuilder:
-    image: entando/appbuilder:5.0.2
+    image: entando/appbuilder:5.0.3-SNAPSHOT
     ports:
      - "5000:5000"
     environment:

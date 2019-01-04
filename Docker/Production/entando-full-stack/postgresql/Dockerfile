@@ -3,11 +3,11 @@ FROM entando/engine-api:$ENTANDO_IMAGE_VERSION as server-image
 
 FROM entando/entando-postgresql95-base:$ENTANDO_IMAGE_VERSION as database-template
 ENV PORTDB_DATABASE=portdb \
-    PORTDB_USERNAME=portdb \
-    PORTDB_PASSWORD=portdb \
+    PORTDB_USERNAME=agile \
+    PORTDB_PASSWORD=agile \
     SERVDB_DATABASE=servdb \
-    SERVDB_USERNAME=servdb \
-    SERVDB_PASSWORD=servdb \
+    SERVDB_USERNAME=agile \
+    SERVDB_PASSWORD=agile \
     ADMIN_PASSWORD=adminpwd \
     SERVDB_JNDI="java:jboss/datasources/entandoServDataSource" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource"
@@ -21,12 +21,12 @@ LABEL io.openshift.s2i.destination="/opt/s2i/destination" \
       io.k8s.display-name="Postgresql Database Image for Entando 5+"
 ARG ENTANDO_VERSION
 ENV PORTDB_DATABASE=portdb \
-    PORTDB_USERNAME=portdb \
-    PORTDB_PASSWORD=portdb \
+    PORTDB_USERNAME=agile \
+    PORTDB_PASSWORD=agile \
     SERVDB_DATABASE=servdb \
-    SERVDB_USERNAME=servdb \
-    SERVDB_PASSWORD=servdb \
-    ADMIN_PASSWORD=adminpwd
-ENV ENTANDO_VERSION=$ENTANDO_VERSION \
+    SERVDB_USERNAME=agile \
+    SERVDB_PASSWORD=agile \
+    ADMIN_PASSWORD=adminpwd \
+    ENTANDO_VERSION=$ENTANDO_VERSION \
     USERID_TO_USE=26
 COPY --chown=26:0 --from=database-template /var/lib/pgsql/data_template /var/lib/pgsql/data_template
