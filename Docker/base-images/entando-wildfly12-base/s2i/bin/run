@@ -1,17 +1,47 @@
 #!/bin/bash
+#Derive URL from variables compatible with the EAP Image when connecting to a database service
 if [ -n "$PORTDB_POSTGRESQL_SERVICE_HOST" ]; then
- export PORTDB_DRIVER=postgresql
- export PORTDB_URL="jdbc:postgresql://$PORTDB_POSTGRESQL_SERVICE_HOST:${PORTDB_POSTGRESQL_SERVICE_PORT:-5432}/${PORTDB_DATABASE:-entandoPort}"
+  export PORTDB_URL="jdbc:postgresql://$PORTDB_POSTGRESQL_SERVICE_HOST:${PORTDB_POSTGRESQL_SERVICE_PORT:-5432}/${PORTDB_DATABASE:-entandoPort}"
 elif [ -n "$PORTDB_MYSQL_SERVICE_HOST" ]; then
- export PORTDB_DRIVER=mysql
- export PORTDB_URL="jdbc:mysql://$PORTDB_MYSQL_SERVICE_HOST:${PORTDB_MYSQL_SERVICE_PORT:-3306}/${PORTDB_DATABASE:-entandoPort}"
+  export PORTDB_URL="jdbc:mysql://$PORTDB_MYSQL_SERVICE_HOST:${PORTDB_MYSQL_SERVICE_PORT:-3306}/${PORTDB_DATABASE:-entandoPort}"
 fi
 if [ -n "$SERVDB_POSTGRESQL_SERVICE_HOST" ]; then
- export SERVDB_DRIVER=postgresql
- export SERVDB_URL="jdbc:postgresql://$SERVDB_POSTGRESQL_SERVICE_HOST:${SERVDB_POSTGRESQL_SERVICE_PORT:-5432}/${SERVDB_DATABASE:-entandoServ}"
+  export SERVDB_URL="jdbc:postgresql://$SERVDB_POSTGRESQL_SERVICE_HOST:${SERVDB_POSTGRESQL_SERVICE_PORT:-5432}/${SERVDB_DATABASE:-entandoServ}"
 elif [ -n "$SERVDB_MYSQL_SERVICE_HOST" ]; then
- export SERVDB_DRIVER=mysql
- export SERVDB_URL="jdbc:mysql://$SERVDB_MYSQL_SERVICE_HOST:${SERVDB_MYSQL_SERVICE_PORT:-3306}/${SERVDB_DATABASE:-entandoServ}"
+  export SERVDB_URL="jdbc:mysql://$SERVDB_MYSQL_SERVICE_HOST:${SERVDB_MYSQL_SERVICE_PORT:-3306}/${SERVDB_DATABASE:-entandoServ}"
+fi
+#Derive drivers from URLs to increase robustness
+if [ -n "$PORTDB_URL" ]; then
+  case "$PORTDB_URL" in
+    jdbc:derby:* )
+        export PORTDB_DRIVER=derby
+    ;;
+    jdbc:postgresql:* )
+        export PORTDB_DRIVER=postgresql
+    ;;
+    jdbc:mysql:* )
+        export PORTDB_DRIVER=mysql
+    ;;
+    jdbc:oracle:* )
+        export PORTDB_DRIVER=oracle
+    ;;
+  esac
+fi
+if [ -n "$SERVDB_URL" ]; then
+  case "$SERVDB_URL" in
+    jdbc:derby:* )
+        export SERVDB_DRIVER=derby
+    ;;
+    jdbc:postgresql:* )
+        export SERVDB_DRIVER=postgresql
+    ;;
+    jdbc:mysql:* )
+        export SERVDB_DRIVER=mysql
+    ;;
+    jdbc:oracle:* )
+        export SERVDB_DRIVER=oracle
+    ;;
+  esac
 fi
 $(dirname ${BASH_SOURCE[0]})/prepare-data.sh
 exec env SERVDB_URL=$SERVDB_URL env PORTDB_URL=$PORTDB_URL env SERVDB_DRIVER=$SERVDB_DRIVER env PORTDB_DRIVER=$PORTDB_DRIVER  /wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dderby.system.home=/entando-data/databases -Dentando.restore.db=false

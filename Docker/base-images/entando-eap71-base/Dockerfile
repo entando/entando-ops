@@ -23,7 +23,8 @@ COPY --chown=185:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/
 COPY --chown=185:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
 COPY --chown=185:0 ./contrib/wildfly-configuration/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
 COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
+ENV DATASOURCES="PORTDB,SERVDB" \
+#    DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \ # this requires PORTDB_DERBY_SERVICE_HOST like variables
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \

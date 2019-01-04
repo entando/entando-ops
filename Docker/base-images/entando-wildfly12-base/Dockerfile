@@ -18,8 +18,7 @@ COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/wildfly/modules /wildfly/modules
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
-    PORTDB_NONXA="true" \
+ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \

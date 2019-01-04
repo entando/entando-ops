@@ -69,6 +69,7 @@ jetty_command="java \
 $jetty_command  &> db_creation.log &
 export JETTY_PID=$(echo $!)
 echo "JETTY_PID=${JETTY_PID}"
+sleep 3
 tail -f db_creation.log &
 for i in {1..360}
 do
