@@ -1,5 +1,5 @@
 ARG ENTANDO_IMAGE_VERSION
-FROM entando/entando-dependencies-base:$ENTANDO_IMAGE_VERSION AS dependencies
+FROM entando/entando-dependencies-full:$ENTANDO_IMAGE_VERSION AS dependencies
 FROM openshift/jenkins-slave-maven-centos7:v3.9
 ARG ENTANDO_VERSION
 LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \

@@ -6,7 +6,7 @@ echo "This script installs the Entando Sample project on the EAP 7.1 QuickStart 
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml \
   -p APPLICATION_NAME="entando-sample" \
   -p IMAGE_STREAM_NAMESPACE=entando \
-  -p ENTANDO_RUNTIME_HOSTNAME_HTTP="entando-core.$(get_openshift_subdomain)" \
-  -p ENTANDO_WEB_CONTEXT="entando-sample" \
+  -p ENTANDO_ENGINE_HOSTNAME="entando-core.$(get_openshift_subdomain)" \
+  -p ENTANDO_ENGINE_WEB_CONTEXT="/entando-sample" \
   -p SOURCE_REPOSITORY_URL="https://github.com/ampie/entando-sample.git" \
   | oc replace --force -f -

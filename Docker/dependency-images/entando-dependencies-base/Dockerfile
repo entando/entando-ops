@@ -10,8 +10,7 @@ COPY --chown=1001:0 ./settings.xml $HOME/.m2/settings.xml
 COPY --chown=1001:0 ./wfmodules $HOME/wildfly/modules
 COPY --chown=1001:0 ./jetty-runner $HOME/jetty-runner
 
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
-    PORTDB_NONXA="true" \
+ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \

@@ -76,9 +76,9 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "entando-full-stack-runtime"
+      deploymentConfig: "entando-full-stack-engine"
   metadata:
-    name: "entando-full-stack-runtime"
+    name: "entando-full-stack-engine"
     labels:
       application: "entando-full-stack"
     annotations:
@@ -99,9 +99,9 @@ objects:
       description: The Entando AppBuilder http port.
 - kind: Route
   apiVersion: v1
-  id: "entando-full-stack-runtime-http"
+  id: "entando-full-stack-engine-http"
   metadata:
-    name: "entando-full-stack-runtime-http"
+    name: "entando-full-stack-engine-http"
     labels:
       application: "entando-full-stack"
     annotations:
@@ -109,7 +109,7 @@ objects:
   spec:
     host: "entando-full-stack.${DOMAIN_SUFFIX}"
     to:
-      name: "entando-full-stack-runtime"
+      name: "entando-full-stack-engine"
 - kind: Route
   apiVersion: v1
   id: "entando-full-stack-appbuilder"
@@ -126,7 +126,7 @@ objects:
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "entando-full-stack-runtime"
+    name: "entando-full-stack-engine"
     labels:
       application: "entando-full-stack"
   spec:
@@ -137,7 +137,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "entando-full-stack-runtime"
+        - "entando-full-stack-engine"
         from:
           kind: ImageStreamTag
           name: "entando-sample-full:${IMAGE_STREAM_TAG}"
@@ -145,17 +145,17 @@ objects:
     - type: ConfigChange
     replicas: 1
     selector:
-      deploymentConfig: "entando-full-stack-runtime"
+      deploymentConfig: "entando-full-stack-engine"
     template:
       metadata:
-        name: "entando-full-stack-runtime"
+        name: "entando-full-stack-engine"
         labels:
-          deploymentConfig: "entando-full-stack-runtime"
+          deploymentConfig: "entando-full-stack-engine"
           application: "entando-full-stack"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "entando-full-stack-runtime"
+        - name: "entando-full-stack-engine"
           image: "${IMAGE_STREAM_NAMESPACE}/entando-sample-full:${IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:

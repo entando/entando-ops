@@ -16,7 +16,7 @@ function extract_resources(){
 
 if [ "$SERVDB_DRIVER" = "derby" ] || [ "$PORTDB_DRIVER" = "derby" ]; then
   if [ "$PREPARE_DATA" = "true" ]; then
-    if ! [ -f /entando-data/build_id ] ||  [ "$(cat /entando-data-templates/build_id)" -gt "$(cat /entando-data/build_id)" ]; then
+    if [ ! -f /entando-data/build_id ] ||  [ "$(cat /entando-data-templates/build_id)" -gt "$(cat /entando-data/build_id)" ]; then
       echo "Entando database rebuild requested. Replacing existing database with database built from Maven project"
       rm -Rf /entando-data/databases/* > /dev/null 2>&1
       mkdir -p /entando-data/databases/ > /dev/null 2>&1
@@ -30,13 +30,13 @@ if [ "$SERVDB_DRIVER" = "derby" ] || [ "$PORTDB_DRIVER" = "derby" ]; then
   fi
 fi
 if [ "$PREPARE_DATA" = "true" ]; then
-  if ! [ -f /entando-data/build_id ] || [ "$(cat /entando-data-templates/build_id)" -gt "$(cat /entando-data/build_id)" ]; then
+  if  [ ! -f /entando-data/build_id ] || [ "$(cat /entando-data-templates/build_id)" -gt "$(cat /entando-data/build_id)" ]; then
     echo "Entando resource reset requested. Replacing existing resources with resources copied from Maven project"
     rm -Rf /entando-data/protected/* > /dev/null 2>&1
     rm -Rf /entando-data/resources/* > /dev/null 2>&1
     extract_resources
    fi
-elif [ !  -d /entando-data/protected ]; then
+elif [ !  -d /entando-data/resources ]; then
   echo "New Entando instance detected. Copying Entando resources from Maven project for optional use."
   extract_resources
 fi

@@ -32,57 +32,6 @@ parameters:
   name: IMAGE_STREAM_NAMESPACE
   value: openshift
   required: false
-- displayName: Git Repository URL
-  description: Git source URI for application
-  name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ampie/entando-sample.git
-  required: true
-- displayName: Git Reference
-  description: Git branch/tag reference
-  name: SOURCE_REPOSITORY_REF
-  value: master
-  required: false
-- displayName: Source Secret
-  description: Source Secret containing the Username and Password for the source repository
-  name: SOURCE_SECRET
-  value: entando-source-secret
-  required: false
-- displayName: Context Directory
-  description: Path within Git project to build; empty for root project directory.
-  name: CONTEXT_DIR
-  value: ''
-  required: false
-- displayName: Entando Database Secret for the Staging environment
-  description: The name of the secret containing the 'username' and 'password' of
-    the user that will access the Postgresql Port database, the 'adminUsername' 
-    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url' 
-    defining the connection string.
-  name: ENTANDO_DB_SECRET_STAGE
-  value: entando-secret-stage
-  required: true
-- displayName: Entando Database Secret for the Production environment
-  description: The name of the secret containing the 'username' and 'password' of
-    the user that will access the Postgresql Serv database, the 'adminUsername'
-    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url'
-    defining the connection string.
-  name: ENTANDO_DB_SECRET_PROD
-  value: entando-servdb-secret-prod
-  required: true
-- displayName: Maven mirror URL
-  description: Maven mirror to use for S2I builds
-  name: MAVEN_MIRROR_URL
-  value: ''
-  required: false
-- displayName: Maven Additional Arguments
-  description: Maven additional arguments to use for S2I builds
-  name: MAVEN_ARGS_APPEND
-  value: ''
-  required: false
-- description: List of directories from which archives will be copied into the deployment
-    folder. If unspecified, all archives in /target will be copied.
-  name: ARTIFACT_DIR
-  value: ''
-  required: false
 - displayName: Production Cluster URL
   description: Production Cluster URL
   name: PRODUCTION_CLUSTER_URL
@@ -193,15 +142,10 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-promote-to-stage-with-db-migration"
+    name: "promote-${APPLICATION_NAME}-to-stage-with-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
-    source:
-      git:
-        ref: "${SOURCE_REPOSITORY_REF}"
-        uri: "${SOURCE_REPOSITORY_URL}"
-      type: Git
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
@@ -217,7 +161,7 @@ objects:
                           script {
                               openshift.withCluster() {
                                   openshift.withProject('${APPLICATION_NAME}-stage'){
-                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}')
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}-engine')
                                     deploymentConfig.scale('--replicas=0')
                                   }
                               }
@@ -230,20 +174,21 @@ objects:
                           label 'entando-postgresql'
                       }
                       steps {
-                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
                           withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
-                                            usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                                            usernameVariable: 'dummy', passwordVariable: 'DATABASE_ENV']]) {
                               sh '''
                                     #!/bin/bash
                                     #Hack to populate all the ENV Variables
-                                    source ${HOME}/export-db-variables.sh "${PASSWORD}"
-                                    if [ -n "${CONTEXT_DIR}" ]; then
-                                       cd ""
-                                    fi
+                                  source ${HOME}/export-db-variables.sh "${DATABASE_ENV}"
                                     set -e
                                     ${HOME}/backup-dbs.sh
                                     ${HOME}/recreate-dbs.sh
-                                    ${HOME}/init-postgresql-db.sh
+                                  oc delete pod migrate-db --ignore-not-found=true -n ${APPLICATION_NAME}-stage
+                                  oc run migrate-db --image=${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest \
+                                      -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-stage \
+                                      --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
+                                      --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \
+                                      --command -- /usr/local/s2i/init-db-from-deployment.sh
                                   '''
                           }
                       }
@@ -255,9 +200,6 @@ objects:
                                       #!/bin/bash
                                       #Hack to populate all the ENV Variables
                                       source ${HOME}/export-db-variables.sh "${PASSWORD}"
-                                      if [ -n "${CONTEXT_DIR}" ]; then
-                                         cd ""
-                                      fi
                                       ${HOME}/restore-dbs.sh
                                      '''
                               }
@@ -275,9 +217,17 @@ objects:
                                     openshift.selector("bc", "${APPLICATION_NAME}-tag-as-stage").startBuild("--wait")
                                   }
                                   openshift.withProject("${APPLICATION_NAME}-stage"){
-                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}-engine")
                                     def rolloutManager=deploymentConfig.rollout()
                                     rolloutManager.latest()
+                                      //Make sure the first pod spins up before scaling up
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
                                     deploymentConfig.scale("--replicas=2")
                                   }
                               }
@@ -290,15 +240,10 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-promote-to-stage-without-db-migration"
+    name: "promote-${APPLICATION_NAME}-to-stage-without-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
-    source:
-      git:
-        ref: "${SOURCE_REPOSITORY_REF}"
-        uri: "${SOURCE_REPOSITORY_URL}"
-      type: Git
     strategy:
       type: JenkinsPipeline
       jenkinsPipelineStrategy:
@@ -314,11 +259,10 @@ objects:
                           script {
                               openshift.withCluster() {
                                   openshift.withProject('${APPLICATION_NAME}-stage'){
-                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}')
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}-engine')
                                     deploymentConfig.scale('--replicas=0')
                                   }
                               }
-
                           }
                       }
                   }
@@ -333,9 +277,17 @@ objects:
                                     openshift.selector("bc", "${APPLICATION_NAME}-tag-as-stage").startBuild("--wait")
                                   }
                                   openshift.withProject("${APPLICATION_NAME}-stage"){
-                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}")
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}-engine")
                                     def rolloutManager=deploymentConfig.rollout()
                                     rolloutManager.latest()
+                                      //Make sure the first pod spins up before scaling up
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
                                     deploymentConfig.scale("--replicas=2")
                                   }
                               }
@@ -348,7 +300,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-promote-to-production-with-db-migration"
+    name: "promote-${APPLICATION_NAME}-to-production-with-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -367,7 +319,7 @@ objects:
                           script {
                               openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
                                   openshift.withProject('${APPLICATION_NAME}-prod') {
-                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}')
+                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}-engine')
                                       deploymentConfig.scale('--replicas=0')
                                   }
                               }
@@ -383,6 +335,8 @@ objects:
                                             usernameVariable: 'CLUSTER_USERNAME', passwordVariable: 'CLUSTER_PASSWORD']]) {
                               sh '''
                                             #!/bin/bash
+                                  #Setup port forwarding from the remote cluster's PostgreSQL pod to this Jenkins slave
+                                  #TODO see if we can use an Openshift Token Credential
                                             oc login -u $CLUSTER_USERNAME -p $CLUSTER_PASSWORD https://${PRODUCTION_CLUSTER_URL} --insecure-skip-tls-verify
                                             PG_POD=$(oc get pods -n ${APPLICATION_NAME}-prod -l deploymentConfig=${APPLICATION_NAME}-postgresql | grep '${APPLICATION_NAME}-[a-zA-Z0-9\\-]*' -o)
                                             nohup oc port-forward $PG_POD 5432:5432  -n ${APPLICATION_NAME}-prod  >  forwarding.log 2>&1&
@@ -398,26 +352,22 @@ objects:
                                             exit -1
                                         '''
                           }
-                          git url: '${SOURCE_REPOSITORY_URL}', branch: '${SOURCE_REPOSITORY_REF}', credentialsId: '${APPLICATION_NAME}-build-${SOURCE_SECRET}'
                           withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
                                             usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD']]) {
                               sh '''
                                             #!/bin/bash
                                             #Hack to populate all the ENV Variables
                                             source ${HOME}/export-db-variables.sh "${DB_PASSWORD}"
-                                            if [ -n "${CONTEXT_DIR}" ]; then
-                                               cd "${CONTEXT_DIR}"
-                                            fi
+                                  oc whoami #test that it is still the cluster admin user and not jenkins
                                             set -e
-                                            export PORTDB_SERVICE_HOST=localhost
-                                            export SERVDB_SERVICE_HOST=localhost
-                                            export PORTDB_SERVICE_PORT=5432
-                                            export SERVDB_SERVICE_PORT=5432
-                                            export PORTDB_URL="jdbc:postgresql://${PORTDB_SERVICE_HOST}:${PORTDB_SERVICE_PORT}/${PORTDB_DATABASE}"
-                                            export SERVDB_URL="jdbc:postgresql://${SERVDB_SERVICE_HOST}:${SERVDB_SERVICE_PORT}/${SERVDB_DATABASE}"
-                                            ${HOME}/backup-dbs.sh
-                                            ${HOME}/recreate-dbs.sh
-                                            ${HOME}/init-postgresql-db.sh
+                                  env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/backup-dbs.sh
+                                  env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/recreate-dbs.sh
+                                  oc delete pod migrate-db  --ignore-not-found=true -n ${APPLICATION_NAME}-prod
+                                  oc run migrate-db --image=${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage \
+                                      -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-prod \
+                                      --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
+                                      --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \
+                                      --command -- /usr/local/s2i/init-db-from-deployment.sh
                                         '''
                           }
                       }
@@ -430,16 +380,7 @@ objects:
                                                 #!/bin/bash
                                                 #Hack to populate all the ENV Variables
                                                 source ${HOME}/export-db-variables.sh "${PASSWORD}"
-                                                if [ -n "${CONTEXT_DIR}" ]; then
-                                                   cd "${CONTEXT_DIR}"
-                                                fi
-                                                export PORTDB_SERVICE_HOST=localhost
-                                                export SERVDB_SERVICE_HOST=localhost
-                                                export PORTDB_SERVICE_PORT=5432
-                                                export SERVDB_SERVICE_PORT=5432
-                                                export PORTDB_URL="jdbc:postgresql://${PORTDB_SERVICE_HOST}:${PORTDB_SERVICE_PORT}/${PORTDB_DATABASE}"
-                                                export SERVDB_URL="jdbc:postgresql://${SERVDB_SERVICE_HOST}:${SERVDB_SERVICE_PORT}/${SERVDB_DATABASE}"
-                                                ${HOME}/restore-dbs.sh
+                                      env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/restore-dbs.sh
                                             '''
                               }
                           }
@@ -467,9 +408,17 @@ objects:
                           script {
                               openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
                                   openshift.withProject("${APPLICATION_NAME}-prod") {
-                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}")
+                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}-engine")
                                       def rolloutManager = deploymentConfig.rollout()
                                       rolloutManager.latest()
+                                      //Make sure the first pod spins up before scaling up
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
                                       deploymentConfig.scale("--replicas=2")
                                   }
                               }
@@ -482,7 +431,7 @@ objects:
 - kind: BuildConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-promote-to-production-without-db-migration"
+    name: "promote-${APPLICATION_NAME}-to-production-without-db-migration"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -501,7 +450,7 @@ objects:
                           script {
                               openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
                                   openshift.withProject('${APPLICATION_NAME}-prod') {
-                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}')
+                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}-engine')
                                       deploymentConfig.scale('--replicas=0')
                                   }
                               }
@@ -530,9 +479,16 @@ objects:
                           script {
                               openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
                                   openshift.withProject("${APPLICATION_NAME}-prod") {
-                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}")
+                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}-engine")
                                       def rolloutManager = deploymentConfig.rollout()
                                       rolloutManager.latest()
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
                                       deploymentConfig.scale("--replicas=2")
                                   }
                               }

@@ -37,7 +37,13 @@ ENV PORTDB_NONXA="true" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
     PREPARE_DATA="true" \
-    DEPLOYMENTS_DIR="/wildfly/standalone/deployments"
+    DEPLOYMENTS_DIR="/wildfly/standalone/deployments" \
+    ENTANDO_OIDC_ACTIVE="false" \
+    ENTANDO_OIDC_AUTH_LOCATION="http://dummy.com" \
+    ENTANDO_OIDC_TOKEN_LOCATION="http://dummy.com" \
+    ENTANDO_OIDC_CLIENT_ID="dummy" \
+    ENTANDO_OIDC_REDIRECT_BASE_URL="http://dummy.com"
+
 
 USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \

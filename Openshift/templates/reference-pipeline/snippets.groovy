@@ -40,7 +40,7 @@ pipeline {
                 script {
                     openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
                         openshift.withProject('${APPLICATION_NAME}-prod') {
-                            def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}')
+                            def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}-engine')
                             deploymentConfig.scale('--replicas=0')
                         }
                     }
@@ -140,7 +140,7 @@ pipeline {
                 script {
                     openshift.withCluster('${PRODUCTION_CLUSTER_URL}', '${APPLICATION_NAME}-build-${APPLICATION_NAME}-production-cluster-secret') {
                         openshift.withProject("${APPLICATION_NAME}-prod") {
-                            def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}")
+                            def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}-engine")
                             def rolloutManager = deploymentConfig.rollout()
                             rolloutManager.latest()
                             deploymentConfig.scale("--replicas=2")

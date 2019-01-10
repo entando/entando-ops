@@ -12,9 +12,9 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-demo.yml \
     -p KIE_SERVER_PASSWORD="kieserver1!" \
     -p IMAGE_STREAM_NAMESPACE="entando" \
     -p IMAGE_STREAM="fsi-cc-dispute-customer" \
-    -p ENTANDO_APP_BUILDER_HOSTNAME_HTTP="appbuilder-customer.${OPENSHIFT_DOMAIN_SUFFIX}" \
-    -p ENTANDO_RUNTIME_HOSTNAME_HTTP="entando-core.${OPENSHIFT_DOMAIN_SUFFIX}" \
-    -p ENTANDO_WEB_CONTEXT="fsi-credit-card-dispute-customer" \
+    -p ENTANDO_APP_BUILDER_HOSTNAME="appbuilder-customer.${OPENSHIFT_DOMAIN_SUFFIX}" \
+    -p ENTANDO_ENGINE_HOSTNAME="entando-core.${OPENSHIFT_DOMAIN_SUFFIX}" \
+    -p ENTANDO_ENGINE_WEB_CONTEXT="/fsi-credit-card-dispute-customer" \
   | oc replace --force -f -
 
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-demo.yml \
@@ -24,7 +24,7 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-demo.yml \
     -p KIE_SERVER_PASSWORD="kieserver1!" \
     -p IMAGE_STREAM_NAMESPACE="entando" \
     -p IMAGE_STREAM="fsi-cc-dispute-admin" \
-    -p ENTANDO_APP_BUILDER_HOSTNAME_HTTP="appbuilder-admin.${OPENSHIFT_DOMAIN_SUFFIX}" \
-    -p ENTANDO_RUNTIME_HOSTNAME_HTTP="entando-core.${OPENSHIFT_DOMAIN_SUFFIX}" \
-    -p ENTANDO_WEB_CONTEXT="fsi-credit-card-dispute-backoffice" \
+    -p ENTANDO_APP_BUILDER_HOSTNAME="appbuilder-admin.${OPENSHIFT_DOMAIN_SUFFIX}" \
+    -p ENTANDO_ENGINE_HOSTNAME="entando-core.${OPENSHIFT_DOMAIN_SUFFIX}" \
+    -p ENTANDO_ENGINE_WEB_CONTEXT="/fsi-credit-card-dispute-backoffice" \
   | oc replace --force -f -

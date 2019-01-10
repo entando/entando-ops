@@ -119,22 +119,22 @@ function recreate_entando_application(){
             -p SOURCE_REPOSITORY_URL=https://bitbucket.org/entando/central-entando.git \
             -p SOURCE_REPOSITORY_REF=EN-1904 \
             -p ENTANDO_PORT_DATABASE="entandoPortDb" \
+            -p ENTANDO_SERV_DATABASE="entandoServDb" \
             -p ENTANDO_OIDC_ACTIVE=true \
             -p ENTANDO_OIDC_AUTH_LOCATION=https://staging.access.entando.com/auth/realms/entando/protocol/openid-connect/auth \
             -p ENTANDO_OIDC_TOKEN_LOCATION=https://staging.access.entando.com/auth/realms/entando/protocol/openid-connect/token \
             -p ENTANDO_OIDC_CLIENT_ID=central.entando \
             -p ENTANDO_OIDC_REDIRECT_BASE_URL=https://staging.central.entando.com \
-            -p ENTANDO_SERV_DATABASE="entandoServDb" \
             -p HTTPS_SECRET="entando-app-secret" \
             -p HTTPS_PASSWORD="$HTTPS_PASSWORD" \
-            -p ENTANDO_BASEURL=$ENTANDO_BASEURL \
+            -p ENTANDO_ENGINE_BASEURL=$ENTANDO_BASEURL \
             -p JGROUPS_ENCRYPT_SECRET="entando-app-secret" \
             -p JGROUPS_ENCRYPT_PASSWORD="$JGROUPS_ENCRYPT_PASSWORD" \
             -p JGROUPS_CLUSTER_PASSWORD="$JGROUPS_CLUSTER_PASSWORD" \
             -p JGROUPS_ENCRYPT_NAME="jgroups" \
             -p IMAGE_STREAM_NAMESPACE="entando" \
-            -p HOSTNAME_HTTPS=$HOSTNAME_HTTPS \
-            -p HOSTNAME_HTTP=$HOSTNAME_HTTP \
+            -p ENTANDO_ENGINE_HOSTNAME_HTTPS=$HOSTNAME_HTTPS \
+            -p ENTANDO_ENGINE_HOSTNAME_HTTP=$HOSTNAME_HTTP \
             |  oc replace --force --grace-period 60  -f -
 #            -p MAVEN_MIRROR_URL="$NEXUS_URL" \
 }

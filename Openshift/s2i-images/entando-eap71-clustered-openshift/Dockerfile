@@ -1,6 +1,6 @@
 ARG ENTANDO_IMAGE_VERSION
 FROM entando/entando-dependencies-base:${ENTANDO_IMAGE_VERSION} as dependencies
-FROM entando/entando-eap71-base:${ENTANDO_IMAGE_VERSION}
+FROM entando/entando-eap71-clustered-base:${ENTANDO_IMAGE_VERSION}
 LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando clustered applications on EAP 7.1" \
       io.k8s.display-name="Entando on EAP 7.1"
@@ -9,12 +9,9 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=185
 #add the dependencies temporarily to speed up builds. remove from final image
 COPY --chown=185:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
-COPY --chown=185:0 ./standalone-openshift.xml /opt/eap/standalone/configuration
-COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 
 CMD "${STI_SCRIPTS_PATH}/usage"
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-postgresql=PORTDB,servdb-postgresql=SERVDB" \
-    PORTDB_NONXA="true" \
+ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \

@@ -30,18 +30,18 @@ parameters:
 - displayName: Custom http Route Hostname for the AppBuilder
   description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
     hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_APP_BUILDER_HOSTNAME_HTTP
+  name: ENTANDO_APP_BUILDER_HOSTNAME
   value: ''
   required: false
 - displayName: Custom http Route Hostname for the Entando runtime and legacy screens
   description: 'Custom http Route Hostname for the Entando runtime and legacy screens.
     Leave blank for default hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_RUNTIME_HOSTNAME_HTTP
+  name: ENTANDO_ENGINE_HOSTNAME
   value: ''
   required: true
 - displayName: Context root of the Entando Runtime web app
   description: 'Context root of the Entando Runtime web app'
-  name: ENTANDO_WEB_CONTEXT
+  name: ENTANDO_ENGINE_WEB_CONTEXT
   value: ''
   required: true
 - displayName: KIE Server base url
@@ -89,11 +89,11 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "${APPLICATION_NAME}-runtime"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
   metadata:
-    name: "${APPLICATION_NAME}-runtime"
+    name: "${APPLICATION_NAME}-engine"
     labels:
-      application: "${APPLICATION_NAME}-runtime"
+      application: "${APPLICATION_NAME}-engine"
     annotations:
       description: The Entando Runtime server's http port.
 - kind: Service
@@ -112,18 +112,18 @@ objects:
       description: The Entando AppBuilder http port.
 - kind: Route
   apiVersion: v1
-  id: "${APPLICATION_NAME}-runtime-http"
+  id: "${APPLICATION_NAME}-engine-http"
   metadata:
-    name: "${APPLICATION_NAME}-runtime-http"
+    name: "${APPLICATION_NAME}-engine-http"
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
       description: Route for the Entando Runtime's http service.
   spec:
-    host: "${ENTANDO_RUNTIME_HOSTNAME_HTTP}"
-    path: "/${ENTANDO_WEB_CONTEXT}"
+    host: "${ENTANDO_ENGINE_HOSTNAME}"
+    path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
     to:
-      name: "${APPLICATION_NAME}-runtime"
+      name: "${APPLICATION_NAME}-engine"
 - kind: Route
   apiVersion: v1
   id: "${APPLICATION_NAME}-appbuilder"
@@ -134,13 +134,13 @@ objects:
     annotations:
       description: Route for application's http service.
   spec:
-    host: "${ENTANDO_APP_BUILDER_HOSTNAME_HTTP}"
+    host: "${ENTANDO_APP_BUILDER_HOSTNAME}"
     to:
       name: "${APPLICATION_NAME}-appbuilder"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}-runtime"
+    name: "${APPLICATION_NAME}-engine"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -151,7 +151,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "${APPLICATION_NAME}-runtime"
+        - "${APPLICATION_NAME}-engine"
         from:
           kind: ImageStreamTag
           name: "${IMAGE_STREAM}:${IMAGE_STREAM_TAG}"
@@ -159,17 +159,17 @@ objects:
     - type: ConfigChange
     replicas: 1
     selector:
-      deploymentConfig: "${APPLICATION_NAME}-runtime"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
     template:
       metadata:
-        name: "${APPLICATION_NAME}-runtime"
+        name: "${APPLICATION_NAME}-engine"
         labels:
-          deploymentConfig: "${APPLICATION_NAME}-runtime"
+          deploymentConfig: "${APPLICATION_NAME}-engine"
           application: "${APPLICATION_NAME}"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "${APPLICATION_NAME}-runtime"
+        - name: "${APPLICATION_NAME}-engine"
           image: "${IMAGE_STREAM_NAMESPACE}/${IMAGE_STREAM}:${IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
@@ -251,7 +251,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://${ENTANDO_RUNTIME_HOSTNAME_HTTP}/${ENTANDO_WEB_CONTEXT}
+            value: http://${ENTANDO_ENGINE_HOSTNAME}${ENTANDO_ENGINE_WEB_CONTEXT}
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File

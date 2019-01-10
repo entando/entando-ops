@@ -33,19 +33,24 @@ parameters:
   value: 5.0.2
   required: false
 - displayName: The base url to be used to access the Entando rest services.
-  description: This must reflect either the HTTPS hostname of the Entando core engine service. Root servlet context is assumed
-  name: ENTANDO_RUNTIME_HOSTNAME
+  description: This must reflect the HTTPS hostname of the Entando core engine service.
+  name: ENTANDO_ENGINE_HOSTNAME
   required: true
+- displayName: The web context where the Entando app will be hosted on JBoss EAP
+  description: The web context where the Entando app will be hosted on JBoss EAP
+  name: ENTANDO_ENGINE_WEB_CONTEXT
+  value: ''
+  required: false
 - displayName: The base url to be used to access the Entando rest services.
-  description: This must reflect either the HTTPS hostname of the Entando AppBuilder service. Root servlet context is assumed
-  name: ENTANDO_APP_BUILDER_HOSTNAME_HTTP
+  description: This must reflect either the HTTPS hostname of the Entando AppBuilder service
+  name: ENTANDO_APP_BUILDER_HOSTNAME
   required: true
 - displayName: Entando Port Database Secret
   description: The name of the secret containing the 'username' and 'password' of
     the user that will access the Postgresql Port as well as Serv database, the 'adminUsername'
     and 'adminPassword' of the user that has admin rights to the database,  as well as the 'url' 
     defining the connection string. Use the entando-db-secret.yml template to create this secret
-  name: ENTANDO_DB_SECRET
+  name: ENTANDO_DB_FILE_SECRET
   value: entando-db-secret
   required: true
 - displayName: Activate OIDC Connector
@@ -148,9 +153,9 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "${APPLICATION_NAME}"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
   metadata:
-    name: "${APPLICATION_NAME}"
+    name: "${APPLICATION_NAME}-engine"
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
@@ -177,7 +182,7 @@ objects:
     - name: ping
       port: 8888
     selector:
-      deploymentConfig: "${APPLICATION_NAME}"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
   metadata:
     name: "${APPLICATION_NAME}-ping"
     labels:
@@ -188,7 +193,7 @@ objects:
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}"
+    name: "${APPLICATION_NAME}-engine"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -196,17 +201,17 @@ objects:
       type: Recreate
     replicas: 0
     selector:
-      deploymentConfig: "${APPLICATION_NAME}"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
     template:
       metadata:
-        name: "${APPLICATION_NAME}"
+        name: "${APPLICATION_NAME}-engine"
         labels:
-          deploymentConfig: "${APPLICATION_NAME}"
+          deploymentConfig: "${APPLICATION_NAME}-engine"
           application: "${APPLICATION_NAME}"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "${APPLICATION_NAME}"
+        - name: "${APPLICATION_NAME}-engine"
           image: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:${ENVIRONMENT_TAG}"
           imagePullPolicy: Always
           resources:
@@ -216,21 +221,27 @@ objects:
           - name: eap-jgroups-keystore-volume
             mountPath: "/etc/jgroups-encrypt-secret-volume"
             readOnly: true
-          - mountPath: "/entando-data"
-            name: "${APPLICATION_NAME}-entando-pvol"
+          - name: "eap-env-files"
+            mountPath: "/etc/eap-env-files"
+            readOnly: true
+          - name: "entando-data"
+            mountPath: "/entando-data"
           livenessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/livenessProbe.sh"
-            initialDelaySeconds: 60
+            httpGet:
+              path: ${ENTANDO_ENGINE_WEB_CONTEXT}
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           readinessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/readinessProbe.sh"
+            httpGet:
+              path: ${ENTANDO_ENGINE_WEB_CONTEXT}
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           ports:
           - name: jolokia
             containerPort: 8778
@@ -242,72 +253,12 @@ objects:
             containerPort: 8888
             protocol: TCP
           env:
-          - name: DB_SERVICE_PREFIX_MAPPING
-            value: "portdb-postgresql=PORTDB,servdb-postgresql=SERVDB"
+          - name: ENV_FILES
+            value: "/etc/eap-env-files/datasources.env"
           - name: PORTDB_JNDI
-            value: java:jboss/datasources/entandoPortDataSource
+            value: "java:jboss/datasources/entandoPortDataSource"
           - name: SERVDB_JNDI
-            value: java:jboss/datasources/entandoServDataSource
-          - name: PORTDB_DRIVER
-            valueFrom:
-              secretKeyRef:
-                key: vendor
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_DRIVER
-            valueFrom:
-              secretKeyRef:
-                key: vendor
-                name: "${ENTANDO_DB_SECRET}"
-          - name: PORTDB_POSTGRESQL_SERVICE_HOST
-            valueFrom:
-              secretKeyRef:
-                key: hostname
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_POSTGRESQL_SERVICE_HOST
-            valueFrom:
-              secretKeyRef:
-                key: hostname
-                name: "${ENTANDO_DB_SECRET}"
-          - name: PORTDB_POSTGRESQL_SERVICE_PORT
-            valueFrom:
-              secretKeyRef:
-                key: port
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_POSTGRESQL_SERVICE_PORT
-            valueFrom:
-              secretKeyRef:
-                key: port
-                name: "${ENTANDO_DB_SECRET}"
-          - name: PORTDB_DATABASE
-            valueFrom:
-              secretKeyRef:
-                key: portDb
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_DATABASE
-            valueFrom:
-              secretKeyRef:
-                key: servDb
-                name: "${ENTANDO_DB_SECRET}"
-          - name: PORTDB_USERNAME
-            valueFrom:
-              secretKeyRef:
-                key: username
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_USERNAME
-            valueFrom:
-              secretKeyRef:
-                key: username
-                name: "${ENTANDO_DB_SECRET}"
-          - name: PORTDB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: password
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: password
-                name: "${ENTANDO_DB_SECRET}"
+            value: "java:jboss/datasources/entandoServDataSource"
           - name: PORTDB_NONXA
             value: "true"
           - name: SERVDB_NONXA
@@ -316,10 +267,6 @@ objects:
             value: "true"
           - name: SERVDB_JTA
             value: "true"
-          - name: PORTDB_URL
-            value: ""
-          - name: SERVDB_URL
-            value: ""
           - name: SERVDB_MIN_POOL_SIZE
             value: "${DB_MIN_POOL_SIZE}"
           - name: PORTDB_MIN_POOL_SIZE
@@ -383,7 +330,10 @@ objects:
         - name: eap-jgroups-keystore-volume
           secret:
             secretName: "${JGROUPS_ENCRYPT_SECRET}"
-        - name: "${APPLICATION_NAME}-entando-pvol"
+        - name: eap-env-files
+          secret:
+            secretName: "${ENTANDO_DB_FILE_SECRET}"
+        - name: "entando-data"
           persistentVolumeClaim:
             claimName: "${APPLICATION_NAME}-entando-claim"
 - kind: DeploymentConfig
@@ -437,11 +387,11 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: "https://${ENTANDO_RUNTIME_HOSTNAME}"
+            value: "https://${ENTANDO_ENGINE_HOSTNAME}"
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
         restartPolicy: Always
         terminationGracePeriodSeconds: 30
         dnsPolicy: ClusterFirst
@@ -454,14 +404,15 @@ objects:
       application: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}-engine
   spec:
-    host: ${ENTANDO_RUNTIME_HOSTNAME}
+    host: ${ENTANDO_ENGINE_HOSTNAME}
+    path: ${ENTANDO_ENGINE_WEB_CONTEXT}
     port:
       targetPort: 8080
     tls:
       termination: edge
     to:
       kind: Service
-      name: ${APPLICATION_NAME}
+      name: ${APPLICATION_NAME}-engine
       weight: 100
     wildcardPolicy: None
 - apiVersion: v1
@@ -471,7 +422,7 @@ objects:
       application: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}-appbuilder
   spec:
-    host: ${ENTANDO_APP_BUILDER_HOSTNAME_HTTP}
+    host: ${ENTANDO_APP_BUILDER_HOSTNAME}
     port:
       targetPort: 5000
     tls:

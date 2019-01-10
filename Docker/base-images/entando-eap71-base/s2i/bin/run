@@ -1,3 +1,13 @@
 #!/bin/bash
+USE_ENV=""
+if [ -n "$ENV_FILES" ]; then
+  IFS=","  read -ra ENV_FILES_ARG <<< "$ENV_FILES"
+  for f in "${ENV_FILES_ARG[@]}"
+  do
+    VARIABLE_DECLARATIONS="$VARIABLE_DECLARATIONS $(cat $f | grep -v ^# | xargs)"
+  done
+  USE_ENV="env $VARIABLE_DECLARATIONS"
+  export $VARIABLE_DECLARATIONS
+fi
 $(dirname ${BASH_SOURCE[0]})/prepare-data.sh
-exec $JBOSS_HOME/bin/openshift-launch.sh
+exec $USE_ENV $JBOSS_HOME/bin/openshift-launch.sh

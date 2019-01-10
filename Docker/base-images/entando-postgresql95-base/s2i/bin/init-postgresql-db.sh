@@ -4,7 +4,7 @@ export SERVDB_URL="jdbc:postgresql://localhost:5432/${SERVDB_DATABASE}"
 export PORTDB_DRIVER="postgresql"
 export SERVDB_DRIVER="postgresql"
 $(dirname ${BASH_SOURCE[0]})/start-pg-and-wait.sh
-if $(dirname ${BASH_SOURCE[0]})/init-db.sh ; then
+if $(dirname ${BASH_SOURCE[0]})/init-db-from-source.sh ; then
     pg_ctl stop -D /$HOME/data/userdata
     cp $HOME/data/ $HOME/data_template/ -Rf
 

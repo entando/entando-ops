@@ -24,7 +24,6 @@ COPY --chown=185:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-run
 COPY --chown=185:0 ./contrib/wildfly-configuration/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
 COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 ENV DATASOURCES="PORTDB,SERVDB" \
-#    DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \ # this requires PORTDB_DERBY_SERVICE_HOST like variables
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
@@ -44,7 +43,13 @@ ENV DATASOURCES="PORTDB,SERVDB" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
     PREPARE_DATA="true" \
-    DEPLOYMENTS_DIR="/opt/eap/standalone/deployments"
+    DEPLOYMENTS_DIR="/opt/eap/standalone/deployments" \
+    ENTANDO_OIDC_ACTIVE="false" \
+    ENTANDO_OIDC_AUTH_LOCATION="http://dummy.com" \
+    ENTANDO_OIDC_TOKEN_LOCATION="http://dummy.com" \
+    ENTANDO_OIDC_CLIENT_ID="dummy" \
+    ENTANDO_OIDC_REDIRECT_BASE_URL="http://dummy.com"
+
 USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
     mkdir -p /entando-data-templates/databases  && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/

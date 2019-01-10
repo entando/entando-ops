@@ -13,8 +13,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
 
 COPY --chown=185:0 ./standalone-openshift.xml /opt/eap/standalone/configuration
 
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-postgresql=PORTDB,servdb-postgresql=SERVDB" \
-    PORTDB_NONXA="true" \
+ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \

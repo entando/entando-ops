@@ -28,11 +28,11 @@ parameters:
   value: stage
   required: false
 - displayName: Entando Database Secret
-  description: The name of the secret containing the 'username' and 'password' of
+  description: The name of the secret defining environment variables for the 'username' and 'password' of
     the user that will access the Postgresql Port and Serv databases, the 'adminUsername'
     and 'adminPassword' of the user that has admin rights to the database,  as well as the 'hostname' and 'port'
     defining the connection string.
-  name: ENTANDO_DB_SECRET
+  name: ENTANDO_DB_FILE_SECRET
   value: entando-db-secret
   required: true
 - displayName: ImageStream Namespace
@@ -107,8 +107,8 @@ objects:
         - name: "${APPLICATION_NAME}-postgresql"
           command:
             - "/usr/libexec/s2i/run"
-          image: "${APPLICATION_NAME}-postgresql"
-          imagePullPolicy: Always
+          image: "${IMAGE_STREAM_NAMESPACE}/entando-postgresql95-openshift:${ENTANDO_IMAGE_VERSION}"
+          imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 5432
             protocol: TCP
@@ -120,52 +120,21 @@ objects:
               - "/bin/sh"
               - "-i"
               - "-c"
-              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
-                'SELECT 1'
+              - "psql -h 127.0.0.1 -U postgres -q -d postgres -c '\\l'|grep '5 rows'"
           livenessProbe:
             timeoutSeconds: 1
-            initialDelaySeconds: 30
+            initialDelaySeconds: 180
             tcpSocket:
               port: 5432
           volumeMounts:
-          - mountPath: "/var/lib/pgsql/data"
-            name: "${APPLICATION_NAME}-postgresql-pvol"
+          - name: "postgresql-data"
+            mountPath: "/var/lib/pgsql/data"
+          - name: "postgresql-env-files"
+            mountPath: "/etc/postgresql-env-files"
+            readOnly: true
           env:
-          - name: PORTDB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: portDbPassword
-                name: "${ENTANDO_DB_SECRET}"
-          - name: PORTDB_USERNAME
-            valueFrom:
-              secretKeyRef:
-                key: portDbUsername
-                name: "${ENTANDO_DB_SECRET}"
-          - name: PORTDB_DATABASE
-            valueFrom:
-              secretKeyRef:
-                key: portDb
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: servDbPassword
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_USERNAME
-            valueFrom:
-              secretKeyRef:
-                key: servDbUsername
-                name: "${ENTANDO_DB_SECRET}"
-          - name: SERVDB_DATABSE
-            valueFrom:
-              secretKeyRef:
-                key: servDb
-                name: "${ENTANDO_DB_SECRET}"
-          - name: ADMIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                key: adminPassword
-                name: "${ENTANDO_DB_SECRET}"
+          - name: ENV_FILES
+            value: "/etc/postgresql-env-files/datasources.env"
           - name: POSTGRESQL_MAX_CONNECTIONS
             value: "${POSTGRESQL_MAX_CONNECTIONS}"
           - name: POSTGRESQL_MAX_PREPARED_TRANSACTIONS
@@ -173,9 +142,12 @@ objects:
           - name: POSTGRESQL_SHARED_BUFFERS
             value: "${POSTGRESQL_SHARED_BUFFERS}"
         volumes:
-        - name: "${APPLICATION_NAME}-postgresql-pvol"
+        - name: "postgresql-data"
           persistentVolumeClaim:
             claimName: "${APPLICATION_NAME}-postgresql-claim"
+        - name: "postgresql-env-files"
+          secret:
+            secretName: "${ENTANDO_DB_FILE_SECRET}"
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:

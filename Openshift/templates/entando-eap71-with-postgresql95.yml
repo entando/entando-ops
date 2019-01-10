@@ -38,19 +38,24 @@ parameters:
 - displayName: Custom http Route Hostname
   description: 'Custom hostname for http service route.  Leave blank for default hostname,
     e.g.: <application-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_RUNTIME_HOSTNAME_HTTP
+  name: ENTANDO_ENGINE_HOSTNAME_HTTP
   value: ''
   required: false
 - displayName: Custom https Route Hostname
   description: 'Custom hostname for https service route.  Leave blank for default
     hostname, e.g.: secure-<application-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_RUNTIME_HOSTNAME_HTTPS
+  name: ENTANDO_ENGINE_HOSTNAME_HTTPS
   value: ''
   required: false
+- displayName: Context root of the Entando Runtime web app
+  description: 'Context root of the Entando Runtime web app'
+  name: ENTANDO_ENGINE_WEB_CONTEXT
+  value: ''
+  required: true
 - displayName: The base url to be used to access the Entando rest services.
-  description: NB!! This must reflect either ENTANDO_RUNTIME_HOSTNAME_HTTPS or ENTANDO_RUNTIME_HOSTNAME_HTTP, as well
+  description: NB!! This must reflect either ENTANDO_ENGINE_HOSTNAME_HTTPS or ENTANDO_ENGINE_HOSTNAME_HTTP, as well
     as any web context root that may be used
-  name: ENTANDO_BASEURL
+  name: ENTANDO_ENGINE_BASEURL
   value: ''
   required: false
 - displayName: Git Repository URL
@@ -253,9 +258,9 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "${APPLICATION_NAME}"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
   metadata:
-    name: "${APPLICATION_NAME}"
+    name: "${APPLICATION_NAME}-engine"
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
@@ -269,9 +274,9 @@ objects:
     - port: 8443
       targetPort: 8443
     selector:
-      deploymentConfig: "${APPLICATION_NAME}"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
   metadata:
-    name: secure-${APPLICATION_NAME}
+    name: secure-${APPLICATION_NAME}-engine
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
@@ -330,7 +335,7 @@ objects:
     - name: ping
       port: 8888
     selector:
-      deploymentConfig: "${APPLICATION_NAME}"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
   metadata:
     name: "${APPLICATION_NAME}-ping"
     labels:
@@ -340,17 +345,34 @@ objects:
       description: The JGroups ping port for clustering.
 - kind: Route
   apiVersion: v1
-  id: "${APPLICATION_NAME}-http"
+  id: "${APPLICATION_NAME}-engine-http"
   metadata:
-    name: "${APPLICATION_NAME}"
+    name: "${APPLICATION_NAME}-engine-http"
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
       description: Route for application's http service.
   spec:
-    host: "${ENTANDO_RUNTIME_HOSTNAME_HTTP}"
+    host: "${ENTANDO_ENGINE_HOSTNAME_HTTP}"
+    path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
     to:
-      name: "${APPLICATION_NAME}"
+      name: "${APPLICATION_NAME}-engine-http"
+- kind: Route
+  apiVersion: v1
+  id: "${APPLICATION_NAME}-engine-https"
+  metadata:
+    name: ${APPLICATION_NAME}-engine-https
+    labels:
+      application: "${APPLICATION_NAME}"
+    annotations:
+      description: Route for application's https service.
+  spec:
+    host: "${ENTANDO_ENGINE_HOSTNAME_HTTPS}"
+    path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
+    to:
+      name: secure-${APPLICATION_NAME}-engine
+    tls:
+      termination: passthrough
 - kind: Route
   apiVersion: v1
   id: "${APPLICATION_NAME}-appbuilder"
@@ -361,24 +383,9 @@ objects:
     annotations:
       description: Route for application's http service.
   spec:
-    host: appbuilder.${ENTANDO_RUNTIME_HOSTNAME_HTTP}
+    host: appbuilder.${ENTANDO_ENGINE_HOSTNAME_HTTP}
     to:
       name: "${APPLICATION_NAME}-appbuilder"
-- kind: Route
-  apiVersion: v1
-  id: "${APPLICATION_NAME}-https"
-  metadata:
-    name: secure-${APPLICATION_NAME}
-    labels:
-      application: "${APPLICATION_NAME}"
-    annotations:
-      description: Route for application's https service.
-  spec:
-    host: "${ENTANDO_RUNTIME_HOSTNAME_HTTPS}"
-    to:
-      name: secure-${APPLICATION_NAME}
-    tls:
-      termination: passthrough
 - kind: ImageStream
   apiVersion: v1
   metadata:
@@ -514,7 +521,7 @@ objects:
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "${APPLICATION_NAME}"
+    name: "${APPLICATION_NAME}-engine"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
@@ -532,17 +539,17 @@ objects:
     - type: ConfigChange
     replicas: 1
     selector:
-      deploymentConfig: "${APPLICATION_NAME}"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
     template:
       metadata:
-        name: "${APPLICATION_NAME}"
+        name: "${APPLICATION_NAME}-engine"
         labels:
-          deploymentConfig: "${APPLICATION_NAME}"
+          deploymentConfig: "${APPLICATION_NAME}-engine"
           application: "${APPLICATION_NAME}"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "${APPLICATION_NAME}"
+        - name: "${APPLICATION_NAME}-engine"
           image: "${APPLICATION_NAME}"
           imagePullPolicy: Always
           resources:
@@ -558,18 +565,21 @@ objects:
           - mountPath: "/entando-data"
             name: "${APPLICATION_NAME}-entando-pvol"
           livenessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/livenessProbe.sh"
-            initialDelaySeconds: 60
+            httpGet:
+              path: ${ENTANDO_ENGINE_WEB_CONTEXT}
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           readinessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/readinessProbe.sh"
+            httpGet:
+              path: ${ENTANDO_ENGINE_WEB_CONTEXT}
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           ports:
           - name: jolokia
             containerPort: 8778
@@ -758,11 +768,10 @@ objects:
               - "/bin/sh"
               - "-i"
               - "-c"
-              - psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c
-                'SELECT 1'
+              - "psql -h 127.0.0.1 -U postgres -q -d postgres -c '\\l'|grep '5 rows'"
           livenessProbe:
             timeoutSeconds: 1
-            initialDelaySeconds: 30
+            initialDelaySeconds: 180
             tcpSocket:
               port: 5432
           volumeMounts:
@@ -854,7 +863,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: "${ENTANDO_BASEURL}"
+            value: "${ENTANDO_ENGINE_BASEURL}"
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File

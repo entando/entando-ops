@@ -8,7 +8,7 @@ function prepare_redhat_route(){
     echo "$1 config file not found. Expected file: $(dirname $0)/$1.conf)"
     exit -1
   fi
-  echo "Creating the Red Hat route for $1: ${APPLICATION_NAME}, ${ENTANDO_RUNTIME_HOSTNAME}"
+  echo "Creating the Red Hat route for $1: ${APPLICATION_NAME}, ${ENTANDO_ENGINE_HOSTNAME}"
   cat <<EOF | oc replace -n "${APPLICATION_NAME}-$1" --force --grace-period 60 -f -
 apiVersion: v1
 kind: Route
@@ -17,7 +17,7 @@ metadata:
   labels:
     application: "${APPLICATION_NAME}"
 spec:
-  host: ${REDHAT_ENTANDO_RUNTIME_HOSTNAME}
+  host: ${REDHAT_ENTANDO_ENGINE_HOSTNAME}
   port:
     targetPort: 8080
   tls:
@@ -47,9 +47,9 @@ EOF
 }
 
 function setup_entando_pipeline(){
-  setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME}
-
+  ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME} --config-dir=entando-central-conf
 }
+
 COMMAND=$1
 shift
 

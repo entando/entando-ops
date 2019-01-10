@@ -7,8 +7,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
 
 COPY --chown=1001:0 s2i/bin ${STI_SCRIPTS_PATH}
 
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
-    PORTDB_NONXA="true" \
+ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \

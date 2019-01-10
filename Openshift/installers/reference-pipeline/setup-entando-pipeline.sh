@@ -16,7 +16,7 @@ function log_into_prod_cluster(){
   read_config build
   oc login -u $PRODUCTION_CLUSTER_USERNAME -p $PRODUCTION_CLUSTER_PASSWORD $PRODUCTION_CLUSTER_URL
   if [[ -z "${PRODUCTION_CLUSTER_TOKEN}" ]]; then
-    PRODUCTION_CLUSTER_TOKEN=$(oc whoami -t)
+    export PRODUCTION_CLUSTER_TOKEN=$(oc whoami -t)
   fi
 }
 
@@ -58,37 +58,41 @@ function install_build_image_streams(){
   #oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-maven-jenkins-slave-openshift39.json -n $IMAGE_STREAM_NAMESPACE
   #install_imagick_image
  }
-
-function install_imagick_image(){
-  echo "Installing the Entando Imagick Image stream."
-  if [ -n "${REDHAT_REGISTRY_USERNAME}" ]; then
-    oc delete secret base-image-registry-secret -n "${APPLICATION_NAME}-build" 2>/dev/null
-    oc create secret docker-registry base-image-registry-secret \
-        --docker-server=registry.connect.redhat.com \
-        --docker-username=${REDHAT_REGISTRY_USERNAME} \
-        --docker-password=${REDHAT_REGISTRY_PASSWORD} \
-        --docker-email=${REDHAT_REGISTRY_USERNAME} \
-        -n "${APPLICATION_NAME}-build"
-    oc label secret base-image-registry-secret application=entando-central -n "${APPLICATION_NAME}-build"
-    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-clustered-openshift.json -n "${APPLICATION_NAME}-build"
-    oc delete secret base-image-registry-secret -n $IMAGE_STREAM_NAMESPACE 2>/dev/null
-    oc create secret docker-registry base-image-registry-secret \
-        --docker-server=registry.connect.redhat.com \
-        --docker-username=${REDHAT_REGISTRY_USERNAME} \
-        --docker-password=${REDHAT_REGISTRY_PASSWORD} \
-        --docker-email=${REDHAT_REGISTRY_USERNAME} \
-        -n $IMAGE_STREAM_NAMESPACE
-    oc label secret base-image-registry-secret application=entando-central -n $IMAGE_STREAM_NAMESPACE
-    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-clustered-openshift.json -n $IMAGE_STREAM_NAMESPACE
-  else
-    echo "Please set the REDHAT_REGISTRY_USERNAME and REDHAT_REGISTRY_PASSWORD variables so that the image can be retrieved from the secure Red Hat registry"
-    exit -1
-  fi
-}
+#May be used in future once we have our Imagick Image in the right state
+#function install_imagick_image(){
+#  echo "Installing the Entando Imagick Image stream."
+#  if [ -n "${REDHAT_REGISTRY_USERNAME}" ]; then
+#    oc delete secret base-image-registry-secret -n "${APPLICATION_NAME}-build" 2>/dev/null
+#    oc create secret docker-registry base-image-registry-secret \
+#        --docker-server=registry.connect.redhat.com \
+#        --docker-username=${REDHAT_REGISTRY_USERNAME} \
+#        --docker-password=${REDHAT_REGISTRY_PASSWORD} \
+#        --docker-email=${REDHAT_REGISTRY_USERNAME} \
+#        -n "${APPLICATION_NAME}-build"
+#    oc label secret base-image-registry-secret application=entando-central -n "${APPLICATION_NAME}-build"
+#    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-clustered-openshift.json -n "${APPLICATION_NAME}-build"
+#    oc delete secret base-image-registry-secret -n $IMAGE_STREAM_NAMESPACE 2>/dev/null
+#    oc create secret docker-registry base-image-registry-secret \
+#        --docker-server=registry.connect.redhat.com \
+#        --docker-username=${REDHAT_REGISTRY_USERNAME} \
+#        --docker-password=${REDHAT_REGISTRY_PASSWORD} \
+#        --docker-email=${REDHAT_REGISTRY_USERNAME} \
+#        -n $IMAGE_STREAM_NAMESPACE
+#    oc label secret base-image-registry-secret application=entando-central -n $IMAGE_STREAM_NAMESPACE
+#    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-clustered-openshift.json -n $IMAGE_STREAM_NAMESPACE
+#  else
+#    echo "Please set the REDHAT_REGISTRY_USERNAME and REDHAT_REGISTRY_PASSWORD variables so that the image can be retrieved from the secure Red Hat registry"
+#    exit -1
+#  fi
+#}
 
 function install_deployment_image_streams(){
-  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql95-openshift.json -n $IMAGE_STREAM_NAMESPACE
-  oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json -n $IMAGE_STREAM_NAMESPACE
+  if  !  oc describe is/entando-postgresql95-openshift -n entando| grep ${ENTANDO_IMAGE_VERSION} ; then
+    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql95-openshift.json -n $IMAGE_STREAM_NAMESPACE
+  fi
+  if  !  oc describe is/appbuilder -n entando| grep ${ENTANDO_IMAGE_VERSION} ; then
+    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json -n $IMAGE_STREAM_NAMESPACE
+  fi
 }
 
 function recreate_source_secret(){
@@ -179,39 +183,32 @@ EOF
 
 function deploy_build_template(){
   echo "Deploying Build Templates IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE}"
-  if [ $IMAGE_PROMOTION_ONLY = "true" ]; then
+  if [ "$IMAGE_PROMOTION_ONLY" = "true" ]; then
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-promote-only.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION:-5.0.2}" \
-            -p SOURCE_SECRET="${APPLICATION_NAME}-source-secret" \
-            -p SOURCE_REPOSITORY_URL="${SOURCE_REPOSITORY_URL:-https://github.com/ampie/entando-sample.git}" \
-            -p SOURCE_REPOSITORY_REF="${SOURCE_REPOSITORY_REF:-master}" \
-            -p ENTANDO_DB_SECRET_STAGE="${APPLICATION_NAME}-db-secret-stage" \
-            -p ENTANDO_DB_SECRET_PROD="${APPLICATION_NAME}-db-secret-prod" \
             -p PRODUCTION_CLUSTER_URL="${PRODUCTION_CLUSTER_URL}" \
             -p PRODUCTION_CLUSTER_SECRET="${APPLICATION_NAME}-production-cluster-secret" \
             -p EXTERNAL_DOCKER_REGISTRY_URL="${EXTERNAL_DOCKER_REGISTRY_URL}" \
             -p EXTERNAL_DOCKER_REGISTRY_SECRET="${APPLICATION_NAME}-external-registry-secret" \
             -p EXTERNAL_DOCKER_PROJECT="${EXTERNAL_DOCKER_PROJECT}" \
             -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
           |  oc replace --force --grace-period 60  -f -
   else
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-build-and-promote.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION:-5.0.2}" \
             -p SOURCE_SECRET="${APPLICATION_NAME}-source-secret" \
             -p SOURCE_REPOSITORY_URL="${SOURCE_REPOSITORY_URL:-https://github.com/ampie/entando-sample.git}" \
             -p SOURCE_REPOSITORY_REF="${SOURCE_REPOSITORY_REF:-master}" \
-            -p ENTANDO_DB_SECRET_STAGE="${APPLICATION_NAME}-db-secret-stage" \
-            -p ENTANDO_DB_SECRET_PROD="${APPLICATION_NAME}-db-secret-prod" \
             -p PRODUCTION_CLUSTER_URL="${PRODUCTION_CLUSTER_URL}" \
             -p PRODUCTION_CLUSTER_SECRET="${APPLICATION_NAME}-production-cluster-secret" \
             -p EXTERNAL_DOCKER_REGISTRY_URL="${EXTERNAL_DOCKER_REGISTRY_URL}" \
             -p EXTERNAL_DOCKER_REGISTRY_SECRET="${APPLICATION_NAME}-external-registry-secret" \
             -p EXTERNAL_DOCKER_PROJECT="${EXTERNAL_DOCKER_PROJECT}" \
             -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
           |  oc replace --force --grace-period 60  -f -
 
   fi
@@ -225,30 +222,18 @@ function prepare_db_secret(){
       DB_SERVICE_HOST="${APPLICATION_NAME}-postgresql.${APPLICATION_NAME}-$1.svc"
       DB_SERVICE_PORT="5432"
   # generate passwords and save to passwords file
-    if [ -f $1-passwords.txt ]; then
-      source $1-passwords.txt
+    if [ -f $CONFIG_DIR/$1-passwords.txt ]; then
+      source $CONFIG_DIR/$1-passwords.txt
     else
       DB_PASSWORD=$(openssl rand -base64 24)
       DB_ADMIN_PASSWORD=$(openssl rand -base64 24)
-      cat <<EOF > $1-passwords.txt
+      cat <<EOF > $CONFIG_DIR/$1-passwords.txt
 DB_PASSWORD=${DB_PASSWORD}
 DB_ADMIN_PASSWORD=${DB_ADMIN_PASSWORD}
 EOF
     fi
   fi
-  #TODO change the secret for EAP to an ENV file
-  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-db-secret.yml \
-            -p APPLICATION_NAME="${APPLICATION_NAME}" \
-            -p SECRET_NAME="${APPLICATION_NAME}-db-secret-$1" \
-            -p USERNAME="${DB_USERNAME}" \
-            -p PASSWORD="${DB_PASSWORD}" \
-            -p DB_HOSTNAME="${DB_SERVICE_HOST}" \
-            -p DB_PORT="${DB_SERVICE_PORT}" \
-            -p ADMIN_PASSWORD="${DB_ADMIN_PASSWORD}" \
-            -p ADMIN_USERNAME="postgres" \
-          |  oc replace --force --grace-period 60  -f -
-
-  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-db-file-secret.yml \
+  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-db-file-secret.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p SECRET_NAME="${APPLICATION_NAME}-db-file-secret-$1" \
             -p USERNAME="${DB_USERNAME}" \
@@ -257,7 +242,7 @@ EOF
             -p DB_PORT="${DB_SERVICE_PORT}" \
             -p ADMIN_PASSWORD="${DB_ADMIN_PASSWORD}" \
             -p ADMIN_USERNAME="postgres" \
-          |  oc replace --force --grace-period 60  -f -
+          |  oc replace --force --grace-period 60  -f - || { echo "DB File Secret Creation Failed";exit 1; }
 }
 function deploy_runtime_templates(){
   oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/sample-jgroups-secret.yml \
@@ -269,9 +254,10 @@ function deploy_runtime_templates(){
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p ENVIRONMENT_TAG=$1 \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_DB_SECRET="${APPLICATION_NAME}-db-secret-$1" \
-            -p ENTANDO_APP_BUILDER_HOSTNAME_HTTP="${ENTANDO_APP_BUILDER_HOSTNAME_HTTP}" \
-            -p ENTANDO_RUNTIME_HOSTNAME="${ENTANDO_RUNTIME_HOSTNAME}" \
+            -p ENTANDO_DB_FILE_SECRET="${APPLICATION_NAME}-db-file-secret-$1" \
+            -p ENTANDO_APP_BUILDER_HOSTNAME="${ENTANDO_APP_BUILDER_HOSTNAME}" \
+            -p ENTANDO_ENGINE_HOSTNAME="${ENTANDO_ENGINE_HOSTNAME}" \
+            -p ENTANDO_ENGINE_WEB_CONTEXT="${ENTANDO_ENGINE_WEB_CONTEXT}" \
             -p EXTERNAL_DOCKER_REGISTRY_URL="${EXTERNAL_DOCKER_REGISTRY_URL}" \
             -p EXTERNAL_DOCKER_PROJECT="${EXTERNAL_DOCKER_PROJECT}" \
             -p ENTANDO_OIDC_ACTIVE="true" \
@@ -279,26 +265,29 @@ function deploy_runtime_templates(){
             -p ENTANDO_OIDC_TOKEN_LOCATION="$OIDC_TOKEN_LOCATION" \
             -p ENTANDO_OIDC_CLIENT_ID="$OIDC_CLIENT_ID" \
             -p ENTANDO_OIDC_REDIRECT_BASE_URL="$OIDC_REDIRECT_BASE_URL" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
             | oc replace --force --grace-period 60  -f -
   else
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-eap71-deployment.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p ENVIRONMENT_TAG=$1 \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_DB_SECRET="${APPLICATION_NAME}-db-secret-$1" \
-            -p ENTANDO_APP_BUILDER_HOSTNAME_HTTP="${ENTANDO_APP_BUILDER_HOSTNAME_HTTP}" \
-            -p ENTANDO_RUNTIME_HOSTNAME="${ENTANDO_RUNTIME_HOSTNAME}" \
+            -p ENTANDO_DB_FILE_SECRET="${APPLICATION_NAME}-db-file-secret-$1" \
+            -p ENTANDO_APP_BUILDER_HOSTNAME="${ENTANDO_APP_BUILDER_HOSTNAME}" \
+            -p ENTANDO_ENGINE_HOSTNAME="${ENTANDO_ENGINE_HOSTNAME}" \
+            -p ENTANDO_ENGINE_WEB_CONTEXT="${ENTANDO_ENGINE_WEB_CONTEXT}" \
             -p EXTERNAL_DOCKER_REGISTRY_URL="${EXTERNAL_DOCKER_REGISTRY_URL}" \
             -p EXTERNAL_DOCKER_PROJECT="${EXTERNAL_DOCKER_PROJECT}" \
             -p ENTANDO_OIDC_ACTIVE="false" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
             | oc replace --force --grace-period 60  -f -
   fi
   if [ "${DEPLOY_POSTGRESQL}" = "true" ]; then
       oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-postgresql95-deployment.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_IMAGE_VERSION="5.0.2" \
-            -p ENTANDO_DB_SECRET="${APPLICATION_NAME}-db-secret-$1" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
+            -p ENTANDO_DB_FILE_SECRET="${APPLICATION_NAME}-db-file-secret-$1" \
             | oc replace --force --grace-period 60  -f -
   fi
 }
@@ -366,6 +355,7 @@ function clear_stage_projects(){
     oc delete secret -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-build
     oc delete pvc -l application=$APPLICATION_NAME -n $APPLICATION_NAME-stage
+    oc delete bc --all -n $APPLICATION_NAME-build #because the Jenkins plugin would have recreated them by now :-)
 }
 function clear_prod_projects(){
     log_into_prod_cluster
@@ -433,6 +423,10 @@ case $i in
       IMAGE_STREAM_NAMESPACE="${i#*=}"
       shift # past argument=value
     ;;
+    -eiv=*|--entando-image-version=*)
+      ENTANDO_IMAGE_VERSION="${i#*=}"
+      shift # past argument=value
+    ;;
     --image-promotion-only)
       IMAGE_PROMOTION_ONLY="true"
     ;;
@@ -442,6 +436,7 @@ case $i in
 esac
 done
 IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-openshift}
+ENTANDO_IMAGE_VERSION=${ENTANDO_IMAGE_VERSION:-5.0.3-SNAPSHOT}
 echo "IMAGE_STREAM_NAMESPACE=$IMAGE_STREAM_NAMESPACE"
 case $COMMAND in
   create)

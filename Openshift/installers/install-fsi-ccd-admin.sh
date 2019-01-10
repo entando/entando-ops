@@ -39,7 +39,7 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml
     -p KIE_SERVER_PASSWORD="kieUser!23" \
     -p SOURCE_REPOSITORY_REF=v5.0.1-SNAPSHOT \
     -p IMAGE_STREAM_NAMESPACE="entando" \
-    -p ENTANDO_RUNTIME_HOSTNAME_HTTP="entando-core.$(get_openshift_subdomain)" \
+    -p ENTANDO_ENGINE_HOSTNAME="entando-core.$(get_openshift_subdomain)" \
     -p SOURCE_REPOSITORY_URL="https://github.com/entando/fsi-cc-dispute-admin.git" \
-    -p ENTANDO_WEB_CONTEXT="fsi-credit-card-dispute-backoffice" \
+    -p ENTANDO_ENGINE_WEB_CONTEXT="/fsi-credit-card-dispute-backoffice" \
   | oc replace --force -f -

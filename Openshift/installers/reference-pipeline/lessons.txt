@@ -1,8 +1,5 @@
-0. The docker client plugin for jenkins does not work on the openshift jenkins slaves!!!!! They do not have a docker client installed. I have successfully installed a docker
-client but in order to interact with the master node's docker service, we either need to map the unix socket  /var/run/docker.sock which is impossible to do with PV, or connect
-to the DOCKER_HOST (possibly using a 172.xx.0.1 address to the gateway). I gave up
-before getting this to work. there is a risk here as you do not want the pod to interfere with the docker host, but we sure as hell need a way to tag images. my workaround
-of building single layer images to tag is not sustainable. it creates a nightmare of child image dependencies.
+0. The docker client plugin for jenkins does not work on the openshift jenkins slaves out of the box. I also doesnt work with unix sockets. The only way to get it to work
+is to configure the Docker daemon to expose itself on a TCP IP port, and then connect to it from the withServer method. TODO test if we can use 172.17.0.1
 1. The Openshift Jenkins Sync Client plugin is a master-based dev project. It still seems to be pre-release status. Some unknown version of this plugin is deployed to Openshift.
 Unfortunately that means that some of the features do not seem to be supported in the current version of Openshift. For example, we could not get the  Jenkins File Credentials
 to sync from Openshift secrets.
@@ -19,22 +16,22 @@ image fails and complains about things like "a server already running" then it m
 Credentials in Jenkins and deleting as many of the Secrets in Openshift.
 7. The Openshift Multitenant Network Plugin blocks inter-project Pod communication. Wherever this plugin is installed, we need to join the build and deployment networks.
 This is done in the installation script. It fails on Openshift clusters where the Multitenant Network Plugin is not installed, but that can be ignored.
-8. ImageStreams add a lot of indirection that needs to be synced. You can use Docker images directly from a DC.
+8. ImageStreams add a lot of indirection that needs to be synced. You can uese Docker images directly from a DC.
 9. The version of the Jenkins running in Openshift does not support nested stages yet.
 10. Even though a pipeline build does not require a source code specification, Bitbucket (and probabluy other) webhooks don't work unless Openshift can find a BuildConfig
 with a matching Source Specification
 11. Our builds are still a bit on the slow side. We need to look at disabling some of the maven plugins and finding a faster way to restore the DB
+12. Sometimes you get timeouts when interacting with docker.io. Fix this by adding 8.8.8.8 to the top of resolv.conf if it is not already there
 
 
 
 TODO:
-Prepopulate the resources directory in the assemble phase. Automate resources fully.
 We should put entando-central's standalone-openshift.xml in the Imagick image. We don't need the datasources, but the handler for the resources and the caches are required.
 We still need to automate the cert generation
-Migrate the EAP DB Secret to a single ENV_FILE
-Introducte an ENV_FILE in the PostgreSQL image and translate those variables to the appropriate variables for PG to initialise the database
-Create a PostgreSQL image WITHOUT Maven and Ant that only does the above
+Create a PostgreSQL image WITHOUT Maven and Ant that only populates the db using Java and Jetty
 Test the DB backup/restore on failure properly
 Make sure that all our bash scripts return non-zero on failure
-Wait for pod success before completing the pipeline
-There is a risk that the database may be built against modified sources in production. This problem will disappear of we let the build process generate sql.
+Scale back up when the DB migration fails
+Undo a rollout and DB migration when the final rollout fails
+Make the actual image name configurable
+Try to get rid of the production cluster secret and use only the token, which is generally interchangeable with the id of the Openshift Token Credential in Jenkins

@@ -30,6 +30,7 @@ ENV PORTDB_USERNAME=agile \
     SERVDB_DATABASE=entandoServ \
     POSTGRESQL_MAX_PREPARED_TRANSACTIONS=0 \
     POSTGRESQL_SHARED_BUFFERS=32MB \
+    ENV_FILES="" \
     PREPARE_DATA=true
 
 COPY --chown=26:0 ./postgresql /usr/share/container-scripts/postgresql

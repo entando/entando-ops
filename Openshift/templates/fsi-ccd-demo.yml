@@ -67,11 +67,11 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "ccd-admin-runtime"
+      deploymentConfig: "ccd-admin-engine"
   metadata:
-    name: "ccd-admin-runtime"
+    name: "ccd-admin-engine"
     labels:
-      application: "ccd-admin-runtime"
+      application: "ccd-admin-engine"
     annotations:
       description: The Entando Runtime server's http port.
 - kind: Service
@@ -90,9 +90,9 @@ objects:
       description: The Entando AppBuilder http port.
 - kind: Route
   apiVersion: v1
-  id: "ccd-admin-runtime-http"
+  id: "ccd-admin-engine-http"
   metadata:
-    name: "ccd-admin-runtime-http"
+    name: "ccd-admin-engine-http"
     labels:
       application: "ccd-admin"
     annotations:
@@ -101,7 +101,7 @@ objects:
     host: "ccd-admin.${DOMAIN_SUFFIX}"
     path: "/fsi-credit-card-dispute-backoffice"
     to:
-      name: "ccd-admin-runtime"
+      name: "ccd-admin-engine"
 - kind: Route
   apiVersion: v1
   id: "ccd-admin-appbuilder"
@@ -118,7 +118,7 @@ objects:
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "ccd-admin-runtime"
+    name: "ccd-admin-engine"
     labels:
       application: "ccd-admin"
   spec:
@@ -129,7 +129,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "ccd-admin-runtime"
+        - "ccd-admin-engine"
         from:
           kind: ImageStreamTag
           name: "fsi-cc-dispute-admin:${IMAGE_STREAM_TAG}"
@@ -137,17 +137,17 @@ objects:
     - type: ConfigChange
     replicas: 1
     selector:
-      deploymentConfig: "ccd-admin-runtime"
+      deploymentConfig: "ccd-admin-engine"
     template:
       metadata:
-        name: "ccd-admin-runtime"
+        name: "ccd-admin-engine"
         labels:
-          deploymentConfig: "ccd-admin-runtime"
+          deploymentConfig: "ccd-admin-engine"
           application: "ccd-admin"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "ccd-admin-runtime"
+        - name: "ccd-admin-engine"
           image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-admin:${IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
@@ -260,11 +260,11 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "ccd-customer-runtime"
+      deploymentConfig: "ccd-customer-engine"
   metadata:
-    name: "ccd-customer-runtime"
+    name: "ccd-customer-engine"
     labels:
-      application: "ccd-customer-runtime"
+      application: "ccd-customer-engine"
     annotations:
       description: The Entando Runtime server's http port.
 - kind: Service
@@ -283,9 +283,9 @@ objects:
       description: The Entando AppBuilder http port.
 - kind: Route
   apiVersion: v1
-  id: "ccd-customer-runtime-http"
+  id: "ccd-customer-engine-http"
   metadata:
-    name: "ccd-customer-runtime-http"
+    name: "ccd-customer-engine-http"
     labels:
       application: "ccd-customer"
     annotations:
@@ -294,7 +294,7 @@ objects:
     host: "ccd-customer.${DOMAIN_SUFFIX}"
     path: "/fsi-credit-card-dispute-customer"
     to:
-      name: "ccd-customer-runtime"
+      name: "ccd-customer-engine"
 - kind: Route
   apiVersion: v1
   id: "ccd-customer-appbuilder"
@@ -311,7 +311,7 @@ objects:
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "ccd-customer-runtime"
+    name: "ccd-customer-engine"
     labels:
       application: "ccd-customer"
   spec:
@@ -322,7 +322,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "ccd-customer-runtime"
+        - "ccd-customer-engine"
         from:
           kind: ImageStreamTag
           name: "fsi-cc-dispute-customer:${IMAGE_STREAM_TAG}"
@@ -330,17 +330,17 @@ objects:
     - type: ConfigChange
     replicas: 1
     selector:
-      deploymentConfig: "ccd-customer-runtime"
+      deploymentConfig: "ccd-customer-engine"
     template:
       metadata:
-        name: "ccd-customer-runtime"
+        name: "ccd-customer-engine"
         labels:
-          deploymentConfig: "ccd-customer-runtime"
+          deploymentConfig: "ccd-customer-engine"
           application: "ccd-customer"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "ccd-customer-runtime"
+        - name: "ccd-customer-engine"
           image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-customer:${IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
