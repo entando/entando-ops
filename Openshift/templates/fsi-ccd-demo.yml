@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.2
+    version: 5.0.3-SNAPSHOT
     openshift.io/display-name: Entando Template for Demos
     openshift.io/provider-display-name: Entando
     description: An template that facilitates the installation of one of the Entando demos
@@ -24,8 +24,8 @@ parameters:
   required: true
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
-  name: IMAGE_STREAM_TAG
-  value: 5.0.2
+  name: ENTANDO_IMAGE_STREAM_TAG
+  value: 5.0.3-SNAPSHOT
   required: false
 - displayName: KIE Server base url
   description: KIE Server base url
@@ -132,7 +132,7 @@ objects:
         - "ccd-admin-engine"
         from:
           kind: ImageStreamTag
-          name: "fsi-cc-dispute-admin:${IMAGE_STREAM_TAG}"
+          name: "fsi-cc-dispute-admin:${ENTANDO_IMAGE_STREAM_TAG}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
@@ -148,24 +148,27 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "ccd-admin-engine"
-          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-admin:${IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-admin:${ENTANDO_IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
               memory: "${MEMORY_LIMIT}"
           livenessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/livenessProbe.sh"
-            initialDelaySeconds: 60
+            httpGet:
+              path: /fsi-credit-card-dispute-backoffice
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           readinessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/readinessProbe.sh"
+            httpGet:
+              path: /fsi-credit-card-dispute-backoffice
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
           ports:
           - name: http
             containerPort: 8080
@@ -210,7 +213,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "ccd-admin-appbuilder"
@@ -223,7 +226,7 @@ objects:
       spec:
         containers:
         - name: "ccd-admin-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP
@@ -325,7 +328,7 @@ objects:
         - "ccd-customer-engine"
         from:
           kind: ImageStreamTag
-          name: "fsi-cc-dispute-customer:${IMAGE_STREAM_TAG}"
+          name: "fsi-cc-dispute-customer:${ENTANDO_IMAGE_STREAM_TAG}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
@@ -341,24 +344,27 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "ccd-customer-engine"
-          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-customer:${IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-customer:${ENTANDO_IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
               memory: "${MEMORY_LIMIT}"
           livenessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/livenessProbe.sh"
-            initialDelaySeconds: 60
+            httpGet:
+              path: /fsi-credit-card-dispute-customer
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           readinessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/readinessProbe.sh"
+            httpGet:
+              path: /fsi-credit-card-dispute-customer
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
           ports:
           - name: http
             containerPort: 8080
@@ -403,7 +409,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "ccd-customer-appbuilder"
@@ -416,7 +422,7 @@ objects:
       spec:
         containers:
         - name: "ccd-customer-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP

@@ -1,7 +1,9 @@
 ARG ENTANDO_IMAGE_VERSION
 FROM entando/entando-dependencies-full:$ENTANDO_IMAGE_VERSION AS dependencies
 ARG ENTANDO_VERSION
+FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION as builder
 ENV ENTANDO_VERSION=${ENTANDO_VERSION}
+COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2 $HOME/.m2
 RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
     BRANCH=${ENTANDO_VERSION%-*} && \
     if [[ "$ENTANDO_VERSION" = *"-SNAPSHOT" ]]; then  BRANCH="${BRANCH}-dev";  else  BRANCH="${BRANCH}"; fi && \
@@ -19,12 +21,13 @@ RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
             -Dprofile.application.baseurl.protocol=http \
             -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
             -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
-            -Dprofile.log.file.prefix=/wildfly/standalone/log/entando \
+            -Dprofile.log.file.prefix=/var/log/entando/engine_ \
             -Dprofile.resources.path=/entando-data/resources \
             -Dprofile.resources.path.protected=/entando-data/protected \
             -Dprofile.index.path=/entando-data/indexdir \
             -Djava.net.preferIPv4Stack=true && \
-    mv target/entando-sample-full.war ../
+    mv target/entando-sample-full.war ../ && \
+    $STI_SCRIPTS_PATH/init-derby-from-war.sh --war-file=/tmp/entando/entando-sample-full.war
 FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION
-COPY --chown=1001:0 --from=dependencies /tmp/entando/entando-sample-full.war /wildfly/standalone/deployments/entando.war
-RUN $STI_SCRIPTS_PATH/init-derby-from-war.sh --war-file=/wildfly/standalone/deployments/entando.war
+COPY --chown=1001:0 --from=builder /tmp/entando/entando-sample-full.war /wildfly/standalone/deployments/entando.war
+COPY --chown=1001:0 --from=builder /entando-data-templates /entando-data-templates

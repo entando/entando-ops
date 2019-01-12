@@ -1,6 +1,1 @@
-build.conf
-stage.conf
-prod.conf
-*passwords.txt
-webhook.key
 entando-central-conf/

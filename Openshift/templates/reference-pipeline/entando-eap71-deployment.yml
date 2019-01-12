@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.2
+    version: 5.0.3-SNAPSHOT
     openshift.io/display-name: Entando EAP 7.1 Deployment Template
     openshift.io/provider-display-name: Entando
     description: Entando EAP 7.1 Deployment Template
@@ -29,8 +29,8 @@ parameters:
   required: false
 - displayName: Entando Image Version
   description: Entando Image Version
-  name: ENTANDO_IMAGE_VERSION
-  value: 5.0.2
+  name: ENTANDO_IMAGE_STREAM_TAG
+  value: 5.0.3-SNAPSHOT
   required: false
 - displayName: The base url to be used to access the Entando rest services.
   description: This must reflect the HTTPS hostname of the Entando core engine service.
@@ -138,11 +138,11 @@ parameters:
   value: 1Gi
   required: false
 - description: External Docker Registry URL
-  name: EXTERNAL_DOCKER_REGISTRY_URL
+  name: SHARED_DOCKER_REGISTRY_URL
   value: docker.io
   required: false
 - description: External Docker Project
-  name: EXTERNAL_DOCKER_PROJECT
+  name: DOCKER_IMAGE_NAMESPACE
   value: ''
   required: true
 objects:
@@ -212,7 +212,7 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "${APPLICATION_NAME}-engine"
-          image: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:${ENVIRONMENT_TAG}"
+          image: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:${ENVIRONMENT_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
@@ -238,8 +238,8 @@ objects:
             httpGet:
               path: ${ENTANDO_ENGINE_WEB_CONTEXT}
               port: 8080
-            initialDelaySeconds: 180
-            periodSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 5
           ports:
@@ -366,7 +366,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${ENTANDO_IMAGE_VERSION}
+          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -379,7 +379,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_VERSION}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP

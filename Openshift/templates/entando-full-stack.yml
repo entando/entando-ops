@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-wildfly
     tags: javaee,java,jboss
-    version: 5.0.2
+    version: 5.0.3-SNAPSHOT
     openshift.io/display-name: Template to setup the Full Entando Stack App
     openshift.io/provider-display-name: Entando
     description: An template that facilitates the installation of the Full Entando Stack
@@ -18,19 +18,17 @@ labels:
 message: A new Entando Demo has been created in your project.
 parameters:
 
-- displayName: Domain suffix
-  name: DOMAIN_SUFFIX
-  description: Domain suffix will be appended to the various service names to form a full domain name for the Route of the
-    mapped to the service. This parameter is required to ensure that the AppBuider points to the externally accessible
-    URL that serves Entando Full Stack Engine App.
-  value: ""
-  required: true
+- displayName: Application Name
+  description: The name for the application.
+  name: APPLICATION_NAME
+  value: entando-sample
+  required: false
 
 - displayName: Image Stream Tag
-  name: IMAGE_STREAM_TAG
+  name: ENTANDO_IMAGE_STREAM_TAG
   description: The Image Stream Tag to use for each of the Entando Images for which there is a DeploymentConfig. This
     Image Stream Tag should which generally corresponds with the Entando version to be used.
-  value: 5.0.2
+  value: 5.0.3-SNAPSHOT
   required: false
 
 - displayName: ImageStream Namespace
@@ -66,6 +64,18 @@ parameters:
   description: Size of persistent storage for database volume.
   value: 1Gi
   required: false
+- displayName: Custom http Route Hostname for the AppBuilder
+  description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
+    hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
+  name: ENTANDO_APP_BUILDER_HOSTNAME
+  value: ''
+  required: false
+- displayName: Custom http Route Hostname for the Entando runtime and legacy screens
+  description: 'Custom http Route Hostname for the Entando runtime and legacy screens.
+    Leave blank for default hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
+  name: ENTANDO_ENGINE_HOSTNAME
+  value: ''
+  required: true
 
 
 objects:
@@ -76,11 +86,11 @@ objects:
     - port: 8080
       targetPort: 8080
     selector:
-      deploymentConfig: "entando-full-stack-engine"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
   metadata:
-    name: "entando-full-stack-engine"
+    name: "${APPLICATION_NAME}-engine"
     labels:
-      application: "entando-full-stack"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: The Entando Runtime server's http port.
 - kind: Service
@@ -90,45 +100,46 @@ objects:
     - port: 5000
       targetPort: 5000
     selector:
-      deploymentConfig: "appbuilder"
+      deploymentConfig: "${APPLICATION_NAME}-appbuilder"
   metadata:
-    name: "appbuilder"
+    name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "entando-full-stack"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: The Entando AppBuilder http port.
 - kind: Route
   apiVersion: v1
-  id: "entando-full-stack-engine-http"
+  id: "${APPLICATION_NAME}-engine-http"
   metadata:
-    name: "entando-full-stack-engine-http"
+    name: "${APPLICATION_NAME}-engine-http"
     labels:
-      application: "entando-full-stack"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: Route for the Entando Runtime's http service.
   spec:
-    host: "entando-full-stack.${DOMAIN_SUFFIX}"
+    host: "${ENTANDO_ENGINE_HOSTNAME}"
+    path: "/entando"
     to:
-      name: "entando-full-stack-engine"
+      name: "${APPLICATION_NAME}-engine"
 - kind: Route
   apiVersion: v1
-  id: "entando-full-stack-appbuilder"
+  id: "${APPLICATION_NAME}-appbuilder"
   metadata:
-    name: "entando-full-stack-appbuilder"
+    name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "entando-full-stack"
+      application: "${APPLICATION_NAME}-appbuilder"
     annotations:
       description: Route for application's http service.
   spec:
-    host: "entando-full-stack-appbuilder.${DOMAIN_SUFFIX}"
+    host: "${ENTANDO_APP_BUILDER_HOSTNAME}"
     to:
-      name: "appbuilder"
+      name: "${APPLICATION_NAME}-appbuilder"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "entando-full-stack-engine"
+    name: "${APPLICATION_NAME}-engine"
     labels:
-      application: "entando-full-stack"
+      application: "${APPLICATION_NAME}"
   spec:
     strategy:
       type: Recreate
@@ -137,26 +148,26 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "entando-full-stack-engine"
+        - "${APPLICATION_NAME}-engine"
         from:
           kind: ImageStreamTag
-          name: "entando-sample-full:${IMAGE_STREAM_TAG}"
+          name: "entando-sample-full:${ENTANDO_IMAGE_STREAM_TAG}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
     selector:
-      deploymentConfig: "entando-full-stack-engine"
+      deploymentConfig: "${APPLICATION_NAME}-engine"
     template:
       metadata:
-        name: "entando-full-stack-engine"
+        name: "${APPLICATION_NAME}-engine"
         labels:
-          deploymentConfig: "entando-full-stack-engine"
-          application: "entando-full-stack"
+          deploymentConfig: "${APPLICATION_NAME}-engine"
+          application: "${APPLICATION_NAME}"
       spec:
         terminationGracePeriodSeconds: 75
         containers:
-        - name: "entando-full-stack-engine"
-          image: "${IMAGE_STREAM_NAMESPACE}/entando-sample-full:${IMAGE_STREAM_TAG}"
+        - name: "${APPLICATION_NAME}-engine"
+          image: "${IMAGE_STREAM_NAMESPACE}/entando-sample-full:${ENTANDO_IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
@@ -167,7 +178,7 @@ objects:
               - "/bin/bash"
               - "-c"
               - " /wildfly/bin/jboss-cli.sh --connect --commands=ls | grep 'server-state=running'"
-            initialDelaySeconds: 60
+            initialDelaySeconds: 180
           readinessProbe:
             exec:
               command:
@@ -175,13 +186,17 @@ objects:
               - "-c"
               - "/wildfly/bin/jboss-cli.sh --connect --commands='ls deployment' |
                 grep war"
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
           ports:
           - name: http
             containerPort: 8080
             protocol: TCP
           volumeMounts:
           - mountPath: "/entando-data"
-            name: "entando-full-stack-pvol"
+            name: "${APPLICATION_NAME}-pvol"
           env:
           - name: KIE_SERVER_BASE_URL
             value: "${KIE_SERVER_BASE_URL}"
@@ -194,17 +209,17 @@ objects:
               fieldRef:
                 fieldPath: status.podIP
         volumes:
-        - name: "entando-full-stack-pvol"
+        - name: "${APPLICATION_NAME}-pvol"
           persistentVolumeClaim:
-            claimName: "entando-full-stack-claim"
+            claimName: "${APPLICATION_NAME}-claim"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
-    name: "entando-full-stack-appbuilder"
+    name: "${APPLICATION_NAME}-appbuilder"
     generation: 1
     creationTimestamp:
     labels:
-      application: "entando-full-stack"
+      application: "${APPLICATION_NAME}"
     annotations: {}
   spec:
     strategy:
@@ -215,30 +230,30 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "entando-full-stack-appbuilder"
+        - "${APPLICATION_NAME}-appbuilder"
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
     replicas: 1
     selector:
-      deploymentConfig: "entando-full-stack-appbuilder"
+      deploymentConfig: "${APPLICATION_NAME}-appbuilder"
     template:
       metadata:
         creationTimestamp:
         labels:
-          deploymentConfig: "entando-full-stack-appbuilder"
+          deploymentConfig: "${APPLICATION_NAME}-appbuilder"
         annotations: {}
       spec:
         containers:
-        - name: "entando-full-stack-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
+        - name: "${APPLICATION_NAME}-appbuilder"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP
           env:
           - name: DOMAIN
-            value: http://entando-full-stack.${DOMAIN_SUFFIX}/entando
+            value: http://${ENTANDO_ENGINE_HOSTNAME}/entando
           - name: CLIENT_SECRET
             value: appbuilder_secret
           resources: {}
@@ -253,9 +268,9 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: "entando-full-stack-claim"
+    name: "${APPLICATION_NAME}-claim"
     labels:
-      application: "entando-full-stack"
+      application: "${APPLICATION_NAME}"
   spec:
     accessModes:
     - ReadWriteOnce

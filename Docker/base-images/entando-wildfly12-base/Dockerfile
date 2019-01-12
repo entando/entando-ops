@@ -37,6 +37,7 @@ ENV PORTDB_NONXA="true" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
     PREPARE_DATA="true" \
+    DB_ENVIRONMENT="production" \
     DEPLOYMENTS_DIR="/wildfly/standalone/deployments" \
     ENTANDO_OIDC_ACTIVE="false" \
     ENTANDO_OIDC_AUTH_LOCATION="http://dummy.com" \
@@ -47,7 +48,9 @@ ENV PORTDB_NONXA="true" \
 
 USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
-    mkdir -p /entando-data-templates/databases  && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/
+    mkdir -p /entando-data-templates/databases  && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/ && \
+    mkdir -p /var/log/entando && chown -Rf $USERID_TO_USE:0 /var/log/entando && chmod -Rf ug+rw /var/log/entando
+
 USER $USERID_TO_USE
 
 CMD "${STI_SCRIPTS_PATH}/run"

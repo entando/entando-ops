@@ -1,38 +1,59 @@
 #!/usr/bin/env bash
-export ENTANDO_OPS_HOME=/home/lulu/Code/entando/entando-ops
-#export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/credit-card-dispute"
+function validate_environment(){
+    if [ -z "${OPENSHIFT_DOMAIN_SUFFIX}" ]; then
+        echo "OPENSHIFT_DOMAIN_SUFFIX not set. Please set it to the default name suffix that your Openshift cluster is setup to use"
+        exit 1
+    fi
+}
+function ensure_image_stream(){
+    local IMAGE_STREAM=$1
+    if  oc describe is/appbuilder -n ${IMAGE_STREAM_NAMESPACE}| grep ${ENTANDO_IMAGE_STREAM_TAG} ; then
+        echo "ImageStream $1 already has a tag ${ENTANDO_IMAGE_STREAM_TAG}"
+    else
+        echo "ImageStream $1 does not have the tag ${ENTANDO_IMAGE_STREAM_TAG}, recreating ImageStream ...."
+        oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/${IMAGE_STREAM}.json -n ${IMAGE_STREAM_NAMESPACE}
+    fi
 
-function get_openshift_subdomain(){
-  if [ -n "${OPENSHIFT_DOMAIN_SUFFIX}" ]; then
-    echo "${OPENSHIFT_DOMAIN_SUFFIX}"
-  elif command  -v minishift ; then
-    PUBLIC_HOSTNAME=$(minishift config get public-hostname)
-    if [ $PUBLIC_HOSTNAME == "<nil>" ]; then
-      PUBLIC_HOSTNAME=$(minishift openshift config view | grep -oP "(?<=  subdomain: )[0-9\.a-zA-Z_\-]+")
-      if [ -z $PUBLIC_HOSTNAME ]; then
-        echo "$(minishift ip).nip.io"
-      else
-        echo $PUBLIC_HOSTNAME
-      fi
-    else
-      echo $PUBLIC_HOSTNAME
-    fi
-  elif [ -f  /etc/origin/master/master-config.yaml  ]; then
-    PUBLIC_HOSTNAME=$(sudo cat /etc/origin/master/master-config.yaml | grep -oP "(?<=  subdomain: )[0-9\.a-zA-Z_\-]+")
-    if [[ -z $PUBLIC_HOSTNAME ]]; then
-      echo "$(hostname -i).nip.io"
-    else
-      echo $PUBLIC_HOSTNAME
-    fi
-  else
-     >&2 echo "Neither Minishift nor the Openshift master-config.yml found. Are you running from a node with an Openshift installation?"
-     echo "COULD_NOT_RESOLVE_OS_SUBDOMAIN"
-  fi
+}
+function recreate_project(){
+    oc delete project $1 --ignore-not-found
+    while ! oc new-project $1 ; do
+        echo "Waiting for $1 to be terminated"
+        sleep 5
+    done
+    oc policy add-role-to-group system:image-puller system:serviceaccounts:$1 -n ${IMAGE_STREAM_NAMESPACE}
 }
 
-function echo_header() {
-    echo
-    echo "########################################################################"
-    echo $1
-    echo "########################################################################"
-}
+export ENTANDO_OPS_HOME=$(realpath ../..)
+# Read correct config file
+for i in "$@"; do
+    if [[ "$i" == "--config-file="* ]]; then
+        CONFIG_FILE="${i#*=}"
+        echo "Using CONFIG_FILE ${CONFIG_FILE})"
+    fi
+done
+source $(dirname $BASH_SOURCE[0])/${CONFIG_FILE:-default}.conf || exit 1
+
+# Override config file with argument values
+for i in "$@" ;  do
+    echo "i=$i"
+    case $i in
+        -an=*|--application-name=*)
+            APPLICATION_NAME="${i#*=}"
+        ;;
+        -isn=*|--image-stream-namespace=*)
+            IMAGE_STREAM_NAMESPACE="${i#*=}"
+        ;;
+        -eiv=*|--entando-image-version=*)
+            ENTANDO_IMAGE_STREAM_TAG="${i#*=}"
+        ;;
+        -srr=*|--source-=repository-ref=*)
+            SOURCE_REPOSITORY_REF="${i#*=}"
+        ;;
+        --openshift-domain-suffix)
+            OPENSHIFT_DOMAIN_SUFFIX="${i#*=}"
+        ;;
+        *)
+        ;;
+    esac
+done

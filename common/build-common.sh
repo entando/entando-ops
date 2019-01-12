@@ -39,17 +39,17 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
                 echo "Optionally tagging and pushing $DOCKER_REPO:latest"
                 $DOCKER_BUILD_DIR/hooks/post_push # this is more to just test that post_push works, testing it against Openshift's docker registry
                 echo "Removing local tag $DOCKER_REPO:latest if present"
-                docker rmi "$DOCKER_REPO:latest" &> /dev/null
+                docker rmi "$DOCKER_REPO:latest" &> /dev/null || true
             fi
         else
             echo "Docker build failed"
-            exit 1
+            exit 2
         fi
     else
         echo "ERROR: please export the desired ENTANDO_IMAGE and VERSION variables"
-        exit 1
+        exit 3
     fi
 else
     echo "ERROR: build-common.sh has to be invoked using the 'source build-common.sh' style invokation"
-    exit 1
+    exit 4
 fi

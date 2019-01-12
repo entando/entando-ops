@@ -62,12 +62,12 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
                 -Djboss=jboss \
                 -Dproject.build.sourceEncoding=UTF-8 \
-                -Denv.db.environment=production \
+                -Denv.db.environment=${DB_ENVIRONMENT} \
                 -Dprofile.config.version=production \
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
-                -Dprofile.log.file.prefix=/entando-data/logs/log \
+                -Dprofile.log.file.prefix=/var/log/entando/engine_ \
                 -Dprofile.resources.path=/entando-data/resources \
                 -Dprofile.resources.path.protected=/entando-data/protected \
                 -Dprofile.index.path=/entando-data/indexdir \

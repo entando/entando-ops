@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.2
+    version: 5.0.3-SNAPSHOT
     openshift.io/display-name: Entando in EAP 7.1 + PostgreSQL (Persistent with https)
     openshift.io/provider-display-name: Entando
     description: An example Entando application with a PostgreSQL database.
@@ -18,11 +18,10 @@ metadata:
   name: entando-eap71-postgresql95-persistent-s2i
 labels:
   template: entando-eap71-postgresql95-persistent-s2i
-message: 'A new Entando EAP 12 and PostgreSQL 9.5 persistent based application with
-  SSL support has been created in your project. The username/password for accessing
+message: 'A new Entando EAP 12 and PostgreSQL 9.5 persistent based application. SSL can support can be added
+  by recreating the secure route with the necessary keys and certificats. The username/password for accessing
   the PostgreSQL databases "${ENTANDO_PORT_DATABASE}" and "${ENTANDO_SERV_DATABASE}" is specifed in the ${DB_SECRET} secret.
-  Please be sure to create the following secrets: "${HTTPS_SECRET}" containing the
-  ${HTTPS_KEYSTORE} file used for serving secure content; "${JGROUPS_ENCRYPT_SECRET}"
+  Please be sure to create the "${JGROUPS_ENCRYPT_SECRET}"
   containing the ${JGROUPS_ENCRYPT_KEYSTORE} file used for securing JGroups communications.'
 parameters:
 - displayName: Application Name
@@ -32,8 +31,8 @@ parameters:
   required: false
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
-  name: IMAGE_STREAM_TAG
-  value: 5.0.2
+  name: ENTANDO_IMAGE_STREAM_TAG
+  value: 5.0.3-SNAPSHOT
   required: false
 - displayName: Custom http Route Hostname
   description: 'Custom hostname for http service route.  Leave blank for default hostname,
@@ -58,10 +57,15 @@ parameters:
   name: ENTANDO_ENGINE_BASEURL
   value: ''
   required: false
+- displayName: Custom HTTP Route Hostname for AppBuilder
+  description: 'Custom HTTP Route Hostname for AppBuilder'
+  name: ENTANDO_APP_BUILDER_HOSTNAME
+  value: ''
+  required: false
 - displayName: Git Repository URL
   description: Git source URI for application
   name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ampie/entando-sample.git
+  value: https://github.com/entando/entando-sample-minimal.git
   required: true
 - displayName: Git Reference
   description: Git branch/tag reference
@@ -131,31 +135,6 @@ parameters:
   name: VOLUME_CAPACITY
   value: 1Gi
   required: false
-- displayName: Server Keystore Secret Name
-  description: The name of the secret containing the keystore file
-  name: HTTPS_SECRET
-  value: entando-app-secret
-  required: true
-- displayName: Server Keystore Filename
-  description: The name of the keystore file within the secret
-  name: HTTPS_KEYSTORE
-  value: keystore.jks
-  required: false
-- displayName: Server Keystore Type
-  description: The type of the keystore file (JKS or JCEKS)
-  name: HTTPS_KEYSTORE_TYPE
-  value: ''
-  required: false
-- displayName: Server Certificate Name
-  description: The name associated with the server certificate
-  name: HTTPS_NAME
-  value: jboss
-  required: false
-- displayName: Server Keystore Password
-  description: The password for the keystore and certificate
-  name: HTTPS_PASSWORD
-  value: mykeystorepass
-  required: false
 - displayName: Datasource Minimum Pool Size
   description: Sets xa-pool/min-pool-size for the configured datasource.
   name: DB_MIN_POOL_SIZE
@@ -212,12 +191,12 @@ parameters:
 - displayName: JGroups Certificate Name
   description: The name associated with the server certificate
   name: JGROUPS_ENCRYPT_NAME
-  value: secret-key
+  value: jgroups
   required: false
 - displayName: JGroups Keystore Password
   description: The password for the keystore and certificate
   name: JGROUPS_ENCRYPT_PASSWORD
-  value: password
+  value: mykeystorepassword
   required: false
 - displayName: JGroups Cluster Password
   description: JGroups cluster password
@@ -271,22 +250,6 @@ objects:
   apiVersion: v1
   spec:
     ports:
-    - port: 8443
-      targetPort: 8443
-    selector:
-      deploymentConfig: "${APPLICATION_NAME}-engine"
-  metadata:
-    name: secure-${APPLICATION_NAME}-engine
-    labels:
-      application: "${APPLICATION_NAME}"
-    annotations:
-      description: The web server's https port.
-      service.alpha.openshift.io/dependencies: '[{"name": "${APPLICATION_NAME}-portdb",
-        "kind": "Service"}]'
-- kind: Service
-  apiVersion: v1
-  spec:
-    ports:
     - port: 5000
       targetPort: 5000
     selector:
@@ -297,7 +260,7 @@ objects:
       application: "${APPLICATION_NAME}-appbuilder"
     annotations:
       description: The static web server's http port.
-      service.alpha.openshift.io/dependencies: '[{"name": "${APPLICATION_NAME}", "kind":
+      service.alpha.openshift.io/dependencies: '[{"name": "${APPLICATION_NAME}-engine", "kind":
         "Service"}]'
 - kind: Service
   apiVersion: v1
@@ -356,7 +319,7 @@ objects:
     host: "${ENTANDO_ENGINE_HOSTNAME_HTTP}"
     path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
     to:
-      name: "${APPLICATION_NAME}-engine-http"
+      name: "${APPLICATION_NAME}-engine"
 - kind: Route
   apiVersion: v1
   id: "${APPLICATION_NAME}-engine-https"
@@ -370,9 +333,9 @@ objects:
     host: "${ENTANDO_ENGINE_HOSTNAME_HTTPS}"
     path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
     to:
-      name: secure-${APPLICATION_NAME}-engine
+      name: ${APPLICATION_NAME}-engine
     tls:
-      termination: passthrough
+      termination: edge
 - kind: Route
   apiVersion: v1
   id: "${APPLICATION_NAME}-appbuilder"
@@ -383,7 +346,7 @@ objects:
     annotations:
       description: Route for application's http service.
   spec:
-    host: appbuilder.${ENTANDO_ENGINE_HOSTNAME_HTTP}
+    host: ${ENTANDO_APP_BUILDER_HOSTNAME}
     to:
       name: "${APPLICATION_NAME}-appbuilder"
 - kind: ImageStream
@@ -429,7 +392,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-clustered-openshift:${IMAGE_STREAM_TAG}
+          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_STREAM_TAG}
     output:
       to:
         kind: ImageStreamTag
@@ -503,7 +466,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-postgresql95-openshift:${IMAGE_STREAM_TAG}
+          name: entando-postgresql95-openshift:${ENTANDO_IMAGE_STREAM_TAG}
     output:
       to:
         kind: ImageStreamTag
@@ -532,7 +495,7 @@ objects:
       imageChangeParams:
         automatic: true
         containerNames:
-        - "${APPLICATION_NAME}"
+        - "${APPLICATION_NAME}-engine"
         from:
           kind: ImageStreamTag
           name: "${APPLICATION_NAME}:latest"
@@ -556,9 +519,6 @@ objects:
             limits:
               memory: "${MEMORY_LIMIT}"
           volumeMounts:
-          - name: eap-keystore-volume
-            mountPath: "/etc/eap-secret-volume"
-            readOnly: true
           - name: eap-jgroups-keystore-volume
             mountPath: "/etc/jgroups-encrypt-secret-volume"
             readOnly: true
@@ -576,8 +536,8 @@ objects:
             httpGet:
               path: ${ENTANDO_ENGINE_WEB_CONTEXT}
               port: 8080
-            initialDelaySeconds: 180
-            periodSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 5
           ports:
@@ -594,8 +554,8 @@ objects:
             containerPort: 8888
             protocol: TCP
           env:
-          - name: DB_SERVICE_PREFIX_MAPPING
-            value: "${APPLICATION_NAME}-portdb=PORTDB,${APPLICATION_NAME}-servdb=SERVDB"
+#          - name: DB_SERVICE_PREFIX_MAPPING
+#            value: "${APPLICATION_NAME}-portdb=PORTDB,${APPLICATION_NAME}-servdb=SERVDB"
           - name: PORTDB_JNDI
             value: java:jboss/datasources/entandoPortDataSource
           - name: SERVDB_JNDI
@@ -650,16 +610,6 @@ objects:
             value: "${APPLICATION_NAME}-ping"
           - name: OPENSHIFT_DNS_PING_SERVICE_PORT
             value: '8888'
-          - name: HTTPS_KEYSTORE_DIR
-            value: "/etc/eap-secret-volume"
-          - name: HTTPS_KEYSTORE
-            value: "${HTTPS_KEYSTORE}"
-          - name: HTTPS_KEYSTORE_TYPE
-            value: "${HTTPS_KEYSTORE_TYPE}"
-          - name: HTTPS_NAME
-            value: "${HTTPS_NAME}"
-          - name: HTTPS_PASSWORD
-            value: "${HTTPS_PASSWORD}"
           - name: JGROUPS_ENCRYPT_SECRET
             value: "${JGROUPS_ENCRYPT_SECRET}"
           - name: JGROUPS_ENCRYPT_KEYSTORE_DIR
@@ -714,9 +664,6 @@ objects:
                 key: password
                 name: "${KIE_SERVER_SECRET}"
         volumes:
-        - name: eap-keystore-volume
-          secret:
-            secretName: "${HTTPS_SECRET}"
         - name: eap-jgroups-keystore-volume
           secret:
             secretName: "${JGROUPS_ENCRYPT_SECRET}"
@@ -842,7 +789,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -855,7 +802,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP

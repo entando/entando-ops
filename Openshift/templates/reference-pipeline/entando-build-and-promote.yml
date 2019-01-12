@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: maven jenkins
-    version: 5.0.2
+    version: 5.0.3-SNAPSHOT
     openshift.io/display-name: Entando Build Configs for EAP and PostgreSQL
     openshift.io/provider-display-name: Entando
     description: Entando Build Configs for EAP and PostgreSQL
@@ -24,8 +24,8 @@ parameters:
   required: false
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
-  name: ENTANDO_IMAGE_VERSION
-  value: 5.0.2
+  name: ENTANDO_IMAGE_STREAM_TAG
+  value: 5.0.3-SNAPSHOT
   required: false
 - displayName: Entando Image Stream Namespace
   description: The Namespace containing the standard Entando Image Streams
@@ -35,7 +35,7 @@ parameters:
 - displayName: Git Repository URL
   description: Git source URI for application
   name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ampie/entando-sample.git
+  value: https://github.com/entando/entando-sample-full.git
   required: true
 - displayName: Git Reference
   description: Git branch/tag reference
@@ -84,17 +84,17 @@ parameters:
   required: false
 - displayName: External Docker Registry URL
   description: External Docker Registry  URL
-  name: EXTERNAL_DOCKER_REGISTRY_URL
+  name: SHARED_DOCKER_REGISTRY_URL
   value: ''
   required: false
 - displayName: External Docker Project
   description: External Docker Project
-  name: EXTERNAL_DOCKER_PROJECT
+  name: DOCKER_IMAGE_NAMESPACE
   value: ''
   required: false
 - displayName: External Docker Registry Secret
   description: External Docker Registry Secret
-  name: EXTERNAL_DOCKER_REGISTRY_SECRET
+  name: SHARED_DOCKER_REGISTRY_SECRET
   value: ''
   required: false
 objects:
@@ -111,7 +111,7 @@ objects:
         slave-label: entando-maven
       from:
         kind: ImageStreamTag
-        name: entando-maven-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
+        name: entando-maven-jenkins-slave-openshift39:${ENTANDO_IMAGE_STREAM_TAG}
         namespace: ${IMAGE_STREAM_NAMESPACE}
       name: latest
 - kind: ImageStream
@@ -127,7 +127,7 @@ objects:
         slave-label: entando-postgresql
       from:
         kind: ImageStreamTag
-        name: entando-postgresql-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
+        name: entando-postgresql-jenkins-slave-openshift39:${ENTANDO_IMAGE_STREAM_TAG}
         namespace: ${IMAGE_STREAM_NAMESPACE}
       name: latest
 - kind: BuildConfig
@@ -141,16 +141,16 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_VERSION}
+          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_STREAM_TAG}
           namespace: ${IMAGE_STREAM_NAMESPACE}
 #        pullSecret:
 #          name: "base-image-registry-secret"
     output:
       to:
         kind: DockerImage
-        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest"
+        name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest"
       pushSecret:
-        name: "${EXTERNAL_DOCKER_REGISTRY_SECRET}"
+        name: "${SHARED_DOCKER_REGISTRY_SECRET}"
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -162,17 +162,17 @@ objects:
       dockerStrategy:
         from:
           kind: DockerImage
-          name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest"
+          name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest"
     source:
       type: Docker
       dockerfile: |-
-         FROM ${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest
+         FROM ${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest
     output:
       to:
         kind: DockerImage
-        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage"
+        name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage"
       pushSecret:
-        name: "${EXTERNAL_DOCKER_REGISTRY_SECRET}"
+        name: "${SHARED_DOCKER_REGISTRY_SECRET}"
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -184,17 +184,17 @@ objects:
       dockerStrategy:
         from:
           kind: DockerImage
-          name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage"
+          name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage"
     source:
       type: Docker
       dockerfile: |-
-         FROM ${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage
+         FROM ${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage
     output:
       to:
         kind: DockerImage
-        name: "${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:prod"
+        name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:prod"
       pushSecret:
-        name: "${EXTERNAL_DOCKER_REGISTRY_SECRET}"
+        name: "${SHARED_DOCKER_REGISTRY_SECRET}"
 - kind: BuildConfig
   apiVersion: v1
   metadata:
@@ -237,7 +237,7 @@ objects:
                                   -Dprofile.application.baseurl.protocol=http \
                                   -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
                                   -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
-                                  -Dprofile.log.file.prefix=/opt/eap/standalone/logs/log \
+                                  -Dprofile.log.file.prefix=/var/log/entando/engine_ \
                                   -Dprofile.resources.path=/entando-data/resources \
                                   -Dprofile.resources.path.protected=/entando-data/protected \
                                   -Dprofile.index.path=/entando-data/indexdir \
@@ -286,7 +286,7 @@ objects:
                                   ${HOME}/backup-dbs.sh
                                   ${HOME}/recreate-dbs.sh
                                   oc delete pod migrate-db --ignore-not-found=true -n ${APPLICATION_NAME}-stage
-                                  oc run migrate-db --image=${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:latest \
+                                  oc run migrate-db --image=${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest \
                                       -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-stage \
                                       --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
                                       --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \
@@ -381,7 +381,7 @@ objects:
                                   -Dprofile.application.baseurl.protocol=http \
                                   -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
                                   -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
-                                  -Dprofile.log.file.prefix=/opt/eap/standalone/log/entando \
+                                  -Dprofile.log.file.prefix=/var/log/entando/engine_ \
                                   -Dprofile.resources.path=/entando-data/resources \
                                   -Dprofile.resources.path.protected=/entando-data/protected \
                                   -Dprofile.index.path=/entando-data/indexdir \
@@ -511,7 +511,7 @@ objects:
                                   env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/backup-dbs.sh
                                   env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/recreate-dbs.sh
                                   oc delete pod migrate-db  --ignore-not-found=true -n ${APPLICATION_NAME}-prod
-                                  oc run migrate-db --image=${EXTERNAL_DOCKER_REGISTRY_URL}/${EXTERNAL_DOCKER_PROJECT}/${APPLICATION_NAME}:stage \
+                                  oc run migrate-db --image=${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage \
                                       -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-prod \
                                       --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
                                       --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \

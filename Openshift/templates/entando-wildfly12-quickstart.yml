@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-wildfly
     tags: wildfly,javaee,java,jboss
-    version: 5.0.2
+    version: 5.0.3-SNAPSHOT
     openshift.io/display-name: Entando in Wildfly 12
     openshift.io/provider-display-name: Entando
     description: 'An example Entando in Wildfly '
@@ -25,8 +25,8 @@ parameters:
   required: false
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
-  name: IMAGE_STREAM_TAG
-  value: 5.0.2
+  name: ENTANDO_IMAGE_STREAM_TAG
+  value: 5.0.3-SNAPSHOT
   required: false
 
 - displayName: Custom http Route Hostname for the AppBuilder
@@ -64,7 +64,7 @@ parameters:
 - displayName: Git Repository URL
   description: Git source URI for application
   name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ampie/entando-sample.git
+  value: https://github.com/entando/entando-sample-minimal.git
   required: true
 - displayName: Git Reference
   description: Git branch/tag reference
@@ -160,6 +160,7 @@ objects:
       description: Route for the Entando Runtime's http service.
   spec:
     host: "${ENTANDO_ENGINE_HOSTNAME}"
+    path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
     to:
       name: "${APPLICATION_NAME}-engine"
 - kind: Route
@@ -208,7 +209,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-wildfly12-quickstart-openshift:${IMAGE_STREAM_TAG}
+          name: entando-wildfly12-quickstart-openshift:${ENTANDO_IMAGE_STREAM_TAG}
         incremental: false
     output:
       to:
@@ -275,6 +276,11 @@ objects:
               - "-c"
               - "/wildfly/bin/jboss-cli.sh --connect --commands='ls deployment' |
                 grep war"
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
+
           ports:
           - name: http
             containerPort: 8080
@@ -319,7 +325,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -332,7 +338,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP

@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.2
+    version: 5.0.3-SNAPSHOT
     openshift.io/display-name: Entando Quickstart on EAP 7.1
     openshift.io/provider-display-name: Entando
     description: An example illustrating how to get Entando up and running on EAP 7.1
@@ -25,8 +25,8 @@ parameters:
   required: false
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
-  name: IMAGE_STREAM_TAG
-  value: 5.0.2
+  name: ENTANDO_IMAGE_STREAM_TAG
+  value: 5.0.3-SNAPSHOT
   required: false
 - displayName: Custom http Route Hostname for the AppBuilder
   description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
@@ -63,7 +63,7 @@ parameters:
 - displayName: Git Repository URL
   description: Git source URI for application
   name: SOURCE_REPOSITORY_URL
-  value: https://github.com/ampie/entando-sample.git
+  value: https://github.com/entando/entando-sample-minimal.git
   required: true
 - displayName: Git Reference
   description: Git branch/tag reference
@@ -217,7 +217,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
+          name: entando-eap71-quickstart-openshift:${ENTANDO_IMAGE_STREAM_TAG}
         incremental: false
     output:
       to:
@@ -262,7 +262,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: entando-eap71-quickstart-openshift:${IMAGE_STREAM_TAG}
+          name: entando-eap71-quickstart-openshift:${ENTANDO_IMAGE_STREAM_TAG}
         incremental: false
     output:
       to:
@@ -317,8 +317,8 @@ objects:
             httpGet:
               path: ${ENTANDO_ENGINE_WEB_CONTEXT}
               port: 8080
-            initialDelaySeconds: 180
-            periodSeconds: 10
+            initialDelaySeconds: 30
+            periodSeconds: 5
             successThreshold: 1
             timeoutSeconds: 5
           ports:
@@ -365,7 +365,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -378,7 +378,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
           ports:
           - containerPort: 5000
             protocol: TCP

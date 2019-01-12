@@ -31,7 +31,8 @@ ENV PORTDB_NONXA="true" \
     PREPARE_DATA="true"
 USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
-    mkdir -p /entando-data-templates && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/ && \
-    ${STI_SCRIPTS_PATH}/init-dependencies.sh
+    mkdir -p /entando-data-templates && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/
 USER $USERID_TO_USE
+RUN ${STI_SCRIPTS_PATH}/init-dependencies.sh
+
 #Now we have all the dependencies sitting at $HOME./m2/settings
