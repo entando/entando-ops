@@ -9,7 +9,7 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
         export DOCKER_REPO="entando/$ENTANDO_IMAGE"
         export IMAGE_NAME="$DOCKER_REPO:$VERSION"
         export DOCKERFILE_PATH="$DOCKER_BUILD_DIR/Dockerfile"
-        $DOCKER_BUILD_DIR/hooks/build docker &> $DOCKER_BUILD_DIR/docker-build.log || exit 1
+        $DOCKER_BUILD_DIR/hooks/build docker &> $DOCKER_BUILD_DIR/docker-build.log || exit 2
         if [ $? -eq 0 ]; then
             echo "Docker build successful"
             if [ "$PUSH_TO_DOCKER_HUB" = true ]; then
@@ -43,13 +43,13 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
             fi
         else
             echo "Docker build failed"
-            exit 2
+            exit 3
         fi
     else
         echo "ERROR: please export the desired ENTANDO_IMAGE and VERSION variables"
-        exit 3
+        exit 4
     fi
 else
     echo "ERROR: build-common.sh has to be invoked using the 'source build-common.sh' style invokation"
-    exit 4
+    exit 5
 fi
