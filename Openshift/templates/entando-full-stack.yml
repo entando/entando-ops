@@ -21,10 +21,11 @@ parameters:
 - displayName: Application Name
   description: The name for the application.
   name: APPLICATION_NAME
-  value: entando-sample
+  value: entando-full-stack
   required: false
 
-- displayName: Image Stream Tag
+- displayName: Entando Image Stream Tag
+  description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
   name: ENTANDO_IMAGE_STREAM_TAG
   description: The Image Stream Tag to use for each of the Entando Images for which there is a DeploymentConfig. This
     Image Stream Tag should which generally corresponds with the Entando version to be used.
@@ -40,10 +41,28 @@ parameters:
   value: openshift
   required: true
 
+- displayName: Custom http Route Hostname for the AppBuilder
+  description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
+    hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
+  name: ENTANDO_APP_BUILDER_HOSTNAME
+  value: ''
+  required: false
 
-- displayName: KIE Server base url
+- displayName: Custom http Route Hostname for the Entando runtime and legacy screens
+  description: 'Custom http Route Hostname for the Entando runtime and legacy screens.'
+  name: ENTANDO_ENGINE_HOSTNAME
+  value: ''
+  required: true
+
+- displayName: Context root of the Entando Runtime web app
+  description: 'Context root of the Entando Runtime web app'
+  name: ENTANDO_ENGINE_WEB_CONTEXT
+  value: ''
+  required: false
+
+- displayName: KIE Server Base URL
+  description: KIE Server Base URL
   name: KIE_SERVER_BASE_URL
-  description: KIE Server base url
   value: 'http://entando-kieserver701.apps.serv.run/'
   required: false
 
@@ -60,23 +79,15 @@ parameters:
   required: false
 
 - displayName: Database Volume Capacity
-  name: VOLUME_CAPACITY
   description: Size of persistent storage for database volume.
+  name: VOLUME_CAPACITY
   value: 1Gi
   required: false
-- displayName: Custom http Route Hostname for the AppBuilder
-  description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
-    hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_APP_BUILDER_HOSTNAME
-  value: ''
-  required: false
-- displayName: Custom http Route Hostname for the Entando runtime and legacy screens
-  description: 'Custom http Route Hostname for the Entando runtime and legacy screens.
-    Leave blank for default hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_ENGINE_HOSTNAME
-  value: ''
-  required: true
 
+- description: Container memory limit
+  name: MEMORY_LIMIT
+  value: 2Gi
+  required: false
 
 objects:
 - kind: Service
@@ -127,7 +138,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: Route for application's http service.
   spec:
@@ -171,21 +182,19 @@ objects:
           imagePullPolicy: Always
           resources:
             limits:
-              memory: "2Gi"
+              memory: "${MEMORY_LIMIT}"
           livenessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - " /wildfly/bin/jboss-cli.sh --connect --commands=ls | grep 'server-state=running'"
+            httpGet:
+              path: "/entando"
+              port: 8080
             initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           readinessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/wildfly/bin/jboss-cli.sh --connect --commands='ls deployment' |
-                grep war"
+            httpGet:
+              path: "/entando"
+              port: 8080
             initialDelaySeconds: 30
             periodSeconds: 5
             successThreshold: 1

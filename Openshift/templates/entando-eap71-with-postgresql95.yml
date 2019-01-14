@@ -806,11 +806,11 @@ objects:
           ports:
           - containerPort: 5000
             protocol: TCP
-          - containerPort: 8080
-            protocol: TCP
           env:
           - name: DOMAIN
             value: "${ENTANDO_ENGINE_BASEURL}"
+          - name: CLIENT_SECRET
+            value: appbuilder_secret
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File

@@ -7,7 +7,7 @@ function validate_environment(){
 }
 function ensure_image_stream(){
     local IMAGE_STREAM=$1
-    if  oc describe is/appbuilder -n ${IMAGE_STREAM_NAMESPACE}| grep ${ENTANDO_IMAGE_STREAM_TAG} ; then
+    if  oc describe is/appbuilder -n ${IMAGE_STREAM_NAMESPACE}| grep ${ENTANDO_IMAGE_STREAM_TAG} &>/dev/null ; then
         echo "ImageStream $1 already has a tag ${ENTANDO_IMAGE_STREAM_TAG}"
     else
         echo "ImageStream $1 does not have the tag ${ENTANDO_IMAGE_STREAM_TAG}, recreating ImageStream ...."

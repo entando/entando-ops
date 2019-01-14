@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-OPENSHIFT_REGISTRY=${LOCAL_OPENSHIFT_REGISTRY:-127.0.0.1:5000}
+#OPENSHIFT_REGISTRY=${LOCAL_OPENSHIFT_REGISTRY:-127.0.0.1:5000}
 #This utility is only to be used on local developmentmore machines and will never be executed in Docker's Cloud infrastructure
 if [ -n "${BASH_SOURCE[1]}" ]; then
     if   [ -n "$ENTANDO_IMAGE" ] && [ -n "$VERSION" ]  ; then

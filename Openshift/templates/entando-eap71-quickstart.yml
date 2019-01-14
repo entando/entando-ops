@@ -18,112 +18,136 @@ labels:
   template: entando-eap-quickstart
 message: A new Entando EAP 7.1 Quickstart has been created in your project.
 parameters:
+
 - displayName: Application Name
   description: The name for the application.
   name: APPLICATION_NAME
   value: entando-sample
   required: false
+
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
   name: ENTANDO_IMAGE_STREAM_TAG
+  description: The Image Stream Tag to use for each of the Entando Images for which there is a DeploymentConfig. This
+    Image Stream Tag should which generally corresponds with the Entando version to be used.
   value: 5.0.3-SNAPSHOT
   required: false
+
+- displayName: ImageStream Namespace
+  name: IMAGE_STREAM_NAMESPACE
+  description: Namespace in which the ImageStreams for Entando  images are
+    installed. These ImageStreams are normally installed in the openshift namespace.
+    You should only need to modify this if you've installed the ImageStreams in a
+    different namespace/project.
+  value: openshift
+  required: true
+
 - displayName: Custom http Route Hostname for the AppBuilder
   description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
     hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
   name: ENTANDO_APP_BUILDER_HOSTNAME
   value: ''
   required: false
+
 - displayName: Custom http Route Hostname for the Entando runtime and legacy screens
-  description: 'Custom http Route Hostname for the Entando runtime and legacy screens.
-    Leave blank for default hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
+  description: 'Custom http Route Hostname for the Entando runtime and legacy screens.'
   name: ENTANDO_ENGINE_HOSTNAME
   value: ''
   required: true
+
 - displayName: Context root of the Entando Runtime web app
   description: 'Context root of the Entando Runtime web app'
   name: ENTANDO_ENGINE_WEB_CONTEXT
   value: ''
-  required: true
+  required: false
+
 - displayName: KIE Server Base URL
   description: KIE Server Base URL
   name: KIE_SERVER_BASE_URL
-  value: ''
+  value: 'http://entando-kieserver701.apps.serv.run/'
   required: false
+
 - displayName: KIE Server Username
-  description: KIE Server Username
   name: KIE_SERVER_USERNAME
-  value: ''
+  description: KIE Server Username
+  value: 'kieserver'
   required: false
+
 - displayName: KIE Server Password
-  description: KIE Server Password
   name: KIE_SERVER_PASSWORD
-  value: ''
+  description: KIE Server Password
+  value: 'kieserver1!'
   required: false
-- displayName: Git Repository URL
-  description: Git source URI for application
-  name: SOURCE_REPOSITORY_URL
-  value: https://github.com/entando/entando-sample-minimal.git
-  required: true
-- displayName: Git Reference
-  description: Git branch/tag reference
-  name: SOURCE_REPOSITORY_REF
-  value: master
-  required: false
-# - displayName: Source Secret
-#   description: Source Secret containing the Username and Password for the source repository
-#   name: SOURCE_SECRET
-#   value: entando-source-secret
-#   required: false
-- displayName: Context Directory
-  description: Path within Git project to build; empty for root project directory.
-  name: CONTEXT_DIR
-  value: ''
-  required: false
+
 - displayName: Database Volume Capacity
   description: Size of persistent storage for database volume.
   name: VOLUME_CAPACITY
   value: 1Gi
   required: false
+
+- description: Container memory limit
+  name: MEMORY_LIMIT
+  value: 2Gi
+  required: false
+
+#Source code related parameters
+
+# - displayName: Source Secret
+#   description: Source Secret containing the Username and Password for the source repository
+#   name: SOURCE_SECRET
+#   value: entando-source-secret
+#   required: false
+
+- displayName: Git Repository URL
+  description: Git source URI for application
+  name: SOURCE_REPOSITORY_URL
+  value: https://github.com/entando/entando-sample-minimal.git
+  required: true
+
+- displayName: Git Reference
+  description: Git branch/tag reference
+  name: SOURCE_REPOSITORY_REF
+  value: master
+  required: false
+
+- displayName: Context Directory
+  description: Path within Git project to build; empty for root project directory.
+  name: CONTEXT_DIR
+  value: ''
+  required: false
+
 - displayName: Github Webhook Secret
   description: GitHub trigger secret
   name: GITHUB_WEBHOOK_SECRET
   from: "[a-zA-Z0-9]{8}"
   generate: expression
   required: false
+
 - displayName: Generic Webhook Secret
   description: Generic build trigger secret
   name: GENERIC_WEBHOOK_SECRET
   from: "[a-zA-Z0-9]{8}"
   generate: expression
   required: true
-- displayName: ImageStream Namespace
-  description: Namespace in which the ImageStreams for Red Hat Middleware images are
-    installed. These ImageStreams are normally installed in the openshift namespace.
-    You should only need to modify this if you've installed the ImageStreams in a
-    different namespace/project.
-  name: IMAGE_STREAM_NAMESPACE
-  value: openshift
-  required: true
+
 - displayName: Maven mirror URL
   description: Maven mirror to use for S2I builds
   name: MAVEN_MIRROR_URL
   value: ''
   required: false
+
 - displayName: Maven Additional Arguments
   description: Maven additional arguments to use for S2I builds
   name: MAVEN_ARGS_APPEND
   value: ''
   required: false
+
 - description: List of directories from which archives will be copied into the deployment
     folder. If unspecified, all archives in /target will be copied.
   name: ARTIFACT_DIR
   value: ''
   required: false
-- description: Container memory limit
-  name: MEMORY_LIMIT
-  value: 2Gi
-  required: false
+
 objects:
 - kind: Service
   apiVersion: v1
@@ -136,7 +160,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-engine"
     labels:
-      application: "${APPLICATION_NAME}-engine"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: The Entando Runtime server's http port.
 - kind: Service
@@ -150,7 +174,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: The Entando AppBuilder http port.
 - kind: Route
@@ -161,7 +185,7 @@ objects:
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
-      description: Route for the Entando Runtime's http service.
+      description: Route for the Entando Engine's http service.
   spec:
     host: "${ENTANDO_ENGINE_HOSTNAME}"
     path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
@@ -173,7 +197,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: Route for application's http service.
   spec:
@@ -300,7 +324,7 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "${APPLICATION_NAME}-engine"
-          image: "${APPLICATION_NAME}"
+          image: "${APPLICATION_NAME}:latest"
           imagePullPolicy: Always
           resources:
             limits:
@@ -327,7 +351,7 @@ objects:
             protocol: TCP
           volumeMounts:
           - mountPath: "/entando-data"
-            name: "${APPLICATION_NAME}-entando-pvol"
+            name: "${APPLICATION_NAME}-pvol"
           env:
           - name: KIE_SERVER_BASE_URL
             value: "${KIE_SERVER_BASE_URL}"
@@ -340,9 +364,9 @@ objects:
               fieldRef:
                 fieldPath: status.podIP
         volumes:
-        - name: "${APPLICATION_NAME}-entando-pvol"
+        - name: "${APPLICATION_NAME}-pvol"
           persistentVolumeClaim:
-            claimName: "${APPLICATION_NAME}-entando-claim"
+            claimName: "${APPLICATION_NAME}-claim"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -350,7 +374,7 @@ objects:
     generation: 1
     creationTimestamp:
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations: {}
   spec:
     strategy:
@@ -385,6 +409,8 @@ objects:
           env:
           - name: DOMAIN
             value: http://${ENTANDO_ENGINE_HOSTNAME}${ENTANDO_ENGINE_WEB_CONTEXT}
+          - name: CLIENT_SECRET
+            value: appbuilder_secret
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File
@@ -397,7 +423,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: "${APPLICATION_NAME}-entando-claim"
+    name: "${APPLICATION_NAME}-claim"
     labels:
       application: "${APPLICATION_NAME}"
   spec:

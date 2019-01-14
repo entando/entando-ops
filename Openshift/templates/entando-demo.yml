@@ -17,16 +17,30 @@ labels:
   template: entando-demo
 message: A new Entando Demo has been created in your project.
 parameters:
+
 - displayName: Application Name
   description: The name for the application.
   name: APPLICATION_NAME
-  value: entando-fsi-credit-card-dispute
+  value: entando-demo
   required: false
+
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
   name: ENTANDO_IMAGE_STREAM_TAG
+  description: The Image Stream Tag to use for each of the Entando Images for which there is a DeploymentConfig. This
+    Image Stream Tag should which generally corresponds with the Entando version to be used.
   value: 5.0.3-SNAPSHOT
   required: false
+
+- displayName: ImageStream Namespace
+  name: IMAGE_STREAM_NAMESPACE
+  description: Namespace in which the ImageStreams for Entando  images are
+    installed. These ImageStreams are normally installed in the openshift namespace.
+    You should only need to modify this if you've installed the ImageStreams in a
+    different namespace/project.
+  value: openshift
+  required: true
+
 - displayName: Custom http Route Hostname for the AppBuilder
   description: 'Custom http Route Hostname for the AppBuilder. Leave blank for default
     hostname, e.g.: <service-name>-<project>.<default-domain-suffix>'
@@ -44,43 +58,44 @@ parameters:
   name: ENTANDO_ENGINE_WEB_CONTEXT
   value: ''
   required: true
-- displayName: KIE Server base url
-  description: KIE Server base url
+- displayName: KIE Server Base URL
+  description: KIE Server Base URL
   name: KIE_SERVER_BASE_URL
-  value: ''
+  description: KIE Server base url
+  value: 'http://entando-kieserver701.apps.serv.run/'
   required: false
+
 - displayName: KIE Server Username
-  description: KIE Server Username
   name: KIE_SERVER_USERNAME
-  value: ''
+  description: KIE Server Username
+  value: 'kieserver'
   required: false
+
 - displayName: KIE Server Password
-  description: KIE Server Password
   name: KIE_SERVER_PASSWORD
-  value: ''
+  description: KIE Server Password
+  value: 'kieserver1!'
   required: false
+
 - displayName: Database Volume Capacity
   description: Size of persistent storage for database volume.
   name: VOLUME_CAPACITY
+  description: Size of persistent storage for database volume.
   value: 1Gi
   required: false
-- displayName: ImageStream Namespace
-  description: Namespace in which the ImageStreams for Red Hat Middleware images are
-    installed. These ImageStreams are normally installed in the openshift namespace.
-    You should only need to modify this if you've installed the ImageStreams in a
-    different namespace/project.
-  name: IMAGE_STREAM_NAMESPACE
-  value: openshift
-  required: true
-- displayName: ImageStream Name
-  description: The name of the image stream of the selected demo image
-  name: IMAGE_STREAM
-  value: openshift
-  required: true
+
 - description: Container memory limit
   name: MEMORY_LIMIT
   value: 2Gi
   required: false
+
+#Demo specific parameters
+- displayName: Image Stream Name
+  description: Image Stream Name
+  name: DEMO_IMAGE_STREAM
+  value: entando-fsi-ccd-admin
+  required: false
+
 objects:
 - kind: Service
   apiVersion: v1
@@ -93,7 +108,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-engine"
     labels:
-      application: "${APPLICATION_NAME}-engine"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: The Entando Runtime server's http port.
 - kind: Service
@@ -107,7 +122,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: The Entando AppBuilder http port.
 - kind: Route
@@ -130,7 +145,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: Route for application's http service.
   spec:
@@ -154,7 +169,7 @@ objects:
         - "${APPLICATION_NAME}-engine"
         from:
           kind: ImageStreamTag
-          name: "${IMAGE_STREAM}:${ENTANDO_IMAGE_STREAM_TAG}"
+          name: "${DEMO_IMAGE_STREAM}:${ENTANDO_IMAGE_STREAM_TAG}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
@@ -170,31 +185,34 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "${APPLICATION_NAME}-engine"
-          image: "${IMAGE_STREAM_NAMESPACE}/${IMAGE_STREAM}:${ENTANDO_IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/${DEMO_IMAGE_STREAM}:${ENTANDO_IMAGE_STREAM_TAG}"
           imagePullPolicy: Always
           resources:
             limits:
               memory: "${MEMORY_LIMIT}"
           livenessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/livenessProbe.sh"
-            initialDelaySeconds: 60
+            httpGet:
+              path: ${ENTANDO_ENGINE_WEB_CONTEXT}
+              port: 8080
+            initialDelaySeconds: 180
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           readinessProbe:
-            exec:
-              command:
-              - "/bin/bash"
-              - "-c"
-              - "/opt/eap/bin/readinessProbe.sh"
+            httpGet:
+              path: ${ENTANDO_ENGINE_WEB_CONTEXT}
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            timeoutSeconds: 5
           ports:
           - name: http
             containerPort: 8080
             protocol: TCP
           volumeMounts:
           - mountPath: "/entando-data"
-            name: "${APPLICATION_NAME}-entando-pvol"
+            name: "${APPLICATION_NAME}-pvol"
           env:
           - name: KIE_SERVER_BASE_URL
             value: "${KIE_SERVER_BASE_URL}"
@@ -207,9 +225,9 @@ objects:
               fieldRef:
                 fieldPath: status.podIP
         volumes:
-        - name: "${APPLICATION_NAME}-entando-pvol"
+        - name: "${APPLICATION_NAME}-pvol"
           persistentVolumeClaim:
-            claimName: "${APPLICATION_NAME}-entando-claim"
+            claimName: "${APPLICATION_NAME}-claim"
 - kind: DeploymentConfig
   apiVersion: v1
   metadata:
@@ -217,7 +235,7 @@ objects:
     generation: 1
     creationTimestamp:
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations: {}
   spec:
     strategy:
@@ -252,6 +270,8 @@ objects:
           env:
           - name: DOMAIN
             value: http://${ENTANDO_ENGINE_HOSTNAME}${ENTANDO_ENGINE_WEB_CONTEXT}
+          - name: CLIENT_SECRET
+            value: appbuilder_secret
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File
@@ -264,7 +284,7 @@ objects:
 - apiVersion: v1
   kind: PersistentVolumeClaim
   metadata:
-    name: "${APPLICATION_NAME}-entando-claim"
+    name: "${APPLICATION_NAME}-claim"
     labels:
       application: "${APPLICATION_NAME}"
   spec:
