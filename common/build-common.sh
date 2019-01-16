@@ -12,18 +12,12 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
         $DOCKER_BUILD_DIR/hooks/build docker &> $DOCKER_BUILD_DIR/docker-build.log || exit 2
         if [ $? -eq 0 ]; then
             echo "Docker build successful"
-            if [ "$PUSH_TO_DOCKER_HUB" = true ]; then
-                docker push "$DOCKER_REPO:$DOCKER_TAG"
-            fi
             LATEST_VERSION=$(cat $(dirname $(realpath ${BASH_SOURCE[0]}))/hooks/VERSION_TO_TAG_AS_LATEST)
             #If we are building the latest release branch, tag as latest. This would usually be done in post_push but when running on
             # our own infrastructure we don't have a post_push callback
             if [ "$VERSION" = "$LATEST_VERSION" ]; then
                 echo "Tagging entando/$ENTANDO_IMAGE:latest"
                 docker tag "entando/$ENTANDO_IMAGE:$VERSION" "entando/$ENTANDO_IMAGE:latest"
-                if [ "$PUSH_TO_DOCKER_HUB" = true ]; then
-                    docker push "entando/$ENTANDO_IMAGE:latest"
-                fi
             fi
             if [ -n "$OPENSHIFT_REGISTRY" ]; then
                 #Now push to locally forwarded port (easiest way to get access to Openshift registry)

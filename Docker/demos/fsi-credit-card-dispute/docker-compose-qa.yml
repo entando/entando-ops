@@ -1,0 +1,68 @@
+version: '3.7'
+services:
+  customer-engine:
+    image: entando/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION}
+    volumes:
+     - entando-customer-volume:/entando-data
+    environment:
+      KIE_SERVER_BASE_URL: http://entando-kieserver701.apps.serv.run/
+      KIE_SERVER_USERNAME: kieserver
+      KIE_SERVER_PASSWORD: kieserver1!
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/fsi-credit-card-dispute-customer"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      entando-network:
+        ipv4_address: 10.11.0.2
+  customer-appbuilder:
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
+    environment:
+      DOMAIN: http://customer-engine:8080/fsi-credit-card-dispute-customer
+      CLIENT_SECRET: appbuilder_secret
+    networks:
+      entando-network:
+        ipv4_address: 10.11.0.3
+    depends_on:
+      - customer-engine
+  admin-engine:
+    image: entando/fsi-cc-dispute-admin:${ENTANDO_IMAGE_VERSION}
+    volumes:
+     - entando-admin-volume:/entando-data
+    environment:
+      KIE_SERVER_BASE_URL: http://entando-kieserver701.apps.serv.run/
+      KIE_SERVER_USERNAME: kieserver
+      KIE_SERVER_PASSWORD: kieserver1!
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/fsi-credit-card-dispute-backoffice"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      entando-network:
+        ipv4_address: 10.11.0.4
+  admin-appbuilder:
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
+    environment:
+      DOMAIN: http://admin-engine:8080/fsi-credit-card-dispute-backoffice
+      CLIENT_SECRET: appbuilder_secret
+    networks:
+      entando-network:
+        ipv4_address: 10.11.0.5
+    depends_on:
+      - admin-engine
+
+networks:
+  entando-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.11.0.0/8
+
+
+volumes:
+  entando-customer-volume:
+  entando-admin-volume:
