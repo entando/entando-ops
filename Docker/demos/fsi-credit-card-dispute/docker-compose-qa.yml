@@ -1,4 +1,4 @@
-version: '3.7'
+version: '3.6'
 services:
   customer-engine:
     image: entando/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION}
