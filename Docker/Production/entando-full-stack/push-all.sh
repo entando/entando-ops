@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-echo -n "Waiting for Entando Engine ..."
-while ! [ $(docker inspect $(docker ps -q  -f name=entando-full-stack_engine-api*) --format="{{.State.Health.Status}}") = "healthy" ] ; do
-    echo -n "."
-    sleep 2
+export VERSION=${1:-5.0.3-SNAPSHOT}
+IMAGES_IN_SEQUENCE="engine-api appbuilder entando-sample-full postgresql"
+for D in ${IMAGES_IN_SEQUENCE[@]}; do
+    echo "########## Pushing $D ###########"
+    docker push entando/$D:$VERSION || exit 1
 done
-echo
+
+
+
+
