@@ -257,7 +257,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: The static web server's http port.
       service.alpha.openshift.io/dependencies: '[{"name": "${APPLICATION_NAME}-engine", "kind":
@@ -342,7 +342,7 @@ objects:
   metadata:
     name: "${APPLICATION_NAME}-appbuilder"
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations:
       description: Route for application's http service.
   spec:
@@ -766,7 +766,7 @@ objects:
     generation: 1
     creationTimestamp:
     labels:
-      application: "${APPLICATION_NAME}-appbuilder"
+      application: "${APPLICATION_NAME}"
     annotations: {}
   spec:
     strategy:
@@ -798,6 +798,7 @@ objects:
         creationTimestamp:
         labels:
           deploymentConfig: "${APPLICATION_NAME}-appbuilder"
+          application: "${APPLICATION_NAME}"
         annotations: {}
       spec:
         containers:

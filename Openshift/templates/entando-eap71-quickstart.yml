@@ -398,6 +398,7 @@ objects:
         creationTimestamp:
         labels:
           deploymentConfig: "${APPLICATION_NAME}-appbuilder"
+          application: "${APPLICATION_NAME}"
         annotations: {}
       spec:
         containers:
