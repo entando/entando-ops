@@ -40,7 +40,7 @@ function test_deployment(){
     for APPBUILDER_SERVICE in $(echo $APPBUILDER_SERVICES | sed "s/,/ /g"); do
         oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
         oc run  ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
-            -it --replicas=1  --restart=Never --image=172.30.1.1:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
+            -it --replicas=1  --restart=Never --image=docker-registry.default.svc:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
             --command --  mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository \
             || {  echo "The 'AddUser' test failed"; exit 1;  }
     done
@@ -61,7 +61,7 @@ function test_deployment(){
     for APPBUILDER_SERVICE in $(echo $APPBUILDER_SERVICES | sed "s/,/ /g"); do
         oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
         oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
-            -it --replicas=1  --restart=Never --image=172.30.1.1:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
+            -it --replicas=1  --restart=Never --image=docker-registry.default.svc:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
             --command -- mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository  \
             || {  echo "The 'Login' test failed"; exit 1;  }
     done
