@@ -41,5 +41,11 @@ docker run --rm --network=fsi-credit-card-dispute_entando-network -e ENTANDO_APP
 
 cleanup
 
+if [ -n "$OPENSHIFT_REGISTRY" ]; then
+    INSTALLER_DIR=$(realpath $(dirname $(realpath ${BASH_SOURCE[0]}))/../../../Openshift/installers)
+    export TEST_DEPLOYMENT=true
+    export DESTROY_DEPLOYMENT=true
+    ${INSTALLER_DIR}/install-fsi-ccd-demos-template.sh || { echo "FSI  CCD Demos Openshift test failed"; exit 1; }
+fi
 echo "Entando FSI Credit Card Dispute tests successful"
 exit 0

@@ -47,7 +47,7 @@ EOF
 }
 
 function setup_entando_pipeline(){
-  ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME} --config-dir=entando-central-conf
+  $(dirname $BASH_SOURCE[0])/setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME} --config-dir=entando-central-conf
 }
 
 COMMAND=$1

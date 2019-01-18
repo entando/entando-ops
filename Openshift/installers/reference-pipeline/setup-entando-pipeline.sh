@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-export ENTANDO_OPS_HOME="$(realpath ../../..)"
+export ENTANDO_OPS_HOME=$(dirname $(dirname $(dirname $(dirname $(realpath $BASH_SOURCE[0])))))
+echo $ENTANDO_OPS_HOME
 function read_config(){
   source $(dirname $0)/clear-vars.sh
   if [ -f $CONFIG_DIR/$1.conf ]; then

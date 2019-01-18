@@ -17,3 +17,10 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml
         -p ENTANDO_APP_BUILDER_HOSTNAME="${APPLICATION_NAME}-appbuilder.${OPENSHIFT_DOMAIN_SUFFIX}" \
         -p ENTANDO_ENGINE_WEB_CONTEXT="/entando-sample-minimal" \
     | oc replace --force -f -
+
+if [ "${TEST_DEPLOYMENT}" = true ]; then
+    test_deployment "${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_STREAM_TAG}"
+    if [ "${DESTROY_DEPLOYMENT}" = true ]; then
+        oc delete project ${APPLICATION_NAME}
+    fi
+fi

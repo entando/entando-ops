@@ -92,3 +92,11 @@ function recreate_entando_application(){
 
 recreate_secrets_and_linked_service_accounts
 recreate_entando_application
+
+
+if [ "${TEST_DEPLOYMENT}" = true ]; then
+    test_deployment "${APPLICATION_NAME}-postgresql,${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_STREAM_TAG}"
+    if [ "${DESTROY_DEPLOYMENT}" = true ]; then
+        oc delete project ${APPLICATION_NAME}
+    fi
+fi

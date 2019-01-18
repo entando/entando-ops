@@ -193,7 +193,7 @@ objects:
             httpGet:
               path: /fsi-credit-card-dispute-backoffice
               port: 8080
-            initialDelaySeconds: 180
+            initialDelaySeconds: 240
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 5
@@ -258,6 +258,7 @@ objects:
         creationTimestamp:
         labels:
           deploymentConfig: "${APPLICATION_NAME}-ccd-admin-appbuilder"
+          application: "${APPLICATION_NAME}"
         annotations: {}
       spec:
         containers:
@@ -389,7 +390,7 @@ objects:
             httpGet:
               path: /fsi-credit-card-dispute-customer
               port: 8080
-            initialDelaySeconds: 180
+            initialDelaySeconds: 240
             periodSeconds: 10
             successThreshold: 1
             timeoutSeconds: 5
@@ -454,6 +455,7 @@ objects:
         creationTimestamp:
         labels:
           deploymentConfig: "${APPLICATION_NAME}-ccd-customer-appbuilder"
+          application: "${APPLICATION_NAME}"
         annotations: {}
       spec:
         containers:

@@ -21,7 +21,6 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
             fi
             if [ -n "$OPENSHIFT_REGISTRY" ]; then
                 #Now push to locally forwarded port (easiest way to get access to Openshift registry)
-                docker login -u $(oc whoami) -p $(oc whoami -t) $OPENSHIFT_REGISTRY
                 export DOCKER_REPO="$OPENSHIFT_REGISTRY/$DOCKER_REPO"
 
                 echo "Pushing $DOCKER_REPO:$DOCKER_TAG to local registry"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # the installers in this directory only work if the Openshift namespace 'entando' contains all the predefined images
-IMAGE_STREAM_DIR=../image-streams
+IMAGE_STREAM_DIR=$(dirname $(dirname $(realpath ${BASH_SOURCE[0]})))/image-streams
+echo $IMAGE_STREAM_DIR
 NAMESPACE=${1:-entando}
 echo $NAMESPACE
 oc delete is entando-eap71-clustered-openshift -n ${NAMESPACE}

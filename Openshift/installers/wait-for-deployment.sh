@@ -10,7 +10,18 @@ echo
 echo "Deployment started:"
 oc get pods -l deploymentConfig=$1
 
-echo -n "Waiting for the Entando Deployment $1 to complete ... "
+echo -n "Waiting for the $1 containers to be created... "
+
+while [ -z "$(oc get pods -l deploymentConfig=$1  -o=jsonpath='{.items[?(@.status.containerStatuses[0])]}')" ]
+do
+    echo -n "."
+    sleep 2
+done
+echo
+echo "Containers created:"
+oc get pods -l deploymentConfig=$1
+
+echo -n "Waiting for the $1 containers to start successfully ... "
 while [ -n "$(oc get pods -l deploymentConfig=$1  -o=jsonpath='{.items[?(@.status.containerStatuses[0].ready==false)]}')" ]
 do
     echo -n "."

@@ -2,7 +2,7 @@
 export APPLICATION_NAME=entando-sample-full
 
 function setup_entando_pipeline(){
-  ./setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME} --config-dir=entando-sample-full-conf
+  $(dirname $BASH_SOURCE[0])/setup-entando-pipeline.sh $COMMAND --application-name=${APPLICATION_NAME} --config-dir=entando-sample-full-conf
 }
 
 COMMAND=$1

@@ -5,6 +5,7 @@ function validate_environment(){
         exit 1
     fi
 }
+
 function ensure_image_stream(){
     local IMAGE_STREAM=$1
     if  oc describe is/appbuilder -n ${IMAGE_STREAM_NAMESPACE}| grep ${ENTANDO_IMAGE_STREAM_TAG} &>/dev/null ; then
@@ -15,6 +16,7 @@ function ensure_image_stream(){
     fi
 
 }
+
 function recreate_project(){
     oc delete project $1 --ignore-not-found
     while ! oc new-project $1 ; do
@@ -26,31 +28,48 @@ function recreate_project(){
 
 function test_deployment(){
     oc project ${APPLICATION_NAME}
-    ENGINE_DEPLOYMENT=$1
-    APPBUILDER_SERVICE=$2
+    DEPLOYMENTS=$1
+    APPBUILDER_SERVICES=$2
     ENTANDO_IMAGE_VERSION=$3
-    echo "ENGINE_DEPLOYMENT=$1"
-    echo "APPBUILDER_SERVICE=$2"
-    echo "ENTANDO_IMAGE_VERSION=$3"
-    timeout 240 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $ENGINE_DEPLOYMENT || {  echo "Timed out waiting for deployment $1"; exit 1;  }
-    oc delete pod ${APPLICATION_NAME}-test
-    oc run  ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
-        -it --replicas=1  --restart=Never --image=172.30.1.1:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
-        --command --  mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository \
-        || {  echo "The 'AddUser' test failed"; exit 1;  }
-    oc scale --replicas=0 dc/$1
-    oc delete pod ${APPLICATION_NAME}-test
-    timeout 240 $(dirname $BASH_SOURCE[0])/wait-for-downscaling.sh $ENGINE_DEPLOYMENT || {  echo "Timed out waiting for downscaling of $1"; exit 1;  }
-    oc scale --replicas=1 dc/$1
-    timeout 240 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $ENGINE_DEPLOYMENT || {  echo "Timed out waiting for deployment $1"; exit 1;  }
-    oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
-        -it --replicas=1  --restart=Never --image=172.30.1.1:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
-        --command -- mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository  \
-        || {  echo "The 'Login' test failed"; exit 1;  }
+    echo "DEPLOYMENTS=$DEPLOYMENTS"
+    echo "APPBUILDER_SERVICES=$APPBUILDER_SERVICES"
+    echo "ENTANDO_IMAGE_VERSION=$ENTANDO_IMAGE_VERSION"
+    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+        timeout 600 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $DEPLOYMENT || {  echo "Timed out waiting for deployment $DEPLOYMENT"; exit 1;  }
+    done
+    for APPBUILDER_SERVICE in $(echo $APPBUILDER_SERVICES | sed "s/,/ /g"); do
+        oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
+        oc run  ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
+            -it --replicas=1  --restart=Never --image=172.30.1.1:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
+            --command --  mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository \
+            || {  echo "The 'AddUser' test failed"; exit 1;  }
+    done
+    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+        echo "Downscaling deployment $DEPLOYMENT"
+        oc scale --replicas=0 dc/$DEPLOYMENT
+    done
+    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+        timeout 240 $(dirname $BASH_SOURCE[0])/wait-for-downscaling.sh $DEPLOYMENT || {  echo "Timed out waiting for downscaling of $DEPLOYMENT"; exit 1;  }
+    done
+    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+        echo "Upscaling deployment $DEPLOYMENT"
+        oc scale --replicas=1 dc/$DEPLOYMENT
+    done
+    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+        timeout 360 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $DEPLOYMENT || {  echo "Timed out waiting for upscaling of deployment $DEPLOYMENT"; exit 1;  }
+    done
+    for APPBUILDER_SERVICE in $(echo $APPBUILDER_SERVICES | sed "s/,/ /g"); do
+        oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
+        oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
+            -it --replicas=1  --restart=Never --image=172.30.1.1:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
+            --command -- mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository  \
+            || {  echo "The 'Login' test failed"; exit 1;  }
+    done
     oc delete pod ${APPLICATION_NAME}-test
 }
 
-export ENTANDO_OPS_HOME=$(realpath ../..)
+export ENTANDO_OPS_HOME=$(dirname $(dirname $(dirname $(realpath $BASH_SOURCE[0]))))
+echo $ENTANDO_OPS_HOME
 # Read correct config file
 for i in "$@"; do
     if [[ "$i" == "--config-file="* ]]; then
