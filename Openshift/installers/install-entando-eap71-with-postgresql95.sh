@@ -80,8 +80,8 @@ function recreate_entando_application(){
             -p SOURCE_SECRET="${APPLICATION_NAME}-source-secret" \
             -p ENTANDO_PORT_DATABASE="entandoPortDb" \
             -p ENTANDO_SERV_DATABASE="entandoServDb" \
-            -p ENTANDO_ENGINE_HOSTNAME_HTTPS="secure-${APPLICATION_NAME}-engine.${OPENSHIFT_DOMAIN_SUFFIX}" \
-            -p ENTANDO_ENGINE_HOSTNAME_HTTP="${APPLICATION_NAME}-engine.${OPENSHIFT_DOMAIN_SUFFIX}" \
+            -p ENTANDO_ENGINE_SECURE_HOSTNAME="secure-${APPLICATION_NAME}-engine.${OPENSHIFT_DOMAIN_SUFFIX}" \
+            -p ENTANDO_ENGINE_HOSTNAME="${APPLICATION_NAME}-engine.${OPENSHIFT_DOMAIN_SUFFIX}" \
             -p ENTANDO_ENGINE_WEB_CONTEXT="/entando-sample-minimal" \
             -p ENTANDO_ENGINE_BASEURL="http://${APPLICATION_NAME}-engine.${OPENSHIFT_DOMAIN_SUFFIX}/entando-sample-minimal" \
             -p JGROUPS_ENCRYPT_SECRET="${APPLICATION_NAME}-app-secret" \

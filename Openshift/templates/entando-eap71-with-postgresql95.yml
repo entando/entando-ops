@@ -37,13 +37,13 @@ parameters:
 - displayName: Custom http Route Hostname
   description: 'Custom hostname for http service route.  Leave blank for default hostname,
     e.g.: <application-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_ENGINE_HOSTNAME_HTTP
+  name: ENTANDO_ENGINE_HOSTNAME
   value: ''
   required: false
 - displayName: Custom https Route Hostname
   description: 'Custom hostname for https service route.  Leave blank for default
     hostname, e.g.: secure-<application-name>-<project>.<default-domain-suffix>'
-  name: ENTANDO_ENGINE_HOSTNAME_HTTPS
+  name: ENTANDO_ENGINE_SECURE_HOSTNAME
   value: ''
   required: false
 - displayName: Context root of the Entando Runtime web app
@@ -52,7 +52,7 @@ parameters:
   value: ''
   required: true
 - displayName: The base url to be used to access the Entando rest services.
-  description: NB!! This must reflect either ENTANDO_ENGINE_HOSTNAME_HTTPS or ENTANDO_ENGINE_HOSTNAME_HTTP, as well
+  description: NB!! This must reflect either ENTANDO_ENGINE_SECURE_HOSTNAME or ENTANDO_ENGINE_HOSTNAME, as well
     as any web context root that may be used
   name: ENTANDO_ENGINE_BASEURL
   value: ''
@@ -316,7 +316,7 @@ objects:
     annotations:
       description: Route for application's http service.
   spec:
-    host: "${ENTANDO_ENGINE_HOSTNAME_HTTP}"
+    host: "${ENTANDO_ENGINE_HOSTNAME}"
     path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
     to:
       name: "${APPLICATION_NAME}-engine"
@@ -330,7 +330,7 @@ objects:
     annotations:
       description: Route for application's https service.
   spec:
-    host: "${ENTANDO_ENGINE_HOSTNAME_HTTPS}"
+    host: "${ENTANDO_ENGINE_SECURE_HOSTNAME}"
     path: "${ENTANDO_ENGINE_WEB_CONTEXT}"
     to:
       name: ${APPLICATION_NAME}-engine

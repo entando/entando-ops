@@ -34,7 +34,7 @@ parameters:
   required: false
 - displayName: The base url to be used to access the Entando rest services.
   description: This must reflect the HTTPS hostname of the Entando core engine service.
-  name: ENTANDO_ENGINE_HOSTNAME
+  name: ENTANDO_ENGINE_SECURE_HOSTNAME
   required: true
 - displayName: The web context where the Entando app will be hosted on JBoss EAP
   description: The web context where the Entando app will be hosted on JBoss EAP
@@ -387,7 +387,7 @@ objects:
             protocol: TCP
           env:
           - name: DOMAIN
-            value: "https://${ENTANDO_ENGINE_HOSTNAME}"
+            value: "https://${ENTANDO_ENGINE_SECURE_HOSTNAME}"
           resources: {}
           terminationMessagePath: "/dev/termination-log"
           terminationMessagePolicy: File
@@ -404,7 +404,7 @@ objects:
       application: ${APPLICATION_NAME}
     name: ${APPLICATION_NAME}-engine
   spec:
-    host: ${ENTANDO_ENGINE_HOSTNAME}
+    host: ${ENTANDO_ENGINE_SECURE_HOSTNAME}
     path: ${ENTANDO_ENGINE_WEB_CONTEXT}
     port:
       targetPort: 8080

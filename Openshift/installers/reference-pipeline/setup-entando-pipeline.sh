@@ -254,7 +254,7 @@ function deploy_runtime_templates(){
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
             -p ENTANDO_DB_FILE_SECRET="${APPLICATION_NAME}-db-file-secret-$1" \
             -p ENTANDO_APP_BUILDER_HOSTNAME="${ENTANDO_APP_BUILDER_HOSTNAME}" \
-            -p ENTANDO_ENGINE_HOSTNAME="${ENTANDO_ENGINE_HOSTNAME}" \
+            -p ENTANDO_ENGINE_SECURE_HOSTNAME="${ENTANDO_ENGINE_SECURE_HOSTNAME}" \
             -p ENTANDO_ENGINE_WEB_CONTEXT="${ENTANDO_ENGINE_WEB_CONTEXT}" \
             -p SHARED_DOCKER_REGISTRY_URL="${SHARED_DOCKER_REGISTRY_URL}" \
             -p DOCKER_IMAGE_NAMESPACE="${DOCKER_IMAGE_NAMESPACE}" \
@@ -272,7 +272,7 @@ function deploy_runtime_templates(){
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
             -p ENTANDO_DB_FILE_SECRET="${APPLICATION_NAME}-db-file-secret-$1" \
             -p ENTANDO_APP_BUILDER_HOSTNAME="${ENTANDO_APP_BUILDER_HOSTNAME}" \
-            -p ENTANDO_ENGINE_HOSTNAME="${ENTANDO_ENGINE_HOSTNAME}" \
+            -p ENTANDO_ENGINE_SECURE_HOSTNAME="${ENTANDO_ENGINE_SECURE_HOSTNAME}" \
             -p ENTANDO_ENGINE_WEB_CONTEXT="${ENTANDO_ENGINE_WEB_CONTEXT}" \
             -p SHARED_DOCKER_REGISTRY_URL="${SHARED_DOCKER_REGISTRY_URL}" \
             -p DOCKER_IMAGE_NAMESPACE="${DOCKER_IMAGE_NAMESPACE}" \
@@ -421,7 +421,7 @@ case $i in
       IMAGE_STREAM_NAMESPACE="${i#*=}"
       shift # past argument=value
     ;;
-    -eiv=*|--entando-image-version=*)
+    -eiv=*|--entando-image-stream-tag=*)
       ENTANDO_IMAGE_STREAM_TAG="${i#*=}"
       shift # past argument=value
     ;;

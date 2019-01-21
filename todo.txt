@@ -1,9 +1,10 @@
 Renew certs
-Extend container testing to include pipeline. Need to implement a lot of waits there for all the builds to complete. Remember to test prod deployment too.
-Extend container testing to include maven integration ...
+Extend container testing to include pipeline two pipeline definitions. Need to implement a lot of waits there for all the builds to complete. Remember to test prod deployment too. Document it.
+When implementing the SSO plugin, automate the installation of Keycloak and importing a Realm for testing purposes, and test logging in with a user from that Realm. Document it.
+
+Decide when to reset image build cache
 Create test-jar build for tests and then add some custom tests to the example projects
 Sync documentation
-When implementing the SSO plugin, automate the installation of Keycloak and importing a Realm for testing purposes, and test logging in with a user from that Realm
 When implementing the KIE tests, automate the installation of PAM and test logging in with a user from that PAM
 Get Docker Client to work on Jenkins by specifying a Docker IP host on our infrastructure. If this is easy enough, make it a prerequisite of the Pipeline. ALternatively just leave the pipelines
 Integrate Imagick image into our Image hierarchy
