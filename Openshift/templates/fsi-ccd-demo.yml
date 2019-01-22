@@ -140,9 +140,9 @@ objects:
       name: "${APPLICATION_NAME}-ccd-admin-engine"
 - kind: Route
   apiVersion: v1
-  id: "${APPLICATION_NAME}ccd-admin-appbuilder"
+  id: "${APPLICATION_NAME}-ccd-admin-appbuilder"
   metadata:
-    name: "${APPLICATION_NAME}ccd-admin-appbuilder"
+    name: "${APPLICATION_NAME}-ccd-admin-appbuilder"
     labels:
       application: "${APPLICATION_NAME}"
     annotations:
