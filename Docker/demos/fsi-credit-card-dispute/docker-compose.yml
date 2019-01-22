@@ -15,7 +15,7 @@ services:
     ports:
      - "5001:5000"
     environment:
-      DOMAIN: http://localhost:8081/fsi-credit-card-dispute-customer
+      DOMAIN: http://${DOCKER_HOST_ADDRESS}:8081/fsi-credit-card-dispute-customer
       CLIENT_SECRET: appbuilder_secret
   admin-engine:
     image: entando/fsi-cc-dispute-admin:${ENTANDO_IMAGE_VERSION}
@@ -32,7 +32,7 @@ services:
     ports:
      - "5002:5000"
     environment:
-      DOMAIN: http://localhost:8082/fsi-credit-card-dispute-backoffice
+      DOMAIN: http://${DOCKER_HOST_ADDRESS}:8082/fsi-credit-card-dispute-backoffice
       CLIENT_SECRET: appbuilder_secret
 volumes:
   entando-customer-volume:

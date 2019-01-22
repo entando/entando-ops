@@ -10,13 +10,13 @@ ensure_image_stream "appbuilder"
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-full-stack.yml \
         -p APPLICATION_NAME="${APPLICATION_NAME}" \
         -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-        -p ENTANDO_IMAGE_STREAM_TAG="${ENTANDO_IMAGE_STREAM_TAG}" \
+        -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
         -p ENTANDO_ENGINE_HOSTNAME="${APPLICATION_NAME}-engine.${OPENSHIFT_DOMAIN_SUFFIX}" \
         -p ENTANDO_APP_BUILDER_HOSTNAME="${APPLICATION_NAME}-appbuilder.${OPENSHIFT_DOMAIN_SUFFIX}" \
     | oc replace --force -f -
 
 if [ "${TEST_DEPLOYMENT}" = true ]; then
-    test_deployment "${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_STREAM_TAG}"
+    test_deployment "${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_VERSION}"
     if [ "${DESTROY_DEPLOYMENT}" = true ]; then
         oc delete project ${APPLICATION_NAME}
     fi

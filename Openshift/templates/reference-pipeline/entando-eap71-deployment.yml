@@ -29,7 +29,7 @@ parameters:
   required: false
 - displayName: Entando Image Version
   description: Entando Image Version
-  name: ENTANDO_IMAGE_STREAM_TAG
+  name: ENTANDO_IMAGE_VERSION
   value: 5.0.3-SNAPSHOT
   required: false
 - displayName: The base url to be used to access the Entando rest services.
@@ -366,7 +366,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_VERSION}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-appbuilder"
@@ -379,7 +379,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_VERSION}"
           ports:
           - containerPort: 5000
             protocol: TCP

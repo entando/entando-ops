@@ -1,14 +1,14 @@
 version: '3.6'
 services:
   postgresql:
-    image: entando/postgresql:5.0.3-SNAPSHOT
+    image: entando/postgresql:${ENTANDO_IMAGE_VERSION}
     volumes:
      - entando-pg-volume:/var/lib/pgsql/data
     networks:
       entando-network:
         ipv4_address: 10.10.0.2
   engine-api:
-    image: entando/engine-api:5.0.3-SNAPSHOT
+    image: entando/engine-api:${ENTANDO_IMAGE_VERSION}
     volumes:
      - entando-volume:/entando-data
     environment:
@@ -28,7 +28,7 @@ services:
       entando-network:
         ipv4_address: 10.10.0.3
   appbuilder:
-    image: entando/appbuilder:5.0.3-SNAPSHOT
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
     environment:
       DOMAIN: http://engine-api:8080/entando
     networks:

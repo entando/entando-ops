@@ -24,7 +24,7 @@ parameters:
   required: false
 - displayName: Image Version for Entando Images
   description: Image Version for Entando Images
-  name: ENTANDO_IMAGE_STREAM_TAG
+  name: ENTANDO_IMAGE_VERSION
   value: stage
   required: false
 - displayName: Entando Database Secret
@@ -89,7 +89,7 @@ objects:
         - "${APPLICATION_NAME}-postgresql"
         from:
           kind: ImageStreamTag
-          name: "entando-postgresql95-openshift:${ENTANDO_IMAGE_STREAM_TAG}"
+          name: "entando-postgresql95-openshift:${ENTANDO_IMAGE_VERSION}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
@@ -107,7 +107,7 @@ objects:
         - name: "${APPLICATION_NAME}-postgresql"
           command:
             - "/usr/libexec/s2i/run"
-          image: "${IMAGE_STREAM_NAMESPACE}/entando-postgresql95-openshift:${ENTANDO_IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/entando-postgresql95-openshift:${ENTANDO_IMAGE_VERSION}"
           imagePullPolicy: IfNotPresent
           ports:
           - containerPort: 5432

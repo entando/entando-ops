@@ -72,7 +72,7 @@ function recreate_entando_application(){
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-with-postgresql95.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_IMAGE_STREAM_TAG="${ENTANDO_IMAGE_STREAM_TAG}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
             -p SOURCE_REPOSITORY_REF="${SOURCE_REPOSITORY_REF}" \
             -p SOURCE_REPOSITORY_URL="https://github.com/entando/entando-sample-minimal.git" \
             -p KIE_SERVER_SECRET="${APPLICATION_NAME}-kieserver-secret" \
@@ -95,7 +95,7 @@ recreate_entando_application
 
 
 if [ "${TEST_DEPLOYMENT}" = true ]; then
-    test_deployment "${APPLICATION_NAME}-postgresql,${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_STREAM_TAG}"
+    test_deployment "${APPLICATION_NAME}-postgresql,${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_VERSION}"
     if [ "${DESTROY_DEPLOYMENT}" = true ]; then
         oc delete project ${APPLICATION_NAME}
     fi

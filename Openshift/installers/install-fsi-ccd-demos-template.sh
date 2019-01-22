@@ -21,7 +21,7 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/fsi-ccd-demo.yml \
   | oc replace --force -f -
 
 if [ "${TEST_DEPLOYMENT}" = true ]; then
-    test_deployment "${APPLICATION_NAME}-ccd-admin-engine,${APPLICATION_NAME}-ccd-customer-engine" "${APPLICATION_NAME}-ccd-admin-appbuilder,${APPLICATION_NAME}-ccd-customer-appbuilder" "${ENTANDO_IMAGE_STREAM_TAG}"
+    test_deployment "${APPLICATION_NAME}-ccd-admin-engine,${APPLICATION_NAME}-ccd-customer-engine" "${APPLICATION_NAME}-ccd-admin-appbuilder,${APPLICATION_NAME}-ccd-customer-appbuilder" "${ENTANDO_IMAGE_VERSION}"
     if [ "${DESTROY_DEPLOYMENT}" = true ]; then
         oc delete project ${APPLICATION_NAME}
     fi

@@ -24,7 +24,7 @@ parameters:
   required: false
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
-  name: ENTANDO_IMAGE_STREAM_TAG
+  name: ENTANDO_IMAGE_VERSION
   value: 5.0.3-SNAPSHOT
   required: false
 - displayName: Entando Image Stream Namespace
@@ -111,7 +111,7 @@ objects:
         slave-label: entando-maven
       from:
         kind: ImageStreamTag
-        name: entando-maven-jenkins-slave-openshift39:${ENTANDO_IMAGE_STREAM_TAG}
+        name: entando-maven-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
         namespace: ${IMAGE_STREAM_NAMESPACE}
       name: latest
 - kind: ImageStream
@@ -127,7 +127,7 @@ objects:
         slave-label: entando-postgresql
       from:
         kind: ImageStreamTag
-        name: entando-postgresql-jenkins-slave-openshift39:${ENTANDO_IMAGE_STREAM_TAG}
+        name: entando-postgresql-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
         namespace: ${IMAGE_STREAM_NAMESPACE}
       name: latest
 - kind: BuildConfig
@@ -141,7 +141,7 @@ objects:
       sourceStrategy:
         from:
           kind: ImageStreamTag
-          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_STREAM_TAG}
+          name: entando-eap71-clustered-openshift:${ENTANDO_IMAGE_VERSION}
           namespace: ${IMAGE_STREAM_NAMESPACE}
 #        pullSecret:
 #          name: "base-image-registry-secret"

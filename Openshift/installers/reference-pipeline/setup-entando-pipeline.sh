@@ -33,7 +33,7 @@ function create_stage_projects(){
     oc policy add-role-to-user edit system:serviceaccount:$APPLICATION_NAME-build:jenkins -n $APPLICATION_NAME-stage
     oc project $APPLICATION_NAME-build
     oc new-app --template=jenkins-persistent \
-        -p JENKINS_ENTANDO_IMAGE_STREAM_TAG=jenkins:2\
+        -p JENKINS_ENTANDO_IMAGE_VERSION=jenkins:2\
         -p NAMESPACE=openshift \
         -p MEMORY_LIMIT=2048Mi \
         -p ENABLE_OAUTH=true
@@ -85,10 +85,10 @@ function install_build_image_streams(){
 #}
 
 function install_deployment_image_streams(){
-  if  !  oc describe is/entando-postgresql95-openshift -n entando| grep ${ENTANDO_IMAGE_STREAM_TAG} ; then
+  if  !  oc describe is/entando-postgresql95-openshift -n entando| grep ${ENTANDO_IMAGE_VERSION} ; then
     oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql95-openshift.json -n $IMAGE_STREAM_NAMESPACE
   fi
-  if  !  oc describe is/appbuilder -n entando| grep ${ENTANDO_IMAGE_STREAM_TAG} ; then
+  if  !  oc describe is/appbuilder -n entando| grep ${ENTANDO_IMAGE_VERSION} ; then
     oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json -n $IMAGE_STREAM_NAMESPACE
   fi
 }
@@ -191,7 +191,7 @@ function deploy_build_template(){
             -p SHARED_DOCKER_REGISTRY_SECRET="${APPLICATION_NAME}-external-registry-secret" \
             -p DOCKER_IMAGE_NAMESPACE="${DOCKER_IMAGE_NAMESPACE}" \
             -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
-            -p ENTANDO_IMAGE_STREAM_TAG="${ENTANDO_IMAGE_STREAM_TAG}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
           |  oc replace --force --grace-period 60  -f -
   else
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-build-and-promote.yml \
@@ -206,7 +206,7 @@ function deploy_build_template(){
             -p SHARED_DOCKER_REGISTRY_SECRET="${APPLICATION_NAME}-external-registry-secret" \
             -p DOCKER_IMAGE_NAMESPACE="${DOCKER_IMAGE_NAMESPACE}" \
             -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
-            -p ENTANDO_IMAGE_STREAM_TAG="${ENTANDO_IMAGE_STREAM_TAG}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
           |  oc replace --force --grace-period 60  -f -
 
   fi
@@ -263,7 +263,7 @@ function deploy_runtime_templates(){
             -p ENTANDO_OIDC_TOKEN_LOCATION="$OIDC_TOKEN_LOCATION" \
             -p ENTANDO_OIDC_CLIENT_ID="$OIDC_CLIENT_ID" \
             -p ENTANDO_OIDC_REDIRECT_BASE_URL="$OIDC_REDIRECT_BASE_URL" \
-            -p ENTANDO_IMAGE_STREAM_TAG="${ENTANDO_IMAGE_STREAM_TAG}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
             | oc replace --force --grace-period 60  -f -
   else
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-eap71-deployment.yml \
@@ -277,14 +277,14 @@ function deploy_runtime_templates(){
             -p SHARED_DOCKER_REGISTRY_URL="${SHARED_DOCKER_REGISTRY_URL}" \
             -p DOCKER_IMAGE_NAMESPACE="${DOCKER_IMAGE_NAMESPACE}" \
             -p ENTANDO_OIDC_ACTIVE="false" \
-            -p ENTANDO_IMAGE_STREAM_TAG="${ENTANDO_IMAGE_STREAM_TAG}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
             | oc replace --force --grace-period 60  -f -
   fi
   if [ "${DEPLOY_POSTGRESQL}" = "true" ]; then
       oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-postgresql95-deployment.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
-            -p ENTANDO_IMAGE_STREAM_TAG="${ENTANDO_IMAGE_STREAM_TAG}" \
+            -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
             -p ENTANDO_DB_FILE_SECRET="${APPLICATION_NAME}-db-file-secret-$1" \
             | oc replace --force --grace-period 60  -f -
   fi
@@ -421,8 +421,8 @@ case $i in
       IMAGE_STREAM_NAMESPACE="${i#*=}"
       shift # past argument=value
     ;;
-    -eiv=*|--entando-image-stream-tag=*)
-      ENTANDO_IMAGE_STREAM_TAG="${i#*=}"
+    -eiv=*|--entando-image-version=*)
+      ENTANDO_IMAGE_VERSION="${i#*=}"
       shift # past argument=value
     ;;
     --image-promotion-only)
@@ -434,7 +434,7 @@ case $i in
 esac
 done
 IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-entando}
-ENTANDO_IMAGE_STREAM_TAG=${ENTANDO_IMAGE_STREAM_TAG:-5.0.3-SNAPSHOT}
+ENTANDO_IMAGE_VERSION=${ENTANDO_IMAGE_VERSION:-5.0.3-SNAPSHOT}
 echo "IMAGE_STREAM_NAMESPACE=$IMAGE_STREAM_NAMESPACE"
 case $COMMAND in
   create)

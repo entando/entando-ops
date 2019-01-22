@@ -26,7 +26,7 @@ parameters:
 
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
-  name: ENTANDO_IMAGE_STREAM_TAG
+  name: ENTANDO_IMAGE_VERSION
   description: The Image Stream Tag to use for each of the Entando Images for which there is a DeploymentConfig. This
     Image Stream Tag should which generally corresponds with the Entando version to be used.
   value: 5.0.3-SNAPSHOT
@@ -168,7 +168,7 @@ objects:
         - "${APPLICATION_NAME}-ccd-admin-engine"
         from:
           kind: ImageStreamTag
-          name: "fsi-cc-dispute-admin:${ENTANDO_IMAGE_STREAM_TAG}"
+          name: "fsi-cc-dispute-admin:${ENTANDO_IMAGE_VERSION}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
@@ -184,7 +184,7 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "${APPLICATION_NAME}-ccd-admin-engine"
-          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-admin:${ENTANDO_IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-admin:${ENTANDO_IMAGE_VERSION}"
           imagePullPolicy: Always
           resources:
             limits:
@@ -249,7 +249,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_VERSION}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-ccd-admin-appbuilder"
@@ -263,7 +263,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-ccd-admin-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_VERSION}"
           ports:
           - containerPort: 5000
             protocol: TCP
@@ -365,7 +365,7 @@ objects:
         - "${APPLICATION_NAME}-ccd-customer-engine"
         from:
           kind: ImageStreamTag
-          name: "fsi-cc-dispute-customer:${ENTANDO_IMAGE_STREAM_TAG}"
+          name: "fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION}"
           namespace: "${IMAGE_STREAM_NAMESPACE}"
     - type: ConfigChange
     replicas: 1
@@ -381,7 +381,7 @@ objects:
         terminationGracePeriodSeconds: 75
         containers:
         - name: "${APPLICATION_NAME}-ccd-customer-engine"
-          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-customer:${ENTANDO_IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION}"
           imagePullPolicy: Always
           resources:
             limits:
@@ -446,7 +446,7 @@ objects:
         from:
           kind: ImageStreamTag
           namespace: "${IMAGE_STREAM_NAMESPACE}"
-          name: appbuilder:${ENTANDO_IMAGE_STREAM_TAG}
+          name: appbuilder:${ENTANDO_IMAGE_VERSION}
     replicas: 1
     selector:
       deploymentConfig: "${APPLICATION_NAME}-ccd-customer-appbuilder"
@@ -460,7 +460,7 @@ objects:
       spec:
         containers:
         - name: "${APPLICATION_NAME}-ccd-customer-appbuilder"
-          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_STREAM_TAG}"
+          image: "${IMAGE_STREAM_NAMESPACE}/appbuilder:${ENTANDO_IMAGE_VERSION}"
           ports:
           - containerPort: 5000
             protocol: TCP
