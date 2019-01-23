@@ -12,13 +12,19 @@ This image has been pre-built with specific values for the standard environment 
 Please do not change any of the values as it could potentially interfere with the behaviour of the image. THe following environment
 variable values have been set and can be used to connect to the PORT and SERV databases respectively.
  
-**PORTDB_DATABASE**=portdb
-**PORTDB_USERNAME**=portdb
-**PORTDB_PASSWORD**=portdb
-**SERVDB_DATABASE**=servdb
-**SERVDB_USERNAME**=servdb
-**SERVDB_PASSWORD**=servdb
-**ADMIN_PASSWORD**=adminpwd
+**PORTDB_DATABASE**=portdb, {PORTDB_DATABASE}
+
+**PORTDB_USERNAME**=portdb, {PORTDB_USERNAME}
+
+**PORTDB_PASSWORD**=portdb, {PORTDB_PASSWORD}
+
+**SERVDB_DATABASE**=servdb, {SERVDB_DATABASE}
+
+**SERVDB_USERNAME**=servdb, {SERVDB_USERNAME}
+
+**SERVDB_PASSWORD**=servdb, {SERVDB_PASSWORD}
+
+**ADMIN_PASSWORD**=adminpwd, {ADMIN_PASSWORD}
 
 ## Ports
 

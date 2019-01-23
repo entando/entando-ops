@@ -1,4 +1,4 @@
-#Entando JBoss EAP 7.1 Cluster Ready Base Image 
+# Entando JBoss EAP 7.1 Cluster Ready Base Image
 
 The Entando JBoss EAP 7.1 Cluster Ready Base Image directly extends the [Entando JBoss EAP 7.1 Base Image](https://github.com/entando/entando-ops/tree/credit-card-dispute/Docker/base-images/entando-eap71-base).
 Please consult the parent image's documentation for a better understanding of how to configure this image. The only difference between this
@@ -6,9 +6,13 @@ image and the Entando JBoss EAP 7.1 Base Image is that it has enabled the cluste
 
 ## Ports
 
-**8080** - the port for the HTTP service hosted by JBoss EAP
-**8778** - the port for the JGroups service on JBoss
-**8443** - the port for  the HTTPS service hosted by JBoss EAP
+**8080** - {PORT_8080}
+
+**8443** - {PORT_8443}
+
+**8778** - {PORT_8778}
+
+**8888** - {PORT_8888}
 
 
 ## Volumes

@@ -1,4 +1,5 @@
-#Entando Wildfly 12 Base Image 
+# Entando Wildfly 12 Base Image
+
 The Entando Wildfly 12  7.1 Base Image is not intended to be run directly, but to be extended in other contexts that could leverage
 its functionality. It provides all the Wildfly and Java/Maven build infrastructure to allow extending images to build a war file
 from a Maven project, and then to deploy the resulting war file to /wildfly/standalone/deployments. 

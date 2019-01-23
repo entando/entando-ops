@@ -1,4 +1,5 @@
 # Entando PostgreSQL 9.5 Base Image
+
 The Entando Postgresql 9.5 Base Image is not intended to be run directly, but to be extended in other contexts that could leverage
 its functionality. It provides all the PostgreSQL and Java/Maven build infrastructure to allow extending images to build two
 local PostgreSQL databases, the Entand SERV database and the Entando PORT database. Even though this image itself is not compliant 
