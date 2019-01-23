@@ -1,4 +1,4 @@
-include::../README.adoc
+include::https://raw.githubusercontent.com/entando/entando-ops/EN-2348/Docker/base-images/README.adoc
 
 # Entando JBoss EAP 7.1 Base Image 
 The Entando JBoss EAP 7.1 Base Image is not intended to be run directly, but to be extended in other contexts that could leverage
