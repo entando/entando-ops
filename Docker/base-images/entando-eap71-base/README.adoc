@@ -1,5 +1,4 @@
-
-include::../../../common/adoc-variables.adoc[]
+:PORTDB_URL: balbabadl
 
 
 # Entando JBoss EAP 7.1 Base Image 
