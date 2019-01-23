@@ -1,4 +1,6 @@
-include::../README.adoc[]
+
+include::adoc-variables.adoc[]
+
 
 # Entando JBoss EAP 7.1 Base Image 
 The Entando JBoss EAP 7.1 Base Image is not intended to be run directly, but to be extended in other contexts that could leverage
@@ -34,7 +36,7 @@ the databases reflect the correct initial state for the associated Entando app.
 ### Entando specific Environment Variables
 **PORTDB_URL** - {PORTDB_URL}
 
-**PORTDB_DRIVER** - the name of the driver for the Entando PORT database as configured in the JEE application server
+**PORTDB_DRIVER** - {PORTDB_DRIVER}
 
 **PORTDB_USERNAME** - the username of the user that has read/write access to the Entando PORT database
 
