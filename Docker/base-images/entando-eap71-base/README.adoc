@@ -1,4 +1,6 @@
-#Entando JBoss EAP 7.1 Base Image 
+:include:../README.adoc
+
+# Entando JBoss EAP 7.1 Base Image 
 The Entando JBoss EAP 7.1 Base Image is not intended to be run directly, but to be extended in other contexts that could leverage
 its functionality. It provides all the JBoss EAP and Java/Maven build infrastructure to allow extending images to build a war file
 from a Maven project, and then to deploy the resulting war file to /opt/eap/standalone/deployments. 
@@ -30,7 +32,7 @@ the databases reflect the correct initial state for the associated Entando app.
 ## Environment Variables
 
 ### Entando specific Environment Variables
-**PORTDB_URL** - the full JDBC connection string used to connect to the Entando PORT database
+**PORTDB_URL** - {PORTDB_URL}
 
 **PORTDB_DRIVER** - the name of the driver for the Entando PORT database as configured in the JEE application server
 
