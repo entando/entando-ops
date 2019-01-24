@@ -9,7 +9,7 @@ if [ -n "${BASH_SOURCE[1]}" ]; then
         export DOCKER_REPO="entando/$ENTANDO_IMAGE"
         export IMAGE_NAME="$DOCKER_REPO:$VERSION"
         export DOCKERFILE_PATH="$DOCKER_BUILD_DIR/Dockerfile"
-        $DOCKER_BUILD_DIR/hooks/build docker &> $DOCKER_BUILD_DIR/docker-build.log || exit 2
+        $DOCKER_BUILD_DIR/hooks/build docker &> "$DOCKER_BUILD_DIR/$ENTANDO_IMAGE-docker-build.log" || exit 2
         if [ $? -eq 0 ]; then
             echo "Docker build successful"
             LATEST_VERSION=$(cat $(dirname $(realpath ${BASH_SOURCE[0]}))/hooks/VERSION_TO_TAG_AS_LATEST)

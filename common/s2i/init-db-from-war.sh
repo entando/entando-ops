@@ -79,11 +79,11 @@ do
     # Attempt killing Jetty only AFTER waiting for it to terminate
         (echo "Waiting for Jetty process [$JETTY_PID] to shut down"; sleep 3; ps; kill -9 ${JETTY_PID}; ps) &
         wait ${JETTY_PID}
-        if fgrep --quiet "java.util.ConcurrentModificationException" "db_creation.log" ; then
+        if fgrep --quiet "java.util.ConcurrentModificationException" "db_creation.log"  || fgrep --quiet "java.lang.ArrayIndexOutOfBoundsException" "db_creation.log"  ; then
             mv db_creation.log db_creation_conccurency_exception.log
             $jetty_command  &> db_creation.log &
             export JETTY_PID=$(echo $!)
-            echo "Restarting Jetty due to ConcurrentModificationException. JETTY_PID=${JETTY_PID}"
+            echo "Restarting Jetty due to intermittent ConcurrentModificationException or ArrayIndexOutOfBoundsException. JETTY_PID=${JETTY_PID}"
             sleep 3
             tail -f db_creation.log &
         else

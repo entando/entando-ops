@@ -9,11 +9,10 @@ services:
     environment:
       PORTDB_URL: jdbc:postgresql://postgresql:5432/portdb
       SERVDB_URL: jdbc:postgresql://postgresql:5432/servdb
-      PORTDB_USERNAME: agile
-      SERVDB_USERNAME: agile
-      PORTDB_PASSWORD: agile
-      SERVDB_PASSWORD: agile
-
+      PORTDB_USERNAME: portuser
+      SERVDB_USERNAME: servuser
+      PORTDB_PASSWORD: port123
+      SERVDB_PASSWORD: serv123
   postgresql:
     image: entando/postgresql:${ENTANDO_IMAGE_VERSION}
     ports:

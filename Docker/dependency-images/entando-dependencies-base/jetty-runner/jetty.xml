@@ -10,8 +10,8 @@
             <New class="org.apache.commons.dbcp.BasicDataSource">
                 <Set name="driverClassName"><SystemProperty name="profile.database.driverClassName"/></Set>
                 <Set name="url"><SystemProperty name="profile.database.url.portdb"/></Set>
-                <Set name="username"><SystemProperty name="profile.database.username.servdb"/></Set>
-                <Set name="password"><SystemProperty name="profile.database.password.servdb"/></Set>
+                <Set name="username"><SystemProperty name="profile.database.username.portdb"/></Set>
+                <Set name="password"><SystemProperty name="profile.database.password.portdb"/></Set>
             </New>
         </Arg>
     </New>
