@@ -9,9 +9,8 @@ COPY --chown=1001:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
 RUN ls -al $HOME/.m2/repository/org/entando/entando
 USER 1001
 RUN mkdir -p /tmp/src  && cd /tmp/src && \
-    BRANCH=${ENTANDO_VERSION%-*} && \
-    if [[ "$ENTANDO_VERSION" = *"-SNAPSHOT" ]]; then  BRANCH="${BRANCH}-dev";  else  BRANCH="${BRANCH}"; fi && \
-    git clone --depth 1 -b  v${BRANCH} https://github.com/entando/fsi-cc-dispute-admin.git . && \
+    BRANCH=$(${STI_SCRIPTS_PATH}/determine-branch.sh)  && \
+    git clone --depth 1 -b  ${BRANCH} https://github.com/entando/fsi-cc-dispute-admin.git . && \
     ${STI_SCRIPTS_PATH}/assemble
 FROM entando/entando-eap71-base:${ENTANDO_IMAGE_VERSION}
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \

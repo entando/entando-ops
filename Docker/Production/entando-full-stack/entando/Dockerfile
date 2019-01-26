@@ -2,14 +2,15 @@ ARG ENTANDO_IMAGE_VERSION
 FROM entando/entando-dependencies-full:$ENTANDO_IMAGE_VERSION AS dependencies
 ARG ENTANDO_VERSION
 FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION as builder
-ENV ENTANDO_VERSION=${ENTANDO_VERSION}
+ENV ENTANDO_VERSION=${ENTANDO_VERSION} \
+    servDataSourceClassName=com.mysql.jdbc.Driver \
+    portDataSourceClassName=om.mysql.jdbc.Driver
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2 $HOME/.m2
 RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
-    BRANCH=${ENTANDO_VERSION%-*} && \
-    if [[ "$ENTANDO_VERSION" = *"-SNAPSHOT" ]]; then  BRANCH="${BRANCH}-dev";  else  BRANCH="${BRANCH}"; fi && \
-    curl -L "https://github.com/entando/entando-sample-full/archive/v${BRANCH}.zip" -o entando-sample-full.zip  && \
+    BRANCH=$(${STI_SCRIPTS_PATH}/determine-branch.sh)  && \
+    curl -L "https://github.com/entando/entando-sample-full/archive/${BRANCH}.zip" -o entando-sample-full.zip  && \
     unzip entando-sample-full.zip  && \
-    cd entando-sample-full-${BRANCH}  && \
+    pushd entando-sample-full-*  && \
     mvn clean package -Popenshift -DskipTests \
             --batch-mode --settings $HOME/.m2/settings.xml \
             -Dprofile.portDataSourceClassName="org.apache.derby.jdbc.EmbeddedDriver" \

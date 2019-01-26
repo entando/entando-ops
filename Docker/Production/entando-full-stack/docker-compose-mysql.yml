@@ -1,0 +1,30 @@
+version: '2'
+services:
+  engine-api:
+    image: entando/engine-api:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "8080:8080"
+    volumes:
+     - entando-volume:/entando-data
+    environment:
+      PORTDB_URL: jdbc:mysql://mysql:3306/portdb
+      SERVDB_URL: jdbc:mysql://mysql:3306/servdb
+      PORTDB_USERNAME: portuser
+      SERVDB_USERNAME: servuser
+      PORTDB_PASSWORD: port123
+      SERVDB_PASSWORD: serv123
+  mysql:
+    image: entando/mysql:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "3306:3306"
+    volumes:
+     - entando-mysql-volume:/var/lib/mysql/data
+  appbuilder:
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "5000:5000"
+    environment:
+      DOMAIN: http://${DOCKER_HOST_ADDRESS}:8080/entando
+volumes:
+  entando-volume:
+  entando-mysql-volume:
