@@ -43,7 +43,11 @@ ENV PORTDB_NONXA="true" \
     ENTANDO_OIDC_AUTH_LOCATION="http://dummy.com" \
     ENTANDO_OIDC_TOKEN_LOCATION="http://dummy.com" \
     ENTANDO_OIDC_CLIENT_ID="dummy" \
-    ENTANDO_OIDC_REDIRECT_BASE_URL="http://dummy.com"
+    ENTANDO_OIDC_REDIRECT_BASE_URL="http://dummy.com" \
+    LOGFILEPREFIX="/var/log/entando/engine_" \
+    RESOURCEDISKROOTFOLDER="/entando-data/resources/" \
+    PROTECTEDRESOURCEDISKROOTFOLDER="/entando-data/protected/" \
+    INDEXDISKROOTFOLDER="/tmp/entando-indices"
 
 
 USER root

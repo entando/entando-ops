@@ -1,0 +1,9 @@
+This folder containers files that are either
+
+. invoked during the build of a specific image, eg 'build-common.sh, hooks/build and hooks/post_push
+
+. copied across to the STI_SCRIPTS_PATH of the container being built (e.g. everything under s2i/*
+
+. or invoked during the build of groups groups of images, e.g. *-all.sh
+
+Please note that only the files in s2i/ end up in the image. The rest of the files are simply build helper scripts

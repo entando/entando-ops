@@ -63,6 +63,14 @@ jetty_command="java \
     -Dprofile.database.driverClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
     -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
     -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
+    -DportDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
+    -DservDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
+    -DlogFilePrefix=/tmp/entando-logs \
+    -DresourceRootURL=/entando/resources/ \
+    -DprotectedResourceRootURL=/entando/protected/ \
+    -DresourceDiskRootFolder=/tmp/entando-db-build/src/main/webapp/resources/ \
+    -DprotectedResourceDiskRootFolder=/tmp/entando-db-build/src/main/webapp/protected/ \
+    -DindexDiskRootFolder=/tmp/entando-indices \
     -jar /jetty-runner/jetty-runner-${JETTY_VERSION}.jar \
     --lib /jetty-runner \
     --lib /tmp/entando-db-build/commons-lib \
