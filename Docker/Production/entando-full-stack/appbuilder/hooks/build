@@ -5,14 +5,16 @@ if [ -n "${DOCKER_TAG}" ]; then
         APP_BUILDER_BRANCH="master"
         ENTANDO_COMPONENTS_BRANCH="master"
     else
-        if [[ "$DOCKER_TAG" = *"-SNAPSHOT" ]]; then
-            BRANCH_SUFFIX="dev"
-        else
-            BRANCH_SUFFIX="release"
-        fi
         ENTANDO_VERSION=${DOCKER_TAG%-*}
-        APP_BUILDER_BRANCH="v${ENTANDO_VERSION}-release"
-        ENTANDO_COMPONENTS_BRANCH="v${ENTANDO_VERSION}-${BRANCH_SUFFIX}"
+        if [[ "$DOCKER_TAG" = *"-SNAPSHOT" ]]; then
+        #use branches
+            APP_BUILDER_BRANCH="v${ENTANDO_VERSION}-release"
+            ENTANDO_COMPONENTS_BRANCH="v${ENTANDO_VERSION}-dev"
+        else
+        #use tags
+            APP_BUILDER_BRANCH="v${ENTANDO_VERSION}"
+            ENTANDO_COMPONENTS_BRANCH="v${ENTANDO_VERSION}"
+        fi
     fi
     echo "APP_BUILDER_BRANCH=${APP_BUILDER_BRANCH}"
     echo "ENTANDO_COMPONENTS_BRANCH=${ENTANDO_COMPONENTS_BRANCH}"

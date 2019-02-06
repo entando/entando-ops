@@ -1,0 +1,512 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  annotations:
+    iconClass: icon-eap
+    tags: maven jenkins
+    version: 5.0.3-SNAPSHOT
+    openshift.io/display-name: Entando Build Configs for EAP and PostgreSQL
+    openshift.io/provider-display-name: Entando
+    description: Entando Build Configs for EAP and PostgreSQL
+    template.openshift.io/long-description: Entando Build Configs for EAP and PostgreSQL
+    template.openshift.io/documentation-url: https://central.entando.com/
+    template.openshift.io/support-url: https://central.entando.com
+  name: entando-eap71-postgresql-jenkins
+labels:
+  template: entando-eap71-postgresql-jenkins
+message: 'A new  set of Entando Build Configs for EAP and PostgreSQL  has been created'
+parameters:
+- displayName: Application Name
+  description: The name for the application.
+  name: APPLICATION_NAME
+  value: entando-sample
+  required: false
+- displayName: Entando Image Stream Tag
+  description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
+  name: ENTANDO_IMAGE_VERSION
+  value: 5.0.3-SNAPSHOT
+  required: false
+- displayName: Entando Image Stream Namespace
+  description: The Namespace containing the standard Entando Image Streams
+  name: IMAGE_STREAM_NAMESPACE
+  value: openshift
+  required: false
+- displayName: Production Cluster URL
+  description: Production Cluster URL
+  name: PRODUCTION_CLUSTER_URL
+  value: ''
+  required: false
+- displayName: Production Cluster Secret
+  description: Production Cluster Secret
+  name: PRODUCTION_CLUSTER_SECRET
+  value: ''
+  required: false
+- displayName: Production Cluster Token
+  description: Production Cluster Token
+  name: PRODUCTION_CLUSTER_TOKEN
+  value: ''
+  required: false
+- displayName: External Docker Registry URL
+  description: External Docker Registry  URL
+  name: SHARED_DOCKER_REGISTRY_URL
+  value: ''
+  required: false
+- displayName: External Docker Project
+  description: External Docker Project
+  name: DOCKER_IMAGE_NAMESPACE
+  value: ''
+  required: false
+- displayName: External Docker Registry Secret
+  description: External Docker Registry Secret
+  name: SHARED_DOCKER_REGISTRY_SECRET
+  value: ''
+  required: false
+objects:
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: entando-maven-jenkins-slave-openshift39
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    tags:
+    - annotations:
+        role: jenkins-slave
+        slave-label: entando-maven
+      from:
+        kind: ImageStreamTag
+        name: entando-maven-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
+        namespace: ${IMAGE_STREAM_NAMESPACE}
+      name: latest
+- kind: ImageStream
+  apiVersion: v1
+  metadata:
+    name: entando-postgresql-jenkins-slave-openshift39
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    tags:
+    - annotations:
+        role: jenkins-slave
+        slave-label: entando-postgresql
+      from:
+        kind: ImageStreamTag
+        name: entando-postgresql-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
+        namespace: ${IMAGE_STREAM_NAMESPACE}
+      name: latest
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-tag-as-stage"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest"
+    source:
+      type: Docker
+      dockerfile: |-
+         FROM ${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest
+    output:
+      to:
+        kind: DockerImage
+        name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage"
+      pushSecret:
+        name: "${SHARED_DOCKER_REGISTRY_SECRET}"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-tag-as-prod"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      dockerStrategy:
+        from:
+          kind: DockerImage
+          name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage"
+    source:
+      type: Docker
+      dockerfile: |-
+         FROM ${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage
+    output:
+      to:
+        kind: DockerImage
+        name: "${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:prod"
+      pushSecret:
+        name: "${SHARED_DOCKER_REGISTRY_SECRET}"
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "promote-${APPLICATION_NAME}-to-stage-with-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage("Bring down ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject('${APPLICATION_NAME}-stage'){
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}-engine')
+                                    deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+
+                          }
+                      }
+                  }
+                  stage("Prepare ${APPLICATION_NAME} Database ") {
+                      agent {
+                          label 'entando-postgresql'
+                      }
+                      steps {
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
+                                            usernameVariable: 'dummy', passwordVariable: 'DATABASE_ENV']]) {
+                              sh '''
+                                    #!/bin/bash
+                                    #Hack to populate all the ENV Variables
+                                  source ${HOME}/export-db-variables.sh "${DATABASE_ENV}"
+                                    set -e
+                                    ${HOME}/backup-dbs.sh
+                                    ${HOME}/recreate-dbs.sh
+                                  oc delete pod migrate-db --ignore-not-found=true -n ${APPLICATION_NAME}-stage
+                                  oc run migrate-db --image=${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest \
+                                      -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-stage \
+                                      --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
+                                      --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \
+                                      --command -- /usr/local/s2i/init-db-from-deployment.sh
+                                  '''
+                          }
+                      }
+                      post {
+                          failure {
+                              withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
+                                                usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                                  sh '''
+                                      #!/bin/bash
+                                      #Hack to populate all the ENV Variables
+                                      source ${HOME}/export-db-variables.sh "${PASSWORD}"
+                                      ${HOME}/restore-dbs.sh
+                                     '''
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build"){
+                                    openshift.selector("bc", "${APPLICATION_NAME}-tag-as-stage").startBuild("--wait")
+                                  }
+                                  openshift.withProject("${APPLICATION_NAME}-stage"){
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}-engine")
+                                    def rolloutManager=deploymentConfig.rollout()
+                                    rolloutManager.latest()
+                                      //Make sure the first pod spins up before scaling up
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
+                                    deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "promote-${APPLICATION_NAME}-to-stage-without-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage("Bring down ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject('${APPLICATION_NAME}-stage'){
+                                    def deploymentConfig=openshift.selector('dc/${APPLICATION_NAME}-engine')
+                                    deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build"){
+                                    openshift.selector("bc", "${APPLICATION_NAME}-tag-as-stage").startBuild("--wait")
+                                  }
+                                  openshift.withProject("${APPLICATION_NAME}-stage"){
+                                    def deploymentConfig=openshift.selector("dc/${APPLICATION_NAME}-engine")
+                                    def rolloutManager=deploymentConfig.rollout()
+                                    rolloutManager.latest()
+                                      //Make sure the first pod spins up before scaling up
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
+                                    deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "promote-${APPLICATION_NAME}-to-production-with-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage('Bring down ${APPLICATION_NAME} Prod Deployment') {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject('${APPLICATION_NAME}-prod') {
+                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}-engine')
+                                      deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage('Prepare ${APPLICATION_NAME} Production Database') {
+                      agent {
+                          label 'entando-postgresql'
+                      }
+                      steps {
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${PRODUCTION_CLUSTER_SECRET}',
+                                            usernameVariable: 'CLUSTER_USERNAME', passwordVariable: 'CLUSTER_PASSWORD']]) {
+                              sh '''
+                                            #!/bin/bash
+                                  #Setup port forwarding from the remote cluster's PostgreSQL pod to this Jenkins slave
+                                  #TODO see if we can use an Openshift Token Credential
+                                            oc login -u $CLUSTER_USERNAME -p $CLUSTER_PASSWORD https://${PRODUCTION_CLUSTER_URL} --insecure-skip-tls-verify
+                                            PG_POD=$(oc get pods -n ${APPLICATION_NAME}-prod -l deploymentConfig=${APPLICATION_NAME}-postgresql | grep '${APPLICATION_NAME}-[a-zA-Z0-9\\-]*' -o)
+                                            nohup oc port-forward $PG_POD 5432:5432  -n ${APPLICATION_NAME}-prod  >  forwarding.log 2>&1&
+                                            for i in {1..60}
+                                            do
+                                                sleep 5
+                                                cat forwarding.log
+                                                if fgrep --quiet "Forwarding from" forwarding.log
+                                                then
+                                                    exit 0
+                                                fi
+                                            done
+                                            exit -1
+                                        '''
+                          }
+                          withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
+                                            usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD']]) {
+                              sh '''
+                                            #!/bin/bash
+                                            #Hack to populate all the ENV Variables
+                                            source ${HOME}/export-db-variables.sh "${DB_PASSWORD}"
+                                  oc whoami #test that it is still the cluster admin user and not jenkins
+                                            set -e
+                                  env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/backup-dbs.sh
+                                  env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/recreate-dbs.sh
+                                  oc delete pod migrate-db  --ignore-not-found=true -n ${APPLICATION_NAME}-prod
+                                  oc run migrate-db --image=${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage \
+                                      -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-prod \
+                                      --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
+                                      --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \
+                                      --command -- /usr/local/s2i/init-db-from-deployment.sh
+                                        '''
+                          }
+                      }
+
+                      post {
+                          failure {
+                              withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
+                                                usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                                  sh '''
+                                                #!/bin/bash
+                                                #Hack to populate all the ENV Variables
+                                                source ${HOME}/export-db-variables.sh "${PASSWORD}"
+                                      env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/restore-dbs.sh
+                                            '''
+                              }
+                          }
+                      }
+                  }
+                  stage("Push ${APPLICATION_NAME}:prod image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build") {
+                                      openshift.selector("bc", "${APPLICATION_NAME}-tag-as-prod").startBuild("--wait")
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject("${APPLICATION_NAME}-prod") {
+                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}-engine")
+                                      def rolloutManager = deploymentConfig.rollout()
+                                      rolloutManager.latest()
+                                      //Make sure the first pod spins up before scaling up
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
+                                      deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- kind: BuildConfig
+  apiVersion: v1
+  metadata:
+    name: "promote-${APPLICATION_NAME}-to-production-without-db-migration"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: JenkinsPipeline
+      jenkinsPipelineStrategy:
+        jenkinsfile: |-
+          pipeline {
+              agent none
+              stages {
+                  stage('Bring down ${APPLICATION_NAME} Prod Deployment') {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject('${APPLICATION_NAME}-prod') {
+                                      def deploymentConfig = openshift.selector('dc/${APPLICATION_NAME}-engine')
+                                      deploymentConfig.scale('--replicas=0')
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Push ${APPLICATION_NAME}:prod image") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster() {
+                                  openshift.withProject("${APPLICATION_NAME}-build") {
+                                      openshift.selector("bc", "${APPLICATION_NAME}-tag-as-prod").startBuild("--wait")
+                                  }
+                              }
+                          }
+                      }
+                  }
+                  stage("Start up ${APPLICATION_NAME} Deployment") {
+                      agent {
+                          label "entando-maven"
+                      }
+                      steps {
+                          script {
+                              openshift.withCluster('insecure://${PRODUCTION_CLUSTER_URL}', '${PRODUCTION_CLUSTER_TOKEN}') {
+                                  openshift.withProject("${APPLICATION_NAME}-prod") {
+                                      def deploymentConfig = openshift.selector("dc/${APPLICATION_NAME}-engine")
+                                      def rolloutManager = deploymentConfig.rollout()
+                                      rolloutManager.latest()
+                                      deploymentConfig.scale("--replicas=1")
+                                      def pods=deploymentConfig.related("pods")
+                                      timeout(5) { // Throw exception after 5 minutes
+                                          pods.untilEach(1) {
+                                              return (it.object().status.containerStatuses[0].ready == true)
+                                          }
+                                      }
+                                      deploymentConfig.scale("--replicas=2")
+                                  }
+                              }
+                          }
+                      }
+                  }
+              }
+          }
+    triggers:
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: "${APPLICATION_NAME}-entando-build-claim"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 2Gi

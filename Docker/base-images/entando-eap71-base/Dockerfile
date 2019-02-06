@@ -20,10 +20,10 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=185
 COPY --chown=185:0 --from=dependencies  /opt/app-root/src/wildfly/modules /opt/eap/modules
 COPY --chown=185:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
-COPY --chown=185:0 --from=dependencies /entando-database-templates /entando-database-templates
+COPY --chown=185:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
 COPY --chown=185:0 ./contrib/wildfly-configuration/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
 COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
+ENV DATASOURCES="PORTDB,SERVDB" \
     PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
@@ -42,9 +42,23 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     SERVDB_PASSWORD="agile" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
-    PREPARE_DB="true"
+    PREPARE_DATA="true" \
+    DB_ENVIRONMENT="production" \
+    DEPLOYMENTS_DIR="/opt/eap/standalone/deployments" \
+    ENTANDO_OIDC_ACTIVE="false" \
+    ENTANDO_OIDC_AUTH_LOCATION="http://dummy.com" \
+    ENTANDO_OIDC_TOKEN_LOCATION="http://dummy.com" \
+    ENTANDO_OIDC_CLIENT_ID="dummy" \
+    ENTANDO_OIDC_REDIRECT_BASE_URL="http://dummy.com" \
+    LOGFILEPREFIX="/var/log/entando/engine_" \
+    RESOURCEDISKROOTFOLDER="/entando-data/resources/" \
+    PROTECTEDRESOURCEDISKROOTFOLDER="/entando-data/protected/" \
+    INDEXDISKROOTFOLDER="/tmp/entando-indices"
 USER root
-RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/
+RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
+    mkdir -p /entando-data-templates/databases  && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/ && \
+    mkdir -p /var/log/entando && chown -Rf $USERID_TO_USE:0 /var/log/entando && chmod -Rf ug+rw /var/log/entando
+
 USER $USERID_TO_USE
 
 CMD "${STI_SCRIPTS_PATH}/run"

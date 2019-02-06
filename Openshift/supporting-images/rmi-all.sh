@@ -1,0 +1,1 @@
+../../common/rmi-all.sh

@@ -1,28 +1,30 @@
 version: '2'
 services:
   engine-api:
-    image: entando/engine-api:5.0.1-SNAPSHOT
+    image: entando/engine-api:${ENTANDO_IMAGE_VERSION}
     ports:
      - "8080:8080"
     volumes:
      - entando-volume:/entando-data
     environment:
-      PORTDB_URL: jdbc:postgresql://postgresql:5432/entandoPort
-      SERVDB_URL: jdbc:postgresql://postgresql:5432/entandoServ
-      PORTDB_DRIVER: postgresql
-      SERVDB_DRIVER: postgresql
+      PORTDB_URL: jdbc:postgresql://postgresql:5432/portdb
+      SERVDB_URL: jdbc:postgresql://postgresql:5432/servdb
+      PORTDB_USERNAME: portuser
+      SERVDB_USERNAME: servuser
+      PORTDB_PASSWORD: port123
+      SERVDB_PASSWORD: serv123
   postgresql:
-    image: entando/postgresql:5.0.1-SNAPSHOT
+    image: entando/postgresql:${ENTANDO_IMAGE_VERSION}
     ports:
      - "5432:5432"
     volumes:
      - entando-pg-volume:/var/lib/pgsql/data
   appbuilder:
-    image: entando/appbuilder:5.0.1-SNAPSHOT
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
     ports:
      - "5000:5000"
     environment:
-      DOMAIN: http://localhost:8080/entando
+      DOMAIN: http://${DOCKER_HOST_ADDRESS}:8080/entando
 volumes:
   entando-volume:
   entando-pg-volume:

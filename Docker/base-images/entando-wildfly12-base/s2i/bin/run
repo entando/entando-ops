@@ -1,9 +1,5 @@
 #!/bin/bash
-if ! [ -d /entando-data/databases/entandoPort ]; then
-  echo "New Entando instance detected. Copying Default Entando Derby DB for optional use."
-  mkdir -p /entando-data/databases/ > /dev/null 2>&1
-  cp /entando-database-templates/* /entando-data/databases/ -rf
-  chmod -Rf ug+rw /entando-data/databases/
 
-fi
-exec /wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dderby.system.home=/entando-data/databases
+source $(dirname ${BASH_SOURCE[0]})/translate-jboss-variables.sh
+$(dirname ${BASH_SOURCE[0]})/prepare-data.sh
+exec /wildfly/bin/standalone.sh -b 0.0.0.0 -bmanagement 0.0.0.0 -Dderby.system.home=/entando-data/databases -Dentando.restore.db=false

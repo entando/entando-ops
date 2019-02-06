@@ -1,0 +1,44 @@
+{
+  "apiVersion": "v1",
+  "kind": "ImageStream",
+  "metadata": {
+    "annotations": {
+      "openshift.io/display-name": "Entando EAP 71"
+    },
+    "name": "entando-eap71-clustered-openshift"
+  },
+  "spec": {
+    "tags": [
+      {
+        "annotations": {
+          "description": "Build and run Entando applications on EAP 7.1/CentOS 7. ",
+          "openshift.io/display-name": "Entando EAP",
+          "openshift.io/provider-display-name": "Entando",
+          "sampleRepo": "https://github.com/ampie/entando-sample.git",
+          "supports": "jee,java",
+          "tags": "builder,eap,java"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-clustered-openshift:5.0.2"
+        },
+        "name": "latest"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-clustered-openshift:5.0.2"
+        },
+        "name": "5.0.2"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-clustered-openshift:5.1.0-SNAPSHOT"
+        },
+        "name": "5.1.0-SNAPSHOT"
+      }
+
+    ]
+  }
+}

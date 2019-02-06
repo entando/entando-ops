@@ -1,33 +1,34 @@
 ARG ENTANDO_IMAGE_VERSION
-FROM entando/entando-dependencies-base:$ENTANDO_IMAGE_VERSION AS dependencies
+FROM entando/entando-dependencies-full:$ENTANDO_IMAGE_VERSION AS dependencies
 ARG ENTANDO_VERSION
-ENV ENTANDO_VERSION=${ENTANDO_VERSION}
-RUN mkdir  -p /tmp/entando-init && \
-    cd /tmp/entando-init && \
-    mvn archetype:generate -B --settings $HOME/.m2/settings.xml \
-        -Dfilter=entando \
-        -DarchetypeGroupId=org.entando.entando \
-        -DarchetypeArtifactId=entando-archetype-web-app-BPM \
-        -DarchetypeVersion="${ENTANDO_VERSION}" \
-        -DgroupId=org.entando \
-        -DartifactId=entando \
-        -Dversion=1.0 \
-        -Dpackage=org.entando && \
-     cd entando  && \
-     mvn clean package -Popenshift -DskipTests \
+FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION as builder
+ENV ENTANDO_VERSION=${ENTANDO_VERSION} \
+    servDataSourceClassName=com.mysql.jdbc.Driver \
+    portDataSourceClassName=om.mysql.jdbc.Driver
+COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2 $HOME/.m2
+RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
+    BRANCH=$(${STI_SCRIPTS_PATH}/determine-branch.sh)  && \
+    curl -L "https://github.com/entando/entando-sample-full/archive/${BRANCH}.zip" -o entando-sample-full.zip  && \
+    unzip entando-sample-full.zip  && \
+    pushd entando-sample-full-*  && \
+    mvn clean package -Popenshift -DskipTests \
             --batch-mode --settings $HOME/.m2/settings.xml \
             -Dprofile.portDataSourceClassName="org.apache.derby.jdbc.EmbeddedDriver" \
             -Dprofile.servDataSourceClassName="org.apache.derby.jdbc.EmbeddedDriver" \
             -Djboss=jboss \
             -Denv.db.environment=production \
+            -Dprofile.application.name=entando \
             -Dprofile.config.version=production \
             -Dprofile.application.baseurl.protocol=http \
             -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
             -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
-            -Dprofile.log.file.prefix=/entando-data/logs/log \
+            -Dprofile.log.file.prefix=/var/log/entando/engine_ \
             -Dprofile.resources.path=/entando-data/resources \
             -Dprofile.resources.path.protected=/entando-data/protected \
             -Dprofile.index.path=/entando-data/indexdir \
-            -Djava.net.preferIPv4Stack=true
+            -Djava.net.preferIPv4Stack=true && \
+    mv target/entando-sample-full.war ../ && \
+    $STI_SCRIPTS_PATH/init-derby-from-war.sh --war-file=/tmp/entando/entando-sample-full.war
 FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION
-COPY --chown=1001:0 --from=dependencies /tmp/entando-init/entando/target/entando.war /wildfly/standalone/deployments/
+COPY --chown=1001:0 --from=builder /tmp/entando/entando-sample-full.war /wildfly/standalone/deployments/entando.war
+COPY --chown=1001:0 --from=builder /entando-data-templates /entando-data-templates

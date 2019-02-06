@@ -1,5 +1,7 @@
 # IntelliJ project files
+*docker-build.log
 .idea
 *.iml
 out
 gen
+todo.txt

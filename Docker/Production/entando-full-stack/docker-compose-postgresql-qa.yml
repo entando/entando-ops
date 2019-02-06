@@ -1,0 +1,47 @@
+version: '3.6'
+services:
+  postgresql:
+    image: entando/postgresql:${ENTANDO_IMAGE_VERSION}
+    volumes:
+     - entando-pg-volume:/var/lib/pgsql/data
+    networks:
+      entando-network:
+        ipv4_address: 10.10.0.2
+  engine-api:
+    image: entando/engine-api:${ENTANDO_IMAGE_VERSION}
+    volumes:
+     - entando-volume:/entando-data
+    environment:
+      PORTDB_URL: jdbc:postgresql://postgresql:5432/portdb
+      SERVDB_URL: jdbc:postgresql://postgresql:5432/servdb
+      PORTDB_USERNAME: portuser
+      SERVDB_USERNAME: servuser
+      PORTDB_PASSWORD: port123
+      SERVDB_PASSWORD: serv123
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      entando-network:
+        ipv4_address: 10.10.0.3
+  appbuilder:
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
+    environment:
+      DOMAIN: http://engine-api:8080/entando
+    networks:
+      entando-network:
+        ipv4_address: 10.10.0.4
+
+networks:
+  entando-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.0.0/8
+
+volumes:
+  entando-volume:
+  entando-pg-volume:

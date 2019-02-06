@@ -1,0 +1,162 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  annotations:
+    iconClass: icon-eap
+    tags: eap,javaee,java,jboss
+    version: 5.0.3-SNAPSHOT
+    openshift.io/display-name: Entando Deployments Template
+    openshift.io/provider-display-name: Entando
+    description: Entando Deployments Template
+    template.openshift.io/long-description: Entando Deployments Template
+    template.openshift.io/documentation-url: https://central.entando.com/
+    template.openshift.io/support-url: https://central.entando.com
+  name: entando-deployments
+labels:
+  template: entando-eap71-postgresql-jenkins
+message: 'A Entando Deployment was created'
+parameters:
+- displayName: Application Name
+  description: The name for the application.
+  name: APPLICATION_NAME
+  value: entando-sample
+  required: false
+- displayName: Image Version for Entando Images
+  description: Image Version for Entando Images
+  name: ENTANDO_IMAGE_VERSION
+  value: stage
+  required: false
+- displayName: Entando Database Secret
+  description: The name of the secret defining environment variables for the 'username' and 'password' of
+    the user that will access the Postgresql Port and Serv databases, the 'adminUsername'
+    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'hostname' and 'port'
+    defining the connection string.
+  name: ENTANDO_DB_FILE_SECRET
+  value: entando-db-secret
+  required: true
+- displayName: ImageStream Namespace
+  description: Namespace in which the ImageStreams for the Entando Images have been installed in
+  name: IMAGE_STREAM_NAMESPACE
+  value: entando-sample
+  required: true
+- displayName: Volume Capacity
+  description: Volume Capacity
+  name: VOLUME_CAPACITY
+  value: 1Gi
+  required: true
+- displayName: PostgreSQL Maximum number of connections
+  description: The maximum number of client connections allowed. This also sets the
+    maximum number of prepared transactions.
+  name: POSTGRESQL_MAX_CONNECTIONS
+  value: '100'
+  required: false
+- displayName: PostgreSQL Shared Buffers
+  description: Configures how much memory is dedicated to PostgreSQL for caching data.
+  name: POSTGRESQL_SHARED_BUFFERS
+  value: 32MB
+  required: false
+
+objects:
+- kind: Service
+  apiVersion: v1
+  spec:
+    ports:
+    - port: 5432
+      targetPort: 5432
+    selector:
+      deploymentConfig: "${APPLICATION_NAME}-postgresql"
+  metadata:
+    name: "${APPLICATION_NAME}-postgresql"
+    labels:
+      application: "${APPLICATION_NAME}"
+    annotations:
+      description: The Entando Database server's port.
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-postgresql"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${APPLICATION_NAME}-postgresql"
+        from:
+          kind: ImageStreamTag
+          name: "entando-postgresql95-openshift:${ENTANDO_IMAGE_VERSION}"
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      deploymentConfig: "${APPLICATION_NAME}-postgresql"
+    template:
+      metadata:
+        name: "${APPLICATION_NAME}-postgresql"
+        labels:
+          deploymentConfig: "${APPLICATION_NAME}-postgresql"
+          application: "${APPLICATION_NAME}"
+      spec:
+        terminationGracePeriodSeconds: 60
+        containers:
+        - name: "${APPLICATION_NAME}-postgresql"
+          command:
+            - "/usr/libexec/s2i/run"
+          image: "${IMAGE_STREAM_NAMESPACE}/entando-postgresql95-openshift:${ENTANDO_IMAGE_VERSION}"
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 5432
+            protocol: TCP
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            exec:
+              command:
+              - "/bin/sh"
+              - "-i"
+              - "-c"
+              - "psql -h 127.0.0.1 -U postgres -q -d postgres -c '\\l'|grep '5 rows'"
+          livenessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 180
+            tcpSocket:
+              port: 5432
+          volumeMounts:
+          - name: "postgresql-data"
+            mountPath: "/var/lib/pgsql/data"
+          - name: "postgresql-env-files"
+            mountPath: "/etc/postgresql-env-files"
+            readOnly: true
+          env:
+          - name: ENV_FILES
+            value: "/etc/postgresql-env-files/datasources.env"
+          - name: POSTGRESQL_MAX_CONNECTIONS
+            value: "${POSTGRESQL_MAX_CONNECTIONS}"
+          - name: POSTGRESQL_MAX_PREPARED_TRANSACTIONS
+            value: "${POSTGRESQL_MAX_CONNECTIONS}"
+          - name: POSTGRESQL_SHARED_BUFFERS
+            value: "${POSTGRESQL_SHARED_BUFFERS}"
+        volumes:
+        - name: "postgresql-data"
+          persistentVolumeClaim:
+            claimName: "${APPLICATION_NAME}-postgresql-claim"
+        - name: "postgresql-env-files"
+          secret:
+            secretName: "${ENTANDO_DB_FILE_SECRET}"
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: "${APPLICATION_NAME}-postgresql-claim"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "${VOLUME_CAPACITY}"

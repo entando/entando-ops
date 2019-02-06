@@ -9,7 +9,5 @@ LABEL io.openshift.s2i.destination="/opt/s2i/destination" \
 ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=26
-COPY --chown=185:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
+COPY --chown=26:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
 CMD "$STI_SCRIPTS_PATH/usage"
-
-

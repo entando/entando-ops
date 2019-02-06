@@ -1,0 +1,39 @@
+version: '2'
+services:
+  customer-engine:
+    image: entando/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "8081:8080"
+    volumes:
+     - entando-customer-volume:/entando-data
+    environment:
+      KIE_SERVER_BASE_URL: http://entando-kieserver701.apps.serv.run/
+      KIE_SERVER_USERNAME: kieserver
+      KIE_SERVER_PASSWORD: kieserver1!
+  customer-appbuilder:
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "5001:5000"
+    environment:
+      DOMAIN: http://${DOCKER_HOST_ADDRESS}:8081/fsi-credit-card-dispute-customer
+      CLIENT_SECRET: appbuilder_secret
+  admin-engine:
+    image: entando/fsi-cc-dispute-admin:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "8082:8080"
+    volumes:
+     - entando-admin-volume:/entando-data
+    environment:
+      KIE_SERVER_BASE_URL: http://entando-kieserver701.apps.serv.run/
+      KIE_SERVER_USERNAME: kieserver
+      KIE_SERVER_PASSWORD: kieserver1!
+  admin-appbuilder:
+    image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "5002:5000"
+    environment:
+      DOMAIN: http://${DOCKER_HOST_ADDRESS}:8082/fsi-credit-card-dispute-backoffice
+      CLIENT_SECRET: appbuilder_secret
+volumes:
+  entando-customer-volume:
+  entando-admin-volume:

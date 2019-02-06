@@ -25,7 +25,7 @@
         "importPolicy": {
           "insecure": true
         },
-        "name": "5.0.1-SNAPSHOT",
+        "name": "5.0.2",
         "referencePolicy": {
           "type": "Source"
         }

@@ -20,17 +20,25 @@
         },
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-eap71-quickstart-openshift:5.0.1-SNAPSHOT"
-
+          "name": "docker.io/entando/entando-eap71-quickstart-openshift:5.0.2"
         },
-        "importPolicy": {
-          "insecure": false
+        "name": "latest"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-quickstart-openshift:5.0.2"
         },
-        "name": "latest",
-        "referencePolicy": {
-          "type": "Source"
-        }
+        "name": "5.0.2"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-quickstart-openshift:5.1.0-SNAPSHOT"
+        },
+        "name": "5.1.0-SNAPSHOT"
       }
+
     ]
   }
 }

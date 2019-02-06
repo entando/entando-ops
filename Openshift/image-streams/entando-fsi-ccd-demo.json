@@ -1,0 +1,77 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "v1",
+      "kind": "ImageStream",
+      "metadata": {
+        "annotations": {
+          "openshift.io/display-name": "Entando FSI Credit Card Dispute Customer App"
+        },
+        "name": "fsi-cc-dispute-customer"
+      },
+      "spec": {
+        "tags": [
+          {
+            "annotations": {
+              "description": "Entando FSI Credit Card Dispute Customer App",
+              "openshift.io/display-name": "Entando FSI Credit Card Dispute Customer App",
+              "openshift.io/provider-display-name": "Entando",
+              "supports": "jee,java",
+              "tags": "builder,eap,java"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.2"
+            },
+            "name": "latest"
+          },
+          {
+            "from": {
+              "kind": "DockerImage",
+              "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.2"
+            },
+            "name": "5.0.2"
+          }
+        ]
+      }
+    },
+    {
+      "apiVersion": "v1",
+      "kind": "ImageStream",
+      "metadata": {
+        "annotations": {
+          "openshift.io/display-name": "Entando FSI Credit Card Dispute Admin App"
+        },
+        "name": "fsi-cc-dispute-admin"
+      },
+      "spec": {
+        "tags": [
+          {
+            "annotations": {
+              "description": "Entando FSI Credit Card Dispute Admin App",
+              "openshift.io/display-name": "Entando FSI Credit Card Dispute Admin App",
+              "openshift.io/provider-display-name": "Entando",
+              "supports": "jee,java",
+              "tags": "builder,eap,java"
+            },
+            "from": {
+              "kind": "DockerImage",
+              "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.2"
+            },
+            "name": "latest"
+          },
+          {
+            "from": {
+              "kind": "DockerImage",
+              "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.2"
+            },
+            "name": "5.0.2"
+          }
+        ]
+      }
+    }
+
+  ]
+}

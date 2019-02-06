@@ -1,5 +1,4 @@
 #!/bin/bash
-echo "Full Environment Settings:"
 # insert settings for mirrors/repository managers into settings.xml if supplied
 function configure_mirrors() {
   if [ -n "$MAVEN_MIRROR_URL" ]; then
@@ -28,8 +27,24 @@ if [ -d  $LOCAL_SOURCE_DIR/src/main/db/tar ] && ! [ -d  $LOCAL_SOURCE_DIR/src/ma
     ant PG-db-full-update-tar -Dpostgres.bin.path=/opt/rh/rh-postgresql95/root/usr/bin/
     pg_ctl stop -D /$HOME/data/userdata
 else
-#Build the empty database and let 'mvn jetty:run' take care of any SQL file backups where they may exist.
-    $(dirname ${BASH_SOURCE[0]})/init-postgresql-db.sh
+    MAVEN_ARGS="clean package -B -DskipTests --batch-mode --settings $HOME/.m2/settings.xml \
+                -Dprofile.portDataSourceClassName=org.postgresql.Driver \
+                -Dprofile.servDataSourceClassName=org.postgresql.Driver \
+                -Djboss=jboss \
+                -Dproject.build.sourceEncoding=UTF-8 \
+                -Denv.db.environment=${DB_ENVIRONMENT} \
+                -Dprofile.config.version=production \
+                -Dprofile.application.baseurl.protocol=http \
+                -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
+                -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
+                -Dprofile.log.file.prefix=/var/log/entando/engine_ \
+                -Dprofile.resources.path=/entando-data/resources \
+                -Dprofile.resources.path.protected=/entando-data/protected \
+                -Dprofile.index.path=/entando-data/indexdir \
+                -Djava.net.preferIPv4Stack=true ${MAVEN_ARGS_APPEND}"
+    echo "Executing mvn $MAVEN_ARGS"
+    mvn $MAVEN_ARGS
+    $(dirname ${BASH_SOURCE[0]})/init-postgresql-from-war.sh --war-file="$(pwd)/$(dir target/*.war)"
 fi
 if [ $? -eq 0 ]; then
     exit 0

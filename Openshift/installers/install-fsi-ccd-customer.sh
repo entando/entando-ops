@@ -1,43 +1,22 @@
 #!/usr/bin/env bash
-#export ENTANDO_OPS_HOME="https://raw.githubusercontent.com/entando/entando-ops/EN-1928"
-export ENTANDO_OPS_HOME="/home/ampie/Code/entando/entando-ops"
-function get_openshift_subdomain(){
-  if [ -x $(command  -v minishift) ]; then
-    PUBLIC_HOSTNAME=$(minishift config get public-hostname)
-    if [ $PUBLIC_HOSTNAME == "<nil>" ]; then
-      PUBLIC_HOSTNAME=$(minishift openshift config view | grep -oP "(?<=  subdomain: )[0-9\.a-zA-Z_\-]+")
-      if [ -z $PUBLIC_HOSTNAME ]; then
-        echo "$(minishift ip).nip.io"
-      else
-        echo $PUBLIC_HOSTNAME
-      fi
-    else
-      echo $PUBLIC_HOSTNAME
-    fi
-  elif [ -f  /etc/origin/master/master-config.yaml  ]; then
-    PUBLIC_HOSTNAME=$(sudo cat /etc/origin/master/master-config.yaml | grep -oP "(?<=  subdomain: )[0-9\.a-zA-Z_\-]+")
-    if [[ -z $PUBLIC_HOSTNAME ]]; then
-      echo "$(hostname -i).nip.io"
-    else
-      echo $PUBLIC_HOSTNAME
-    fi
-  else
-     >&2 echo "Neither Minishift nor the Openshift master-config.yml found. Are you running from a node with an Openshift installation?"
-     echo "COULD_NOT_RESOLVE_OS_SUBDOMAIN"
-  fi
-}
-
-echo "This script installs the Entando Sample project on the EAP 7.1 QuickStart image with a persistent embedded Derby database"
-#oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-eap71-quickstart-openshift.json
-#oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json
+source $(dirname $BASH_SOURCE[0])/common.sh
+echo "This script installs the FSI Credit Card Dispute Customer Entando project on the EAP 7.1 QuickStart image with a persistent embedded Derby database"
+validate_environment
+APPLICATION_NAME=${APPLICATION_NAME:-"entando-fsi-ccd-customer"}
+recreate_project ${APPLICATION_NAME}
+ensure_image_stream "entando-eap71-quickstart-openshift"
+ensure_image_stream "appbuilder"
 oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml \
-    -p APPLICATION_NAME="entando-fsi-ccd" \
-    -p KIE_SERVER_BASE_URL="aaaric-ccd-rhpam701-entando-kieserver.apps.dev.ldcloud.com.au" \
-    -p KIE_SERVER_USERNAME=kieUser \
-    -p KIE_SERVER_PASSWORD="kieUser!23" \
-    -p SOURCE_REPOSITORY_REF=v5.0.1-SNAPSHOT \
-    -p IMAGE_STREAM_NAMESPACE="entando" \
-    -p ENTANDO_RUNTIME_HOSTNAME_HTTP="entando-core.$(get_openshift_subdomain)" \
-    -p SOURCE_REPOSITORY_URL="https://github.com/entando/fsi-cc-dispute-customer.git" \
-    -p ENTANDO_WEB_CONTEXT="fsi-credit-card-dispute-customer" \
+        -p APPLICATION_NAME="${APPLICATION_NAME}" \
+        -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
+        -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
+        -p SOURCE_REPOSITORY_REF="${SOURCE_REPOSITORY_REF}" \
+        -p SOURCE_REPOSITORY_URL="https://github.com/entando/fsi-cc-dispute-customer.git" \
+        -p KIE_SERVER_BASE_URL="https://secure-rhpam7-cc-dispute-kieserver-rhpam7-cc-dispute-en701.apps.serv.run/" \
+        -p KIE_SERVER_USERNAME="kieUser" \
+        -p KIE_SERVER_PASSWORD="kieUser!23" \
+        -p ENTANDO_ENGINE_HOSTNAME="${APPLICATION_NAME}-engine.${OPENSHIFT_DOMAIN_SUFFIX}" \
+        -p ENTANDO_APP_BUILDER_HOSTNAME="${APPLICATION_NAME}-appbuilder.${OPENSHIFT_DOMAIN_SUFFIX}" \
+        -p ENTANDO_ENGINE_WEB_CONTEXT="/fsi-credit-card-dispute-customer" \
   | oc replace --force -f -
+

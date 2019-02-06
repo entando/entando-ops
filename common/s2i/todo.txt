@@ -1,1 +1,1 @@
-move all of these files to the entando/entando-dependencies-base image
+move these files to the dependencies-base image. currently they create a bit of confusion being copied across

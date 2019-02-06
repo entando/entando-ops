@@ -1,2 +1,0 @@
-This is a base image and cannot be run on its own. It provides all the PostgreSQL and Java/Maven build infrastructure
-to allow extending images to build a local PostgreSQL database that would support Entando.

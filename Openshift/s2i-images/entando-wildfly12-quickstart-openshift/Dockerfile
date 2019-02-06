@@ -12,10 +12,9 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
 ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=1001
-COPY --chown=1001:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2
+COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2 $HOME/.m2
 CMD "${STI_SCRIPTS_PATH}/usage"
-ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
-    PORTDB_NONXA="true" \
+ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \
     PORTDB_JNDI="java:jboss/datasources/entandoPortDataSource" \
@@ -33,4 +32,4 @@ ENV DB_SERVICE_PREFIX_MAPPING="portdb-derby=PORTDB,servdb-derby=SERVDB" \
     SERVDB_PASSWORD="agile" \
     SERVDB_SERVICE_HOST="dummy" \
     SERVDB_SERVICE_PORT="1527" \
-    PREPARE_DB="true"
+    PREPARE_DATA="true"

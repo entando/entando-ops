@@ -1,0 +1,43 @@
+# Entando Full Stack MySQL Image
+
+This image contains a sample of the Entando PORT and SERV databases in MySQL format. These databases can be used to back
+the Entando Full Stack Engine API image. They have been pre-populated with the default data required by all the the standard Entando plugins. 
+On startup, these sample databases are copied to the /var/lib/mysql/data directory where MySQL stores its data, where it is typically
+mapped to a persistent volume on the Docker host. Deleting this volume would reset the database to the original state.
+
+
+## Environment Variables
+
+This image has been pre-built with specific values for the standard environment variables that the Entando MySQL Base Image supports.
+Please do not change any of the values as it could potentially interfere with the behaviour of the image. THe following environment
+variable values have been set and can be used to connect to the PORT and SERV databases respectively.
+ 
+**PORTDB_DATABASE**=portdb, {PORTDB_DATABASE}
+
+**PORTDB_USERNAME**=portdb, {PORTDB_USERNAME}
+
+**PORTDB_PASSWORD**=portdb, {PORTDB_PASSWORD}
+
+**SERVDB_DATABASE**=servdb, {SERVDB_DATABASE}
+
+**SERVDB_USERNAME**=servdb, {SERVDB_USERNAME}
+
+**SERVDB_PASSWORD**=servdb, {SERVDB_PASSWORD}
+
+**ADMIN_PASSWORD**=adminpwd, {ADMIN_PASSWORD}
+
+## Ports
+
+**3306**: this image exposes the MySQL database server at the standard port of 3306
+
+## Volumes
+
+**/var/lib/mysql/data**: this image inherits the standard MySQL volume from a parent image. This is where the
+sample databases are copied to and where subsequence modifications to them will be persisted.
+
+## How to run
+
+```
+docker volume create entando-mysql-data
+docker run -it --rm -d -p 3306:3306 -v entando-mysql-data://var/lib/mysql/data entando/mysql:5.0.2
+```

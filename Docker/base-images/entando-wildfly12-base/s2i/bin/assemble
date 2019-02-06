@@ -1,6 +1,12 @@
-#!/usr/bin/env bash
 #!/bin/bash
-
+function init_derby(){
+  if [ -d $1 ]; then
+    WARS="$(dir $1/*.war)"
+    for WAR in ${WARS[@]}; do
+      $(dirname $0)/init-derby-from-war.sh --war-file=$WAR || exit 1
+    done
+  fi
+}
 PID_FILE=/tmp/wildfly.pid
 
 # restore maven dependencies downloaded in a previous build,
@@ -255,7 +261,7 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   JAVA_HOME=/etc/alternatives/java_sdk
 
   if [ -z "$MAVEN_ARGS" ]; then
-    export MAVEN_ARGS="clean package -Popenshift -DskipTests"
+    export MAVEN_ARGS="clean package -Popenshift -DskipTests -B"
   fi
 
   # If MAVEN_SETTINGS specified will always add to MAVEN_ARGS
@@ -281,12 +287,13 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
                 -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
                 -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
                 -Djboss=jboss \
-                -Denv.db.environment=production \
+                -Dproject.build.sourceEncoding=UTF-8 \
+                -Denv.db.environment=${DB_ENVIRONMENT} \
                 -Dprofile.config.version=production \
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
-                -Dprofile.log.file.prefix=/entando-data/logs/log \
+                -Dprofile.log.file.prefix=/var/log/entando/engine_ \
                 -Dprofile.resources.path=/entando-data/resources \
                 -Dprofile.resources.path.protected=/entando-data/protected \
                 -Dprofile.index.path=/entando-data/indexdir \
@@ -319,18 +326,9 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   # of the values we calculated above.
   MAVEN_OPTS=$JAVA_GC_OPTS $JAVA_HEAP_MAX $JAVA_CORE_LIMIT $JAVA_DIAGNOSTICS $MAVEN_OPTS
 
-  if [ "$PREPARE_DB" = "true" ]; then
-    echo "Begin DB preparation"
-    if ! $(dirname ${BASH_SOURCE[0]})/init-db.sh; then
-        echo "DB Preparation failed!"
-        exit 1
-    fi
-  fi
-
   echo "Found pom.xml... attempting to build with 'mvn ${MAVEN_ARGS}'"
 
   mvn --version
-
   mvn $MAVEN_ARGS
 
   ERR=$?
@@ -343,17 +341,19 @@ if [ -f "$LOCAL_SOURCE_DIR/pom.xml" ]; then
   popd &> /dev/null
 else
   echo "Moving binaries in source directory into $DEPLOY_DIR for later deployment..."
+  init_derby "."
   move_artifacts "." war ear rar jar
 fi
 
 # Move built artifacts (if any!) from the target/ directory
 # (or $ARTIFACT_DIR if specified)
 if [ -d $LOCAL_SOURCE_DIR/$ARTIFACT_DIR ]; then
-  move_artifacts "$ARTIFACT_DIR" war #ear rar jar
-  rm target -rf
+  init_derby $LOCAL_SOURCE_DIR/$ARTIFACT_DIR
+  move_artifacts "$ARTIFACT_DIR" war ear rar jar
 fi
 
 if [ -d $LOCAL_SOURCE_DIR/deployments ]; then
+  init_derby $LOCAL_SOURCE_DIR/deployments
   move_artifacts "deployments" war ear rar jar
 fi
 
