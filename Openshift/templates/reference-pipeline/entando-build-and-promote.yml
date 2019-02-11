@@ -237,6 +237,7 @@ objects:
                                   -Dprofile.application.baseurl.protocol=http \
                                   -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
                                   -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
+                                  -Dprofile.log.activeFileOutput=true \
                                   -Dprofile.log.file.prefix=/var/log/entando/engine_ \
                                   -Dprofile.resources.path=/entando-data/resources \
                                   -Dprofile.resources.path.protected=/entando-data/protected \
@@ -381,6 +382,7 @@ objects:
                                   -Dprofile.application.baseurl.protocol=http \
                                   -Dprofile.datasource.jndiname.servdb="java:jboss/datasources/entandoServDataSource" \
                                   -Dprofile.datasource.jndiname.portdb="java:jboss/datasources/entandoPortDataSource" \
+                                  -Dprofile.log.activeFileOutput=true \
                                   -Dprofile.log.file.prefix=/var/log/entando/engine_ \
                                   -Dprofile.resources.path=/entando-data/resources \
                                   -Dprofile.resources.path.protected=/entando-data/protected \

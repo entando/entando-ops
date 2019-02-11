@@ -23,6 +23,7 @@ RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
             -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
             -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
             -Dprofile.log.file.prefix=/var/log/entando/engine_ \
+            -Dprofile.log.activeFileOutput=true \
             -Dprofile.resources.path=/entando-data/resources \
             -Dprofile.resources.path.protected=/entando-data/protected \
             -Dprofile.index.path=/entando-data/indexdir \

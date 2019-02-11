@@ -7,7 +7,7 @@
         <!-- ### configured mirrors ### -->
         <mirror>
             <id>mirror.default</id>
-            <mirrorOf>*</mirrorOf>
+            <mirrorOf>none</mirrorOf>
             <name>An internal openshift mirror</name>
             <url>http://192.168.0.100:8081/repository/maven-public/</url>
         </mirror>
@@ -211,6 +211,17 @@
                 <repository>
                     <id>snapshots-repo</id>
                     <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <releases>
+                      <enabled>false</enabled>
+                    </releases>
+                   <snapshots>
+                     <enabled>true</enabled>
+                     <updatePolicy>always</updatePolicy>
+                   </snapshots>
+                </repository>
+                <repository>
+                    <id>entando-snapshots-repo</id>
+                    <url>https://repository.entando.org/repository/maven-snapshots</url>
                     <releases>
                       <enabled>false</enabled>
                     </releases>

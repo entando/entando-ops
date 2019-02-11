@@ -37,6 +37,7 @@ else
                 -Dprofile.application.baseurl.protocol=http \
                 -Dprofile.datasource.jndiname.servdb=${SERVDB_JNDI} \
                 -Dprofile.datasource.jndiname.portdb=${PORTDB_JNDI} \
+                -Dprofile.log.activeFileOutput=true \
                 -Dprofile.log.file.prefix=/var/log/entando/engine_ \
                 -Dprofile.resources.path=/entando-data/resources \
                 -Dprofile.resources.path.protected=/entando-data/protected \
