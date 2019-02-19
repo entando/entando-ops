@@ -22,6 +22,7 @@ if [ -n "${DOCKER_TAG}" ]; then
     echo "IMAGE_NAME=${IMAGE_NAME}"
     docker build --build-arg APP_BUILDER_BRANCH=${APP_BUILDER_BRANCH} \
         --build-arg ENTANDO_COMPONENTS_BRANCH=${ENTANDO_COMPONENTS_BRANCH}  \
+        --build-arg DIGITAL_EXCHANGE_UI_ENABLED=${DIGITAL_EXCHANGE_UI_ENABLED} \
         -f $DOCKERFILE_PATH -t $IMAGE_NAME .
 else
     env

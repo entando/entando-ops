@@ -25,7 +25,10 @@ __CLIENT_SECRET__ (string, required, no default value)
 This is the secret that is associated with the 'appbuilder' Client ID configured in Entando's Oauth infrastruture. For the default database
 configuration, the value 'appbuilder_secret' would work, but it is highly recommended to change its value. It is important to note that
 this secret is not a password to log in with, but an extra level of validation to validate that the AppBuilder has the permission to 
-allow users to log in with their own usernames and passwords.   
+allow users to log in with their own usernames and passwords.
+
+__DIGITAL_EXCHANGE_UI_ENABLED__ (boolean, default: false)
+a boolean used to determine whether the Digital Exchange UI should be enabled or not.
 
 ## How to run
 
