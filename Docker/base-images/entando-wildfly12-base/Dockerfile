@@ -12,7 +12,8 @@ ARG ENTANDO_VERSION
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=1001 \
     STI_SCRIPTS_PATH="/usr/libexec/s2i"
-
+USER root
+RUN yum install -y ImageMagick && yum clean all
 COPY --chown=1001:0 ./contrib/wildfly-configuration/standalone.xml /wildfly/standalone/configuration/standalone.xml
 COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/wildfly/modules /wildfly/modules
@@ -48,9 +49,6 @@ ENV PORTDB_NONXA="true" \
     RESOURCEDISKROOTFOLDER="/entando-data/resources/" \
     PROTECTEDRESOURCEDISKROOTFOLDER="/entando-data/protected/" \
     INDEXDISKROOTFOLDER="/tmp/entando-indices"
-
-
-USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
     mkdir -p /entando-data-templates/databases  && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/ && \
     mkdir -p /var/log/entando && chown -Rf $USERID_TO_USE:0 /var/log/entando && chmod -Rf ug+rw /var/log/entando

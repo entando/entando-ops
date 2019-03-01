@@ -25,45 +25,107 @@ function recreate_project(){
     done
     oc policy add-role-to-group system:image-puller system:serviceaccounts:$1 -n ${IMAGE_STREAM_NAMESPACE}
 }
+function get_deployment_for_route(){
+    echo $(oc get service $(oc get route $1 -o go-template='{{.spec.to.name}}') -o go-template='{{.spec.selector.deploymentConfig}}')
+}
+function get_url_for_route(){
+    PATH_SEGMENT="$(oc get route $1 -o go-template='{{.spec.path}}')"
+    if [ "$PATH_SEGMENT" = "<no value>" ] ;then
+      PATH_SEGMENT=""
+    fi
+    if [  "$(oc get route $1 -o go-template='{{.spec.tls}}')" = "<no value>" ]; then
+        echo "http://$(oc get route $1 -o go-template='{{.spec.host}}')${PATH_SEGMENT}"
+    else
+        echo "https://$(oc get route $1 -o go-template='{{.spec.host}}')${PATH_SEGMENT}"
+    fi
+}
 
 function test_deployment(){
+    for i in "$@" ;  do
+        case $i in
+            --database-deployments=*)
+                DATABASE_DEPLOYMENT_ARRAY=$(echo "${i#*=}" | sed "s/,/ /g")
+                echo "Database Deployments: ${DATABASE_DEPLOYMENT_ARRAY[*]}"
+            ;;
+            --appbuilder-routes=*)
+                APPBUILDER_ROUTE_ARRAY=$(echo "${i#*=}" | sed "s/,/ /g")
+                echo "AppBuilder Routes: ${APPBUILDER_ROUTE_ARRAY[*]}"
+            ;;
+            --engine-routes=*)
+                ENGINE_ROUTE_ARRAY=$(echo "${i#*=}" | sed "s/,/ /g")
+                echo "Engine Routes: ${ENGINE_ROUTE_ARRAY[*]}"
+            ;;
+            *)
+            ;;
+        esac
+    done
     oc project ${APPLICATION_NAME}
-    DEPLOYMENTS=$1
-    APPBUILDER_SERVICES=$2
-    ENTANDO_IMAGE_VERSION=$3
-    echo "DEPLOYMENTS=$DEPLOYMENTS"
-    echo "APPBUILDER_SERVICES=$APPBUILDER_SERVICES"
-    echo "ENTANDO_IMAGE_VERSION=$ENTANDO_IMAGE_VERSION"
-    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+    REGISTRY_IP=$(oc get pod $(oc get pods -n default|grep -o "docker-registry[-0-9a-z]*") -n default -o go-template={{.status.podIP}})
+    #REGISTRY_IP=docker-registry.default.svc
+    #Wait for Engines to come up
+    for ENGINE_ROUTE in ${ENGINE_ROUTE_ARRAY[@]}; do
+        DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
         timeout 600 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $DEPLOYMENT || {  echo "Timed out waiting for deployment $DEPLOYMENT"; exit 1;  }
     done
-    for APPBUILDER_SERVICE in $(echo $APPBUILDER_SERVICES | sed "s/,/ /g"); do
+    # Run AddTestUser test
+    for APPBUILDER_ROUTE in ${APPBUILDER_ROUTE_ARRAY[@]}; do
         oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
-        oc run  ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
-            -it --replicas=1  --restart=Never --image=docker-registry.default.svc:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
-            --command --  mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository \
-            || {  echo "The 'AddUser' test failed"; exit 1;  }
+        sleep 1
+        echo "Running 'AddTestUser' test on AppBuilder at $(get_url_for_route ${APPBUILDER_ROUTE})"
+        oc run  ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL="$(get_url_for_route ${APPBUILDER_ROUTE})"  \
+            -it --replicas=1  --restart=Never --image=${REGISTRY_IP}:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
+            --command -- mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository \
+            || {  echo "The 'AddTestUser' test failed"; exit 1;  }
     done
-    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+    #Downscale Entando Engines
+    for ENGINE_ROUTE in ${ENGINE_ROUTE_ARRAY[@]}; do
+        DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
         echo "Downscaling deployment $DEPLOYMENT"
         oc scale --replicas=0 dc/$DEPLOYMENT
     done
-    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+    for ENGINE_ROUTE in ${ENGINE_ROUTE_ARRAY[@]}; do
+        DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
         timeout 240 $(dirname $BASH_SOURCE[0])/wait-for-downscaling.sh $DEPLOYMENT || {  echo "Timed out waiting for downscaling of $DEPLOYMENT"; exit 1;  }
     done
-    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+    #Downscale Databases
+    for DEPLOYMENT in ${DATABASE_DEPLOYMENT_ARRAY[@]}; do
+        echo "Downscaling deployment $DEPLOYMENT"
+        oc scale --replicas=0 dc/$DEPLOYMENT
+    done
+    for DEPLOYMENT in ${DATABASE_DEPLOYMENT_ARRAY[@]}; do
+        timeout 240 $(dirname $BASH_SOURCE[0])/wait-for-downscaling.sh $DEPLOYMENT || {  echo "Timed out waiting for downscaling of $DEPLOYMENT"; exit 1;  }
+    done
+    #Upscale Databases
+    for DEPLOYMENT in ${DATABASE_DEPLOYMENT_ARRAY[@]}; do
         echo "Upscaling deployment $DEPLOYMENT"
         oc scale --replicas=1 dc/$DEPLOYMENT
     done
-    for DEPLOYMENT in $(echo $DEPLOYMENTS | sed "s/,/ /g"); do
+    for DEPLOYMENT in ${DATABASE_DEPLOYMENT_ARRAY[@]}; do
+        DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
         timeout 360 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $DEPLOYMENT || {  echo "Timed out waiting for upscaling of deployment $DEPLOYMENT"; exit 1;  }
     done
-    for APPBUILDER_SERVICE in $(echo $APPBUILDER_SERVICES | sed "s/,/ /g"); do
+    #Upscale Entando Engines
+    for ENGINE_ROUTE in ${ENGINE_ROUTE_ARRAY[@]}; do
+        DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
+        echo "Upscaling deployment $DEPLOYMENT"
+        oc scale --replicas=1 dc/$DEPLOYMENT
+    done
+    for ENGINE_ROUTE in ${ENGINE_ROUTE_ARRAY[@]}; do
+        DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
+        timeout 360 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $DEPLOYMENT || {  echo "Timed out waiting for upscaling of deployment $DEPLOYMENT"; exit 1;  }
+    done
+    #Run LoginWitTestUser tests
+    for i in "${!ENGINE_ROUTE_ARRAY[@]}"; do
+        APPBUILDER_ROUTE=${APPBUILDER_ROUTE_ARRAY[$i]}
+        ENGINE_ROUTE=${ENGINE_ROUTE_ARRAY[$i]}
         oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
-        oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL=http://${APPBUILDER_SERVICE}:5000  \
-            -it --replicas=1  --restart=Never --image=docker-registry.default.svc:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
+        sleep 1
+        echo "Running 'LoginWithTestUser' test on AppBuilder at $(get_url_for_route ${APPBUILDER_ROUTE}) and Engine at $(get_url_for_route ${ENGINE_ROUTE})"
+        oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL="$(get_url_for_route ${APPBUILDER_ROUTE})"  \
+            --env ENTANDO_ENGINE_URL="$(get_url_for_route ${ENGINE_ROUTE})" \
+            -it --replicas=1  --restart=Never --image=${REGISTRY_IP}:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
             --command -- mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository  \
-            || {  echo "The 'Login' test failed"; exit 1;  }
+            || {  echo "The 'LoginWithTestUser' test failed"; exit 1;  }
     done
     oc delete pod ${APPLICATION_NAME}-test
 }
@@ -81,7 +143,7 @@ source $(dirname $BASH_SOURCE[0])/${CONFIG_FILE:-default}.conf || exit 1
 
 # Override config file with argument values
 for i in "$@" ;  do
-    echo "i=$i"
+#    echo "i=$i"
     case $i in
         -an=*|--application-name=*)
             APPLICATION_NAME="${i#*=}"

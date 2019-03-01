@@ -1,0 +1,5 @@
+ARG ENTANDO_IMAGE_VERSION
+FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION as dependencies
+ARG ENTANDO_VERSION
+USER $USERID_TO_USE
+CMD "${STI_SCRIPTS_PATH}/start-war-in-jetty.sh"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #NB!!! This file is copied from common/s2i in the Docker build hook. Only modify the original file!
 #Rebuilds a Derby database for embedded use IF and only if the database driver is derby and PREPARE_DATA is true
+source $(dirname ${BASH_SOURCE[0]})/translate-jboss-variables.sh
 if [ "$PORTDB_DRIVER" = "derby" ] && [ "$SERVDB_DRIVER" = "derby" ]; then
   if [ "$PREPARE_DATA" = "true" ]; then
     rm -Rf /entando-data-templates/databases/

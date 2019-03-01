@@ -4,7 +4,7 @@ ARG ENTANDO_VERSION
 FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION as builder
 ENV ENTANDO_VERSION=${ENTANDO_VERSION} \
     servDataSourceClassName=com.mysql.jdbc.Driver \
-    portDataSourceClassName=om.mysql.jdbc.Driver
+    portDataSourceClassName=com.mysql.jdbc.Driver
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2 $HOME/.m2
 RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
     BRANCH=$(${STI_SCRIPTS_PATH}/determine-branch.sh)  && \
@@ -31,5 +31,7 @@ RUN mkdir -p /tmp/entando && cd /tmp/entando  && \
     mv target/entando-sample-full.war ../ && \
     $STI_SCRIPTS_PATH/init-derby-from-war.sh --war-file=/tmp/entando/entando-sample-full.war
 FROM entando/entando-wildfly12-base:$ENTANDO_IMAGE_VERSION
+ENV resourceRootURL=/entando/resources/ \
+    protectedResourceRootURL=/entando/protected/
 COPY --chown=1001:0 --from=builder /tmp/entando/entando-sample-full.war /wildfly/standalone/deployments/entando.war
 COPY --chown=1001:0 --from=builder /entando-data-templates /entando-data-templates

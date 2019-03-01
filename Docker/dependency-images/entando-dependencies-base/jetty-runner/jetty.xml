@@ -2,12 +2,12 @@
 <!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure_9_3.dtd">
 
 <Configure class="org.eclipse.jetty.webapp.WebAppContext">
-    <Set name="contextPath">/entando</Set>
+    <Set name="contextPath"><SystemProperty name="entando.web.context"/></Set>
     <Set name="war">.</Set>
     <New id="portDataSource" class="org.eclipse.jetty.plus.jndi.Resource">
         <Arg><SystemProperty name="profile.datasource.jndiname.portdb"/></Arg>
         <Arg>
-            <New class="org.apache.commons.dbcp.BasicDataSource">
+            <New class="org.apache.commons.dbcp2.BasicDataSource">
                 <Set name="driverClassName"><SystemProperty name="profile.database.driverClassName"/></Set>
                 <Set name="url"><SystemProperty name="profile.database.url.portdb"/></Set>
                 <Set name="username"><SystemProperty name="profile.database.username.portdb"/></Set>
@@ -19,7 +19,7 @@
     <New id="servDataSource" class="org.eclipse.jetty.plus.jndi.Resource">
         <Arg><SystemProperty name="profile.datasource.jndiname.servdb"/></Arg>
         <Arg>
-            <New class="org.apache.commons.dbcp.BasicDataSource">
+            <New class="org.apache.commons.dbcp2.BasicDataSource">
                 <Set name="driverClassName"><SystemProperty name="profile.database.driverClassName"/></Set>
                 <Set name="url"><SystemProperty name="profile.database.url.servdb"/></Set>
                 <Set name="username"><SystemProperty name="profile.database.username.servdb"/></Set>

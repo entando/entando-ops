@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source $(dirname $BASH_SOURCE[0])/common.sh
+source $(dirname $BASH_SOURCE[0])/common.sh "$@"
 echo "This script installs the Entando Sample project on Entando, EAP 7.1  and PostgreSQL 9.5"
 validate_environment
 APPLICATION_NAME=${APPLICATION_NAME:-"entando-eap-with-postgresql"}
@@ -95,7 +95,9 @@ recreate_entando_application
 
 
 if [ "${TEST_DEPLOYMENT}" = true ]; then
-    test_deployment "${APPLICATION_NAME}-postgresql,${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_VERSION}"
+    test_deployment --engine-routes=${APPLICATION_NAME}-engine-http --appbuilder-routes=${APPLICATION_NAME}-appbuilder \
+        --database-deployments=${APPLICATION_NAME}-postgresql
+
     if [ "${DESTROY_DEPLOYMENT}" = true ]; then
         oc delete project ${APPLICATION_NAME}
     fi

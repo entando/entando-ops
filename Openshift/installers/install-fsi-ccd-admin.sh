@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source $(dirname $BASH_SOURCE[0])/common.sh
+source $(dirname $BASH_SOURCE[0])/common.sh "$@"
 echo "This script installs the FSI Credit Card Dispute Backoffice Entando project on the EAP 7.1 QuickStart image with a persistent embedded Derby database"
 validate_environment
 APPLICATION_NAME=${APPLICATION_NAME:-"entando-fsi-ccd-admin"}

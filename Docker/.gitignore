@@ -1,3 +1,4 @@
+**/s2i/bin/build-jetty-command.sh
 **/s2i/bin/determine-branch.sh
 **/s2i/bin/determine-driver.sh
 **/s2i/bin/init-data-from-directory.sh
@@ -8,6 +9,7 @@
 **/s2i/bin/init-db-from-war.sh
 **/s2i/bin/init-derby-from-war.sh
 **/s2i/bin/prepare-data.sh
+**/s2i/bin/start-war-in-jetty.sh
 **/s2i/bin/translate-jboss-variables.sh
 **/contrib/wfmodules/org/apache/derby
 **/contrib/settings.xml

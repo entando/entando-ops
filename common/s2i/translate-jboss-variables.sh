@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+function extract_database_name(){
+  path="$(echo $1 | grep / | cut -d/ -f4-)"
+  echo $path
+}
+function extract_database_driver(){
+  path="$(echo $1 | grep / | cut -d: -f2)"
+  echo $path
+}
 #USE_ENV=""
 if [ -n "$ENV_FILES" ]; then
   IFS=","  read -ra ENV_FILES_ARG <<< "$ENV_FILES"
@@ -20,38 +28,14 @@ if [ -n "$SERVDB_POSTGRESQL_SERVICE_HOST" ]; then
 elif [ -n "$SERVDB_MYSQL_SERVICE_HOST" ]; then
   export SERVDB_URL="jdbc:mysql://$SERVDB_MYSQL_SERVICE_HOST:${SERVDB_MYSQL_SERVICE_PORT:-3306}/${SERVDB_DATABASE:-entandoServ}"
 fi
-#Derive drivers from URLs to increase robustness
+#Derive variables from URLs to increase robustness
 if [ -n "$PORTDB_URL" ]; then
-  case "$PORTDB_URL" in
-    jdbc:derby:* )
-        export PORTDB_DRIVER=derby
-    ;;
-    jdbc:postgresql:* )
-        export PORTDB_DRIVER=postgresql
-    ;;
-    jdbc:mysql:* )
-        export PORTDB_DRIVER=mysql
-    ;;
-    jdbc:oracle:* )
-        export PORTDB_DRIVER=oracle
-    ;;
-  esac
+  export PORTDB_DRIVER=$(extract_database_driver $PORTDB_URL)
+  export PORTDB_DATABASE=$(extract_database_name $PORTDB_URL)
 fi
 if [ -n "$SERVDB_URL" ]; then
-  case "$SERVDB_URL" in
-    jdbc:derby:* )
-        export SERVDB_DRIVER=derby
-    ;;
-    jdbc:postgresql:* )
-        export SERVDB_DRIVER=postgresql
-    ;;
-    jdbc:mysql:* )
-        export SERVDB_DRIVER=mysql
-    ;;
-    jdbc:oracle:* )
-        export SERVDB_DRIVER=oracle
-    ;;
-  esac
+  export SERVDB_DRIVER=$(extract_database_driver $SERVDB_URL)
+  export SERVDB_DATABASE=$(extract_database_name $SERVDB_URL)
 fi
 #Derive Entando's confusing datasourceclassname variable
 if [ -n "$PORTDB_DRIVER" ]; then

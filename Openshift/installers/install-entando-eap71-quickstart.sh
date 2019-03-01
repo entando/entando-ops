@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source $(dirname $BASH_SOURCE[0])/common.sh
+source $(dirname $BASH_SOURCE[0])/common.sh "$@"
 echo "This script installs the Entando Sample project on the EAP 7.1 QuickStart image with a persistent embedded Derby database"
 validate_environment
 APPLICATION_NAME=${APPLICATION_NAME:-"entando-eap-quickstart"}
@@ -19,7 +19,7 @@ oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-eap71-quickstart.yml
     | oc replace --force -f -
 
 if [ "${TEST_DEPLOYMENT}" = true ]; then
-    test_deployment "${APPLICATION_NAME}-engine" "${APPLICATION_NAME}-appbuilder" "${ENTANDO_IMAGE_VERSION}"
+    test_deployment --engine-routes=${APPLICATION_NAME}-engine-http --appbuilder-routes=${APPLICATION_NAME}-appbuilder
     if [ "${DESTROY_DEPLOYMENT}" = true ]; then
         oc delete project ${APPLICATION_NAME}
     fi

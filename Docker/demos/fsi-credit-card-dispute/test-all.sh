@@ -15,13 +15,13 @@ docker-compose -f docker-compose-qa.yml up -d || { echo "Could not bring down do
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engines"; exit 1; }
 
 docker run --rm --network=fsi-credit-card-dispute_entando-network -e ENTANDO_APPBUILDER_URL=http://admin-appbuilder:5000  \
-    entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest \
     || {  echo "The 'AddUser' test failed on Admin"; exit 1;  }
 
 sleep 10
 
 docker run --rm --network=fsi-credit-card-dispute_entando-network -e ENTANDO_APPBUILDER_URL=http://customer-appbuilder:5000  \
-    entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest \
     || {  echo "The 'AddUser' test failed on Customer"; exit 1;  }
 
 
@@ -31,12 +31,12 @@ docker-compose -f docker-compose-qa.yml up -d || { echo "Could not spin up docke
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engines"; exit 1; }
 
 docker run --rm --network=fsi-credit-card-dispute_entando-network -e ENTANDO_APPBUILDER_URL=http://admin-appbuilder:5000 \
-    entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
     || {  echo "The 'Login' test failed on Admin"; exit 1;  }
 sleep 10
 
 docker run --rm --network=fsi-credit-card-dispute_entando-network -e ENTANDO_APPBUILDER_URL=http://customer-appbuilder:5000 \
-    entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
     || {  echo "The 'Login' test failed on Customer"; exit 1;  }
 
 cleanup
@@ -45,7 +45,7 @@ if [ -n "$OPENSHIFT_REGISTRY" ]; then
     INSTALLER_DIR=$(realpath $(dirname $(realpath ${BASH_SOURCE[0]}))/../../../Openshift/installers)
     export TEST_DEPLOYMENT=true
     export DESTROY_DEPLOYMENT=true
-    ${INSTALLER_DIR}/install-fsi-ccd-demos-template.sh || { echo "FSI  CCD Demos Openshift test failed"; exit 1; }
+    ${INSTALLER_DIR}/install-fsi-ccd-demos-template.sh --entando-image-version=${ENTANDO_IMAGE_VERSION} || { echo "FSI  CCD Demos Openshift test failed"; exit 1; }
 fi
 echo "Entando FSI Credit Card Dispute tests successful"
 exit 0
