@@ -1,5 +1,11 @@
 version: '2'
 services:
+  mysql:
+    image: entando/mysql:${ENTANDO_IMAGE_VERSION}
+    ports:
+     - "3306:3306"
+    volumes:
+     - entando-mysql-volume:/var/lib/mysql/data
   engine-api:
     image: entando/engine-api:${ENTANDO_IMAGE_VERSION}
     ports:
@@ -13,12 +19,7 @@ services:
       SERVDB_USERNAME: servuser
       PORTDB_PASSWORD: port123
       SERVDB_PASSWORD: serv123
-  mysql:
-    image: entando/mysql:${ENTANDO_IMAGE_VERSION}
-    ports:
-     - "3306:3306"
-    volumes:
-     - entando-mysql-volume:/var/lib/mysql/data
+
   appbuilder:
     image: entando/appbuilder:${ENTANDO_IMAGE_VERSION}
     ports:

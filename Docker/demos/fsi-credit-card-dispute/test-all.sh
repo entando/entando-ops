@@ -31,11 +31,13 @@ docker-compose -f docker-compose-qa.yml up -d || { echo "Could not spin up docke
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engines"; exit 1; }
 
 docker run --rm --network=fsi-credit-card-dispute_entando-network -e ENTANDO_APPBUILDER_URL=http://admin-appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://admin-engine:8080/fsi-credit-card-dispute-backoffice   \
     entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
     || {  echo "The 'Login' test failed on Admin"; exit 1;  }
 sleep 10
 
 docker run --rm --network=fsi-credit-card-dispute_entando-network -e ENTANDO_APPBUILDER_URL=http://customer-appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://customer-engine:8080/fsi-credit-card-dispute-customer   \
     entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
     || {  echo "The 'Login' test failed on Customer"; exit 1;  }
 

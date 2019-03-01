@@ -3,9 +3,11 @@ export ENTANDO_IMAGE_VERSION=${1:-5.0.3-SNAPSHOT}
 
 function cleanup(){
     docker-compose -f docker-compose-qa.yml down &>/dev/null
+    docker-compose -f docker-compose-mysql-qa.yml down &>/dev/null
     docker-compose -f docker-compose-postgresql-qa.yml down &>/dev/null
     docker volume rm entando-full-stack_entando-volume &>/dev/null
     docker volume rm entando-full-stack_entando-pg-volume &>/dev/null
+    docker volume rm entando-full-stack_entando-mysql-volume &>/dev/null
     docker network rm entando-full-stack_entando-network &>/dev/null
 }
 if [ -n "$OPENSHIFT_REGISTRY" ]; then
@@ -28,11 +30,11 @@ docker-compose -f docker-compose-qa.yml up -d || { echo "Could not spin up docke
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
 
 docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
     entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
     || {  echo "The 'Login' test failed"; exit 1;  }
 
 cleanup
-
 
 docker-compose -f docker-compose-postgresql-qa.yml up -d
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
@@ -47,6 +49,26 @@ docker-compose -f docker-compose-postgresql-qa.yml up -d || { echo "Could not sp
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
 
 docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
+    || {  echo "The 'Login' test failed"; exit 1;  }
+
+cleanup
+
+docker-compose -f docker-compose-mysql-qa.yml up -d
+timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
+
+docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000  \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STAddTestUserTest \
+    || {  echo "The 'AddUser' test failed"; exit 1;  }
+
+docker-compose -f docker-compose-mysql-qa.yml down || { echo "Could not bring down docker containers"; exit 1; }
+docker volume rm entando-full-stack_entando-volume || { echo "Could not remove the standard Entando volume"; exit 1; }
+docker-compose -f docker-compose-mysql-qa.yml up -d || { echo "Could not spin up docker containers"; exit 1; }
+timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
+
+docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
     entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
     || {  echo "The 'Login' test failed"; exit 1;  }
 cleanup
