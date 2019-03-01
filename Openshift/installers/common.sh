@@ -60,8 +60,9 @@ function test_deployment(){
         esac
     done
     oc project ${APPLICATION_NAME}
-    REGISTRY_IP=$(oc get pod $(oc get pods -n default|grep -o "docker-registry[-0-9a-z]*") -n default -o go-template={{.status.podIP}})
-    #REGISTRY_IP=docker-registry.default.svc
+    #REGISTRY_IP=$(oc get pod $(oc get pods -n default|grep -o "docker-registry[-0-9a-z]*") -n default -o go-template={{.status.podIP}})
+    REGISTRY_IP=$( oc get service "docker-registry" -n default -o go-template={{.spec.clusterIP}})
+#    REGISTRY_IP=docker-registry.default.svc
     #Wait for Engines to come up
     for ENGINE_ROUTE in ${ENGINE_ROUTE_ARRAY[@]}; do
         DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
