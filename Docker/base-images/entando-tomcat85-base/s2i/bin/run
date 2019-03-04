@@ -2,7 +2,7 @@
 source $(dirname ${BASH_SOURCE[0]})/translate-jboss-variables.sh
 $(dirname ${BASH_SOURCE[0]})/prepare-data.sh
 export JAVA_OPTS="-Dentando.servdb.jndi=\"${SERVDB_JNDI}\" \
-              -Dentando.servdb.driverClassName=\"${SERVDATASOURCECLASSNAME}\" \
+              -Dentando.servdb.driverClassName=\"8.5${SERVDATASOURCECLASSNAME}\" \
               -Dentando.servdb.username=\"${SERVDB_USERNAME}\" -Dentando.servdb.password=\"${SERVDB_PASSWORD}\" \
               -Dentando.servdb.url=\"${SERVDB_URL}\"  -Dentando.portdb.jndi=\"${PORTDB_JNDI}\" \
               -Dentando.portdb.driverClassName=\"${PORTDATASOURCECLASSNAME}\" \
