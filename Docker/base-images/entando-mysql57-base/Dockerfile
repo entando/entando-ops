@@ -11,7 +11,7 @@ ENV MAVEN_VERSION="3.5.4" \
     JAVA_HOME="/usr/lib/jvm/java-1.8.0" \
     ENTANDO_VERSION=$ENTANDO_VERSION \
     USERID_TO_USE=27 \
-    STI_SCRIPTS_PATH="/usr/libexec/s2i"
+    STI_SCRIPTS_PATH="/usr/libexec/s2i
 #Change to root for installation operations
 USER root
 RUN INSTALL_PKGS="ant tar curl java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
