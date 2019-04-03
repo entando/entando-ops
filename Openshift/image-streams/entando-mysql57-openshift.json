@@ -3,21 +3,21 @@
   "kind": "ImageStream",
   "metadata": {
     "annotations": {
-      "description": "Build and run Entando applications on Postgresql 9.5. ",
-      "openshift.io/display-name": "Entando Postgresql 9.5",
+      "description": "Build and run Entando applications on MySQL 5.7. ",
+      "openshift.io/display-name": "Entando MySQL 5.7",
       "openshift.io/provider-display-name": "Entando",
       "sampleRepo": "https://github.com/ampie/entando-sample.git",
       "supports": "jee,java",
       "tags": "builder,wildfly,java"
     },
-    "name": "entando-postgresql95-openshift"
+    "name": "entando-mysql57-openshift"
   },
   "spec": {
     "tags": [
       {
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-postgresql95-openshift:5.0.2"
+          "name": "docker.io/entando/entando-mysql57-openshift:5.0.2"
         },
         "name": "5.0.2",
         "referencePolicy": {
@@ -27,7 +27,7 @@
       {
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-postgresql95-openshift:5.0.3"
+          "name": "docker.io/entando/entando-mysql57-openshift:5.0.3"
         },
         "name": "5.0.3",
         "referencePolicy": {
@@ -37,7 +37,7 @@
       {
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-postgresql95-openshift:5.1.0-SNAPSHOT"
+          "name": "docker.io/entando/entando-mysql57-openshift:5.1.0-SNAPSHOT"
         },
         "name": "5.1.0-SNAPSHOT",
         "referencePolicy": {
@@ -47,7 +47,7 @@
       {
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-postgresql95-openshift:latest"
+          "name": "docker.io/entando/entando-mysql57-openshift:latest"
         },
         "name": "latest",
         "referencePolicy": {

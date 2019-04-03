@@ -10,25 +10,25 @@
   "spec": {
     "tags": [
       {
-        "annotations": {
-          "description": "Build and run Entando applications on Tomcat 8/CentOS 7. ",
-          "openshift.io/display-name": "Entando Tomcat",
-          "openshift.io/provider-display-name": "Entando",
-          "sampleRepo": "https://github.com/ampie/entando-sample.git",
-          "supports": "jee,java",
-          "tags": "builder,tomcat,java"
-        },
         "from": {
           "kind": "DockerImage",
-          "name": "registry.access.redhat.com/jboss-webserver-3/webserver31-tomcat8-openshift:1.2"
+          "name": "docker.io/entando/entando-tomcat85-openshift:latest"
         },
-        "importPolicy": {
-          "insecure": true
+        "name": "latest"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-tomcat85-openshift:5.0.2"
         },
-        "name": "5.0.2",
-        "referencePolicy": {
-          "type": "Source"
-        }
+        "name": "5.0.2"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-tomcat85-openshift:5.0.3"
+        },
+        "name": "5.0.3"
       }
     ]
   }
