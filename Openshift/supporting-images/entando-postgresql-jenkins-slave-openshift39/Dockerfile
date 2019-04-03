@@ -1,6 +1,7 @@
 ARG ENTANDO_IMAGE_VERSION
 FROM entando/entando-maven-jenkins-slave-openshift39:$ENTANDO_IMAGE_VERSION
 ARG ENTANDO_VERSION
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
 LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Jenkins image for building and Entando applications with a pre-cached maven repository, a PostgreSQL client and some helper scripts" \
       io.k8s.display-name="Entando PostgreSQL build with Jenkins "

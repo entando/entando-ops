@@ -1,9 +1,10 @@
 #!/bin/bash
+source ${ENTANDO_COMMON_PATH}/translate-jboss-variables.sh
 function init_derby(){
   if [ -d $1 ]; then
     WARS="$(dir $1/*.war)"
     for WAR in ${WARS[@]}; do
-      $(dirname $0)/init-derby-from-war.sh --war-file=$WAR || exit 1
+      ${ENTANDO_COMMON_PATH}/init-derby-from-war.sh --war-file=$WAR || exit 1
     done
   fi
 }
@@ -40,8 +41,8 @@ if [ -f "$LOCAL_SOURCE_DIR/$POM_PATH/pom.xml" ]; then
 
   pushd $LOCAL_SOURCE_DIR/$POM_PATH &> /dev/null
   MAVEN_ARGS="$MAVEN_ARGS --batch-mode --settings $HOME/.m2/settings.xml\
-                -Dprofile.portDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $PORTDB_DRIVER) \
-                -Dprofile.servDataSourceClassName=$($(dirname ${BASH_SOURCE[0]})/determine-driver.sh $SERVDB_DRIVER) \
+                -Dprofile.portDataSourceClassName=$PORTDATASOURCECLASSNAME \
+                -Dprofile.servDataSourceClassName=$SERVDATASOURCECLASSNAME \
                 -Djboss=jboss \
                 -Dproject.build.sourceEncoding=UTF-8 \
                 -Denv.db.environment=${DB_ENVIRONMENT} \

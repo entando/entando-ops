@@ -4,8 +4,8 @@ export PORTDB_URL="jdbc:postgresql://localhost:5432/${PORTDB_DATABASE}"
 export SERVDB_URL="jdbc:postgresql://localhost:5432/${SERVDB_DATABASE}"
 export PORTDB_DRIVER="postgresql"
 export SERVDB_DRIVER="postgresql"
-$(dirname ${BASH_SOURCE[0]})/start-pg-and-wait.sh
-if $(dirname ${BASH_SOURCE[0]})/init-db-from-war.sh "$@" ;  then
+${STI_SCRIPTS_PATH}/start-pg-and-wait.sh
+if ${ENTANDO_COMMON_PATH}/init-db-from-war.sh "$@" ;  then
     pg_ctl stop -D /$HOME/data/userdata
     echo "copying from:"
     ls -al $HOME/data/

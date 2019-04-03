@@ -6,6 +6,7 @@ FROM entando/entando-dependencies-base:$ENTANDO_IMAGE_VERSION AS dependencies
 
 FROM registry.access.redhat.com/jboss-eap-7/eap71-openshift:1.3
 ARG ENTANDO_VERSION
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
 LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando quickstart applications on EAP 7.1" \
       io.k8s.display-name="Entando on EAP 7.1" \
@@ -17,10 +18,14 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       url="https://github.com/entando/entando-ops/tree/master/Docker/base-images/entando-eap71-base"
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     STI_SCRIPTS_PATH="/usr/local/s2i" \
-    USERID_TO_USE=185
+    USERID_TO_USE=185 \
+    ENTANDO_COMMON_PATH="/entando-common"
+
+
 COPY --chown=185:0 --from=dependencies  /opt/app-root/src/wildfly/modules /opt/eap/modules
 COPY --chown=185:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
 COPY --chown=185:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
+COPY --chown=185:0 --from=dependencies ${ENTANDO_COMMON_PATH} ${ENTANDO_COMMON_PATH}
 COPY --chown=185:0 ./contrib/wildfly-configuration/standalone-openshift.xml /opt/eap/standalone/configuration/standalone-openshift.xml
 COPY --chown=185:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 ENV DATASOURCES="PORTDB,SERVDB" \

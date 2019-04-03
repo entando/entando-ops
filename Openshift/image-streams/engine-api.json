@@ -33,6 +33,13 @@
       {
         "from": {
           "kind": "DockerImage",
+          "name": "docker.io/entando/engine-api:5.0.3"
+        },
+        "name": "5.0.3"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
           "name": "docker.io/entando/engine-api:5.1.0-SNAPSHOT"
         },
         "name": "5.1.0-SNAPSHOT"

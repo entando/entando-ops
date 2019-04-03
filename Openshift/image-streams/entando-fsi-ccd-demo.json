@@ -33,6 +33,13 @@
               "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.2"
             },
             "name": "5.0.2"
+          },
+          {
+            "from": {
+              "kind": "DockerImage",
+              "name": "docker.io/entando/fsi-cc-dispute-customer:5.0.3"
+            },
+            "name": "5.0.3"
           }
         ]
       }
@@ -68,6 +75,13 @@
               "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.2"
             },
             "name": "5.0.2"
+          },
+          {
+            "from": {
+              "kind": "DockerImage",
+              "name": "docker.io/entando/fsi-cc-dispute-admin:5.0.3"
+            },
+            "name": "5.0.3"
           }
         ]
       }

@@ -9,9 +9,11 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando quickstart applications on WildFly 12.0.0.Final" \
       io.k8s.display-name="Entando on WildFly 12.0.0.Final"
 ARG ENTANDO_VERSION
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=1001 \
-    STI_SCRIPTS_PATH="/usr/libexec/s2i"
+    STI_SCRIPTS_PATH="/usr/libexec/s2i"\
+    ENTANDO_COMMON_PATH="/entando-common"
 USER root
 RUN yum install -y ImageMagick && yum clean all
 COPY --chown=1001:0 ./contrib/wildfly-configuration/standalone.xml /wildfly/standalone/configuration/standalone.xml
@@ -19,6 +21,8 @@ COPY --chown=1001:0 ./s2i/bin ${STI_SCRIPTS_PATH}
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/wildfly/modules /wildfly/modules
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
+COPY --chown=1001:0 --from=dependencies ${ENTANDO_COMMON_PATH} ${ENTANDO_COMMON_PATH}
+
 ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \

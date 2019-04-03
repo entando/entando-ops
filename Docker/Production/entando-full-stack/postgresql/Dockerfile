@@ -2,6 +2,7 @@ ARG ENTANDO_IMAGE_VERSION
 FROM entando/engine-api:$ENTANDO_IMAGE_VERSION as server-image
 
 FROM entando/entando-postgresql95-base:$ENTANDO_IMAGE_VERSION as database-template
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
 ENV PORTDB_DATABASE=portdb \
     PORTDB_USERNAME=portuser \
     PORTDB_PASSWORD=port123 \

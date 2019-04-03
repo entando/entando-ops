@@ -5,7 +5,7 @@ export SERVDB_URL="jdbc:mysql://localhost:3306/${SERVDB_DATABASE}"
 export PORTDB_DRIVER="mysql"
 export SERVDB_DRIVER="mysql"
 $(dirname ${BASH_SOURCE[0]})/start-mysql-and-wait.sh
-if $(dirname ${BASH_SOURCE[0]})/init-db-from-war.sh "$@" ;  then
+if ${ENTANDO_COMMON_PATH}/init-db-from-war.sh "$@" ;  then
     mysqld stop
     echo "copying from:"
     ls -al $HOME/data/

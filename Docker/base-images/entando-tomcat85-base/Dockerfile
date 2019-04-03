@@ -6,6 +6,7 @@ FROM entando/entando-dependencies-base:$ENTANDO_IMAGE_VERSION AS dependencies
 
 FROM openshift/base-centos7
 ARG ENTANDO_VERSION
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
 LABEL io.k8s.description="Platform for building and running Entando applications on Apache-Tomcat 8.5.38" \
       io.k8s.display-name="Entando Apache-Tomcat 8.5.38" \
       io.openshift.expose-services="8080:http" \
@@ -53,7 +54,8 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     CATALINA_HOME="/tomcat" \
     JAVA="java-1.8.0-openjdk java-1.8.0-openjdk-devel" \
     JAVA_TOOL_OPTIONS="-Dfile.encoding=UTF8" \
-    POM_PATH=.
+    POM_PATH=.\
+    ENTANDO_COMMON_PATH="/entando-common"
 USER root
 
 # Install Maven, Tomcat, Java
@@ -81,6 +83,7 @@ COPY --chown=1001:0 --from=dependencies /opt/app-root/src/jetty-runner/derbyclie
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/jetty-runner/mysql-connector-java-5.1.44-bin.jar /tomcat/lib/
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/jetty-runner/postgresql-9.4.1211.jar /tomcat/lib/
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
+COPY --chown=1001:0 --from=dependencies ${ENTANDO_COMMON_PATH} ${ENTANDO_COMMON_PATH}
 COPY --chown=1001:0 context.xml /tomcat/conf/
 COPY --chown=1001:0 logging.properties /tomcat/conf/
 COPY --chown=1001:0 jstl-1.2.jar /tomcat/lib/

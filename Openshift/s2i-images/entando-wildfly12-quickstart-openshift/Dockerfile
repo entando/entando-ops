@@ -10,6 +10,7 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando quickstart applications on WildFly 12.0.0.Final" \
       io.k8s.display-name="Entando on WildFly 12.0.0.Final"
 ARG ENTANDO_VERSION
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=1001
 COPY --chown=1001:0 --from=dependencies /opt/app-root/src/.m2 $HOME/.m2

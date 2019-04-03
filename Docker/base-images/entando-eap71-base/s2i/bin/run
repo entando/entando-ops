@@ -1,5 +1,5 @@
 #!/bin/bash
 
-source $(dirname ${BASH_SOURCE[0]})/translate-jboss-variables.sh
-$(dirname ${BASH_SOURCE[0]})/prepare-data.sh
+source ${ENTANDO_COMMON_PATH}/translate-jboss-variables.sh
+${ENTANDO_COMMON_PATH}/prepare-data.sh
 exec $JBOSS_HOME/bin/openshift-launch.sh

@@ -1,4 +1,0 @@
-#!/bin/sh -e
-echo "Incremental builds not supported!"
-exit 1
-

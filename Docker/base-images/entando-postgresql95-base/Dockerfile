@@ -7,11 +7,15 @@ LABEL io.openshift.s2i.destination="/opt/s2i/destination" \
       io.k8s.description="Postgresql Database Image for building and running Entando applications" \
       io.k8s.display-name="Postgresql Database Image for Entando 5+"
 ARG ENTANDO_VERSION
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
 ENV MAVEN_VERSION="3.5.4" \
     JAVA_HOME="/usr/lib/jvm/java-1.8.0" \
     ENTANDO_VERSION=$ENTANDO_VERSION \
     USERID_TO_USE=26 \
-    STI_SCRIPTS_PATH="/usr/libexec/s2i"
+    STI_SCRIPTS_PATH="/usr/libexec/s2i" \
+    ENTANDO_COMMON_PATH="/entando-common"
+
+
 #Change to root for installation operations
 USER root
 RUN INSTALL_PKGS="ant tar curl java-1.8.0-openjdk java-1.8.0-openjdk-devel" && \
@@ -42,6 +46,7 @@ ENV PORTDB_USERNAME=agile \
 COPY --chown=26:0 ./postgresql /usr/share/container-scripts/postgresql
 COPY --chown=26:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
 COPY --chown=26:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner
+COPY --chown=26:0 --from=dependencies ${ENTANDO_COMMON_PATH} ${ENTANDO_COMMON_PATH}
 COPY --chown=26:0 ./s2i/bin/ $STI_SCRIPTS_PATH
 RUN mkdir -p /opt/s2i/destination && chmod -R ug+rw /opt/s2i/destination && chown -R $USERID_TO_USE:0 /opt/s2i/destination && \
     mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \

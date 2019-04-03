@@ -1,7 +1,0 @@
-#!/bin/bash
-LATEST_VERSION=$(cat $(dirname $(realpath ${BASH_SOURCE[0]}))/VERSION_TO_TAG_AS_LATEST)
-#If we are building from the latest released branch, tag as latest
-if [ "$DOCKER_TAG" = "$LATEST_VERSION" ]; then
-    docker tag $IMAGE_NAME $DOCKER_REPO:latest
-    docker push $DOCKER_REPO:latest
-fi

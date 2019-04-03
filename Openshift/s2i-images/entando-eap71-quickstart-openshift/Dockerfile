@@ -9,6 +9,8 @@ LABEL maintainer="Ampie Barnard <a.barnard@entando.com>" \
       io.k8s.description="Platform for building and running Entando quickstart applications on EAP 7.1" \
       io.k8s.display-name="Entando on EAP 7.1"
 ARG ENTANDO_VERSION
+ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
+
 ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=185
 COPY --chown=185:0 --from=dependencies  /opt/app-root/src/.m2 $HOME/.m2

@@ -5,12 +5,6 @@
 
     <mirrors>
         <!-- ### configured mirrors ### -->
-        <mirror>
-            <id>mirror.default</id>
-            <mirrorOf>none</mirrorOf>
-            <name>An internal openshift mirror</name>
-            <url>http://192.168.0.100:8081/nexus/content/groups/public/</url>
-        </mirror>
     </mirrors>
 
     <proxies>
