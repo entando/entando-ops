@@ -7,8 +7,8 @@ FROM entando/entando-dependencies-base:$ENTANDO_IMAGE_VERSION AS dependencies
 FROM openshift/base-centos7
 ARG ENTANDO_VERSION
 ARG MAVEN_MIRROR_FOR_DOCKER_BUILDS
-LABEL io.k8s.description="Platform for building and running Entando applications on Apache-Tomcat 8.5.38" \
-      io.k8s.display-name="Entando Apache-Tomcat 8.5.38" \
+LABEL io.k8s.description="Platform for building and running Entando applications on Apache-Tomcat 8.5.39" \
+      io.k8s.display-name="Entando Apache-Tomcat 8.5.39" \
       io.openshift.expose-services="8080:http" \
       io.openshift.tags="builder,tomcat,tomcat8.5,entando" \
       io.openshift.s2i.destination="/opt/s2i/destination"
@@ -47,7 +47,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     RESOURCEDISKROOTFOLDER="/entando-data/resources/" \
     PROTECTEDRESOURCEDISKROOTFOLDER="/entando-data/protected/" \
     INDEXDISKROOTFOLDER="/tmp/entando-indices" \
-    TOMCAT_VERSION="8.5.38" \
+    TOMCAT_VERSION="8.5.39" \
     TOMCAT_MAJOR=8 \
     MAVEN_VERSION=3.5.4 \
     TOMCAT_DISPLAY_VERSION="8.5" \
