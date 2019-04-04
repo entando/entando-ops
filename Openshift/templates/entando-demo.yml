@@ -5,7 +5,7 @@ metadata:
   annotations:
     iconClass: icon-eap
     tags: eap,javaee,java,jboss
-    version: 5.0.3-SNAPSHOT
+    version: 5.0.3
     openshift.io/display-name: Entando Template for Demos
     openshift.io/provider-display-name: Entando
     description: An template that facilitates the installation of one of the Entando demos
@@ -29,7 +29,7 @@ parameters:
   name: ENTANDO_IMAGE_VERSION
   description: The Image Stream Tag to use for each of the Entando Images for which there is a DeploymentConfig. This
     Image Stream Tag should which generally corresponds with the Entando version to be used.
-  value: 5.0.3-SNAPSHOT
+  value: 5.0.3
   required: false
 
 - displayName: ImageStream Namespace
