@@ -71,7 +71,7 @@ function test_deployment(){
     # Run AddTestUser test
     for APPBUILDER_ROUTE in ${APPBUILDER_ROUTE_ARRAY[@]}; do
         oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
-        sleep 1
+        sleep 20
         echo "Running 'AddTestUser' test on AppBuilder at $(get_url_for_route ${APPBUILDER_ROUTE})"
         oc run  ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL="$(get_url_for_route ${APPBUILDER_ROUTE})"  \
             -it --replicas=1  --restart=Never --image=${REGISTRY_IP}:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
@@ -120,7 +120,7 @@ function test_deployment(){
         APPBUILDER_ROUTE=${APPBUILDER_ROUTE_ARRAY[$i]}
         ENGINE_ROUTE=${ENGINE_ROUTE_ARRAY[$i]}
         oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
-        sleep 1
+        sleep 20
         echo "Running 'LoginWithTestUser' test on AppBuilder at $(get_url_for_route ${APPBUILDER_ROUTE}) and Engine at $(get_url_for_route ${ENGINE_ROUTE})"
         oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL="$(get_url_for_route ${APPBUILDER_ROUTE})"  \
             --env ENTANDO_ENGINE_URL="$(get_url_for_route ${ENGINE_ROUTE})" \
