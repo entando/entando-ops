@@ -31,8 +31,12 @@ docker-compose -f docker-compose-qa.yml down || { echo "Could not bring down doc
 docker-compose -f docker-compose-qa.yml up -d || { echo "Could not spin up docker containers"; exit 1; }
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
 
-sleep 30
-
+sleep 10
+docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest &>/dev/null
+docker container prune -f
+sleep 10
 docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
     -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
     entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest \
@@ -55,7 +59,12 @@ docker-compose -f docker-compose-postgresql-qa.yml up -d || { echo "Could not sp
 
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
 
-sleep 30
+sleep 10
+docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest &>/dev/null
+docker container prune -f
+sleep 10
 
 docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
     -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
@@ -79,7 +88,12 @@ docker volume rm entando-full-stack_entando-volume || { echo "Could not remove t
 docker-compose -f docker-compose-mysql-qa.yml up -d || { echo "Could not spin up docker containers"; exit 1; }
 timeout 180 ./wait-for-engine.sh || { echo "Timed out waiting for Engine"; exit 1; }
 
-sleep 30
+sleep 10
+docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
+    -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
+    entando/entando-smoke-tests:${ENTANDO_IMAGE_VERSION} mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest &>/dev/null
+docker container prune -f
+sleep 10
 
 docker run --rm --network=entando-full-stack_entando-network -e ENTANDO_APPBUILDER_URL=http://appbuilder:5000 \
     -e ENTANDO_ENGINE_URL=http://engine-api:8080/entando   \
