@@ -102,7 +102,6 @@ function test_deployment(){
         oc scale --replicas=1 dc/$DEPLOYMENT
     done
     for DEPLOYMENT in ${DATABASE_DEPLOYMENT_ARRAY[@]}; do
-        DEPLOYMENT=$(get_deployment_for_route $ENGINE_ROUTE)
         timeout 360 $(dirname $BASH_SOURCE[0])/wait-for-deployment.sh $DEPLOYMENT || {  echo "Timed out waiting for upscaling of deployment $DEPLOYMENT"; exit 1;  }
     done
     #Upscale Entando Engines
