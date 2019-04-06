@@ -1,5 +1,5 @@
 #!/bin/bash
-MASTER_VERSION="5.1.0-SNAPSHOT"
+MASTER_VERSION="5.2.0-SNAPSHOT"
 if [ -n "${DOCKER_TAG}" ]; then
     if [ "$DOCKER_TAG" = "$MASTER_VERSION" ]; then
         APP_BUILDER_BRANCH="master"
