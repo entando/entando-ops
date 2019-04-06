@@ -38,7 +38,10 @@ ENV PORTDB_USERNAME=agile \
     POSTGRESQL_SHARED_BUFFERS=32MB \
     ENV_FILES="" \
     PREPARE_DATA="true" \
-    DB_ENVIRONMENT="production"
+    DB_ENVIRONMENT="production" \
+    LOGFILEPREFIX="/var/log/entando/engine_" \
+    LOGFILEROTATEPATTERN="/var/log/entando/engine_%i.log.gz" \
+    LOGACTIVEFILEOUTPUT="true"
 
 COPY --chown=27:0 ./mysql /usr/share/container-scripts/mysql
 COPY --chown=27:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
