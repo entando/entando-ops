@@ -119,7 +119,14 @@ function test_deployment(){
         APPBUILDER_ROUTE=${APPBUILDER_ROUTE_ARRAY[$i]}
         ENGINE_ROUTE=${ENGINE_ROUTE_ARRAY[$i]}
         oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
-        sleep 20
+        sleep 10
+        echo "Pre-tsting'LoginWithTestUser' test to pre-load data - ignore failures"
+        oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL="$(get_url_for_route ${APPBUILDER_ROUTE})"  \
+            --env ENTANDO_ENGINE_URL="$(get_url_for_route ${ENGINE_ROUTE})" \
+            -it --replicas=1  --restart=Never --image=${REGISTRY_IP}:5000/entando/entando-smoke-tests:$ENTANDO_IMAGE_VERSION \
+            --command -- mvn verify -Dtest=org.entando.selenium.smoketests.STLoginWithTestUserTest -Dmaven.repo.local=/home/maven/.m2/repository  &>/dev/null
+        oc delete pod ${APPLICATION_NAME}-test 2>/dev/null
+        sleep 10
         echo "Running 'LoginWithTestUser' test on AppBuilder at $(get_url_for_route ${APPBUILDER_ROUTE}) and Engine at $(get_url_for_route ${ENGINE_ROUTE})"
         oc run ${APPLICATION_NAME}-test --env ENTANDO_APPBUILDER_URL="$(get_url_for_route ${APPBUILDER_ROUTE})"  \
             --env ENTANDO_ENGINE_URL="$(get_url_for_route ${ENGINE_ROUTE})" \
