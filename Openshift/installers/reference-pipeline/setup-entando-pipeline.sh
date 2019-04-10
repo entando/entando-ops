@@ -38,6 +38,24 @@ function create_stage_projects(){
         -p MEMORY_LIMIT=2048Mi \
         -p ENABLE_OAUTH=true
 }
+
+function patch_bitbucket_webhook_secret(){
+  WEB_HOOK_SECRET_KEY=$(openssl rand -base64 29 | tr -d "=+/" | cut -c1-25)
+  cat <<EOF | oc replace -n "${APPLICATION_NAME}-build" --force --grace-period 60 -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${APPLICATION_NAME}-webhook-secret
+  labels:
+    application: "${APPLICATION_NAME}"
+stringData:
+  WebHookSecretKey: "$WEB_HOOK_SECRET_KEY"
+EOF
+  oc patch bc ${APPLICATION_NAME}-jenkins-pipeline -n "${APPLICATION_NAME}-build" --patch '{"spec":{"triggers":[{"type":"Bitbucket","bitbucket":{"secretReference":{"name":"${APPLICATION_NAME}-webhook-secret"}}}]}}'
+  echo $WEB_HOOK_SECRET_KEY >> webhook.key
+
+}
+
 function create_prod_projects(){
     log_into_prod_cluster
     oc new-project $APPLICATION_NAME-prod
@@ -487,6 +505,9 @@ case $COMMAND in
   ;;
   log-into-stage)
     log_into_stage_cluster
+  ;;
+  patch-bitbucket-webhook-secret)
+    patch_bitbucket_webhook_secret
   ;;
   *)
     echo "Unknown command: $COMMAND"
