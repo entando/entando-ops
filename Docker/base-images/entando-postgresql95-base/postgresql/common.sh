@@ -190,22 +190,17 @@ EOF
 
 function create_users() {
   if [[ ",$postinitdb_actions," = *,simple_db,* ]]; then
-    createuser "$POSTGRESQL_USER"
-    echo "User $POSTGRESQL_USER created"
-    createdb --owner="$POSTGRESQL_USER" "$POSTGRESQL_DATABASE"
-    echo "Database $POSTGRESQL_DATABASE created for $POSTGRESQL_USER"
-    if [[ -v POSTGRESQL_USER2 ]] &&  [[ $POSTGRESQL_USER2 != $POSTGRESQL_USER ]]; then
-      createuser "$POSTGRESQL_USER2"
-      echo "User $POSTGRESQL_USER2 created"
-    else
-      export POSTGRESQL_USER2="${POSTGRESQL_USER}"
-    fi
-    if [[ -v POSTGRESQL_DATABASE2 ]] &&  [[ $POSTGRESQL_DATABASE2 != $POSTGRESQL_DATABASE ]]; then
-      createdb --owner="$POSTGRESQL_USER2" "$POSTGRESQL_DATABASE2"
-      echo "Database $POSTGRESQL_DATABASE2 created for $POSTGRESQL_USER2"
-    fi
+    DB_PREFIX_ARRAY=($(get_db_prefix_array))
+    for DB in ${DB_PREFIX_ARRAY[*]} ; do
+      USER_VAR=$(get_var_name $DB USERNAME)
+      #May have duplicate users
+      createuser "${!USER_VAR}" || true
+      echo "User ${!USER_VAR} created"
+      DB_VAR=$(get_var_name $DB DATABASE)
+      createdb --owner="${!USER_VAR}" "${!DB_VAR}"
+      echo "Database ${!DB_VAR} created for ${!USER_VAR}"
+    done
   fi
-
   if [ -v POSTGRESQL_MASTER_USER ]; then
     createuser "$POSTGRESQL_MASTER_USER"
   fi

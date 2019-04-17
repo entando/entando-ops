@@ -50,13 +50,13 @@
       {
         "annotations": {
           "role": "jenkins-slave",
-          "slave-label":"entando-5.1.0-SNAPSHOT"
+          "slave-label":"entando-5.1.0"
         },
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-postgresql-jenkins-slave-openshift39:5.1.0-SNAPSHOT"
+          "name": "docker.io/entando/entando-postgresql-jenkins-slave-openshift39:5.1.0"
         },
-        "name": "5.1.0-SNAPSHOT"
+        "name": "5.1.0"
       }
 
     ]

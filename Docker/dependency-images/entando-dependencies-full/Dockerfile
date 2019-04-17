@@ -6,7 +6,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     STI_SCRIPTS_PATH="/usr/libexec/s2i" \
     USERID_TO_USE=1001 \
     MAVEN_MIRROR_URL="${MAVEN_MIRROR_FOR_DOCKER_BUILDS}"
-COPY --chown=1001:0 ./entando-common "${ENTANDO_COMMON_PATH}"
+COPY --chown=1001:0 ./entando-dependencies-bootstrap "${ENTANDO_COMMON_PATH}"
 ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
     PORTDB_URL="jdbc:derby:/entando-data/databases/entandoPort;create=true" \

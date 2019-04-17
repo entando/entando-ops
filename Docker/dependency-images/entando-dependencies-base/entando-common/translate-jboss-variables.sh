@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+source ${ENTANDO_COMMON_PATH}/env-helper.sh
+export_env_files
+#TODO refactor this to generically iterate through all DB prefixes
 function extract_database_name(){
   path="$(echo $1 | grep / | cut -d/ -f4-)"
   echo $path
@@ -7,16 +10,6 @@ function extract_database_driver(){
   path="$(echo $1 | grep / | cut -d: -f2)"
   echo $path
 }
-#USE_ENV=""
-if [ -n "$ENV_FILES" ]; then
-  IFS=","  read -ra ENV_FILES_ARG <<< "$ENV_FILES"
-  for f in "${ENV_FILES_ARG[@]}"
-  do
-    VARIABLE_DECLARATIONS="$VARIABLE_DECLARATIONS $(cat $f | grep -v ^# | xargs)"
-  done
-  #USE_ENV="env $VARIABLE_DECLARATIONS"
-  export $VARIABLE_DECLARATIONS
-fi
 #Derive URL from variables compatible with the EAP Image when connecting to a database service
 if [ -n "$PORTDB_POSTGRESQL_SERVICE_HOST" ]; then
   export PORTDB_URL="jdbc:postgresql://$PORTDB_POSTGRESQL_SERVICE_HOST:${PORTDB_POSTGRESQL_SERVICE_PORT:-5432}/${PORTDB_DATABASE:-entandoPort}"

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -e
+source ${ENTANDO_COMMON_PATH}/env-helper.sh
+export_env_files
+login_count=0
+for i in {1..40}; do
+    sleep 5
+    if  psql -U postgres -c "\l" ; then
+        login_count=$((login_count + 1))
+        echo "login_count=$login_count"
+        if [ "$login_count" = "3" ]; then
+            echo "PostgreSQL Started"
+            DATABASES=$(psql -U postgres -c "\l")
+            DB_PREFIXES=($(get_db_prefix_array))
+            for DB_PREFIX in ${DB_PREFIXES[*]}; do
+                DB_NAME_VAR=${DB_PREFIX}_DATABASE
+                echo "Confirming DB created: ${!DB_NAME_VAR}"
+                if ! echo $DATABASES|grep ${!DB_NAME_VAR} ;  then
+                    echo "Test failed. Database ${!DB_NAME_VAR} not found in list:">&2
+                    echo "$DATABASES">&2
+                    exit -1
+                fi
+            done
+            echo "Test succeeded"
+            exit 0
+        fi
+    fi
+done
+echo "Test failed: could not connect to PostgreSQL">&2
+exit 1

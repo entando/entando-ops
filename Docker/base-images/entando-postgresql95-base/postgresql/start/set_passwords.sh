@@ -1,8 +1,12 @@
 #!/bin/bash
 source $(dirname ${BASH_SOURCE[0]})/../translate-variables.sh
 if [[ ",$postinitdb_actions," = *,simple_db,* ]]; then
-psql --command "ALTER USER \"${POSTGRESQL_USER}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_PASSWORD}';"
-psql --command "ALTER USER \"${POSTGRESQL_USER2}\" WITH ENCRYPTED PASSWORD '${POSTGRESQL_PASSWORD2}';"
+  DB_PREFIX_ARRAY=($(get_db_prefix_array))
+  for DB in ${DB_PREFIX_ARRAY[*]} ; do
+    USER_VAR=$(get_var_name $DB USERNAME)
+    PASSWORD_VAR=$(get_var_name $DB PASSWORD)
+    psql --command "ALTER USER \"${!USER_VAR}\" WITH ENCRYPTED PASSWORD '${!PASSWORD_VAR}';"
+  done
 fi
 
 if [ -v POSTGRESQL_MASTER_USER ]; then

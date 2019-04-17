@@ -1,0 +1,145 @@
+---
+kind: Template
+apiVersion: v1
+metadata:
+  annotations:
+    iconClass: icon-eap
+    tags: eap,javaee,java,jboss
+    version: 5.0.3
+    openshift.io/display-name: Entando Deployments Template
+    openshift.io/provider-display-name: Entando
+    description: Entando Deployments Template
+    template.openshift.io/long-description: Entando Deployments Template
+    template.openshift.io/documentation-url: https://central.entando.com/
+    template.openshift.io/support-url: https://central.entando.com
+  name: entando-deployments
+labels:
+  template: entando-eap71-mysql-jenkins
+message: 'A Entando Deployment was created'
+parameters:
+- displayName: Application Name
+  description: The name for the application.
+  name: APPLICATION_NAME
+  value: entando-sample
+  required: false
+- displayName: Image Version for Entando Images
+  description: Image Version for Entando Images
+  name: ENTANDO_IMAGE_VERSION
+  value: stage
+  required: false
+- displayName: Entando Database Secret
+  description: The name of the secret defining environment variables for the 'username' and 'password' of
+    the user that will access the MySQL Port and Serv databases, the 'adminUsername'
+    and 'adminPassword' of the user that has admin rights to the database,  as well as the 'hostname' and 'port'
+    defining the connection string.
+  name: ENTANDO_DB_FILE_SECRET
+  value: entando-db-secret
+  required: true
+- displayName: ImageStream Namespace
+  description: Namespace in which the ImageStreams for the Entando Images have been installed in
+  name: IMAGE_STREAM_NAMESPACE
+  value: entando-sample
+  required: true
+- displayName: Volume Capacity
+  description: Volume Capacity
+  name: VOLUME_CAPACITY
+  value: 1Gi
+  required: true
+
+objects:
+- kind: Service
+  apiVersion: v1
+  spec:
+    ports:
+    - port: 3306
+      targetPort: 3306
+    selector:
+      deploymentConfig: "${APPLICATION_NAME}-mysql"
+  metadata:
+    name: "${APPLICATION_NAME}-mysql"
+    labels:
+      application: "${APPLICATION_NAME}"
+    annotations:
+      description: The Entando Database server's port.
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: "${APPLICATION_NAME}-mysql"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    strategy:
+      type: Recreate
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${APPLICATION_NAME}-mysql"
+        from:
+          kind: ImageStreamTag
+          name: "entando-mysql57-openshift:${ENTANDO_IMAGE_VERSION}"
+          namespace: "${IMAGE_STREAM_NAMESPACE}"
+    - type: ConfigChange
+    replicas: 1
+    selector:
+      deploymentConfig: "${APPLICATION_NAME}-mysql"
+    template:
+      metadata:
+        name: "${APPLICATION_NAME}-mysql"
+        labels:
+          deploymentConfig: "${APPLICATION_NAME}-mysql"
+          application: "${APPLICATION_NAME}"
+      spec:
+        terminationGracePeriodSeconds: 60
+        containers:
+        - name: "${APPLICATION_NAME}-mysql"
+          command:
+          - "/usr/libexec/s2i/run"
+          image: "${IMAGE_STREAM_NAMESPACE}/entando-mysql57-openshift:${ENTANDO_IMAGE_VERSION}"
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 3306
+            protocol: TCP
+          readinessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 5
+            exec:
+              command:
+              - "/bin/sh"
+              - "-i"
+              - "-c"
+              - "/usr/libexec/s2i/test/run"
+          livenessProbe:
+            timeoutSeconds: 1
+            initialDelaySeconds: 180
+            tcpSocket:
+              port: 3306
+          volumeMounts:
+          - name: "mysql-data"
+            mountPath: "/var/lib/mysql/data"
+          - name: "mysql-env-files"
+            mountPath: "/etc/mysql-env-files"
+            readOnly: true
+          env:
+          - name: ENV_FILES
+            value: "/etc/mysql-env-files/datasources.env"
+        volumes:
+        - name: "mysql-data"
+          persistentVolumeClaim:
+            claimName: "${APPLICATION_NAME}-mysql-claim"
+        - name: "mysql-env-files"
+          secret:
+            secretName: "${ENTANDO_DB_FILE_SECRET}"
+- apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: "${APPLICATION_NAME}-mysql-claim"
+    labels:
+      application: "${APPLICATION_NAME}"
+  spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: "${VOLUME_CAPACITY}"

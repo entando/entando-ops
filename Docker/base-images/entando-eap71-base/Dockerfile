@@ -22,7 +22,6 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=185 \
     ENTANDO_COMMON_PATH="/entando-common"
 
-
 COPY --chown=185:0 --from=dependencies  /opt/app-root/src/wildfly/modules /opt/eap/modules
 COPY --chown=185:0 --from=dependencies /opt/app-root/src/.m2/settings.xml $HOME/.m2/settings.xml
 COPY --chown=185:0 --from=dependencies /opt/app-root/src/jetty-runner /jetty-runner

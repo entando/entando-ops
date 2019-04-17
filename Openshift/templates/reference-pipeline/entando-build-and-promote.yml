@@ -6,16 +6,16 @@ metadata:
     iconClass: icon-eap
     tags: maven jenkins
     version: 5.0.3
-    openshift.io/display-name: Entando Build Configs for EAP and PostgreSQL
+    openshift.io/display-name: Entando Build Configs for EAP and PostgreSQL/MySQL
     openshift.io/provider-display-name: Entando
-    description: Entando Build Configs for EAP and PostgreSQL
-    template.openshift.io/long-description: Entando Build Configs for EAP and PostgreSQL
+    description: Entando Build Configs for EAP and PostgreSQL/MySQL
+    template.openshift.io/long-description: Entando Build Configs for EAP and PostgreSQL/MySQL
     template.openshift.io/documentation-url: https://central.entando.com/
     template.openshift.io/support-url: https://central.entando.com
-  name: entando-eap71-postgresql-jenkins
+  name: entando-build-and-promote-jenkins-pipelines
 labels:
-  template: entando-eap71-postgresql-jenkins
-message: 'A new  set of Entando Build Configs for EAP and PostgreSQL  has been created'
+  template: entando-build-and-promote-jenkins-pipelines
+message: 'A new  set of Entando Build Configs for EAP and PostgreSQL/MySQL has been created'
 parameters:
 - displayName: Application Name
   description: The name for the application.
@@ -51,6 +51,11 @@ parameters:
   description: Path within Git project to build; empty for root project directory.
   name: CONTEXT_DIR
   value: ''
+  required: false
+- displayName: Database Management System
+  description: The DBMS that will be used to host all the required databases
+  name: DBMS
+  value: 'postgresql'
   required: false
 - displayName: Maven mirror URL
   description: Maven mirror to use for S2I builds
@@ -117,17 +122,17 @@ objects:
 - kind: ImageStream
   apiVersion: v1
   metadata:
-    name: entando-postgresql-jenkins-slave-openshift39
+    name: entando-db-jenkins-slave-openshift39
     labels:
       application: "${APPLICATION_NAME}"
   spec:
     tags:
     - annotations:
         role: jenkins-slave
-        slave-label: entando-postgresql
+        slave-label: entando-${DBMS}
       from:
         kind: ImageStreamTag
-        name: entando-postgresql-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
+        name: entando-${DBMS}-jenkins-slave-openshift39:${ENTANDO_IMAGE_VERSION}
         namespace: ${IMAGE_STREAM_NAMESPACE}
       name: latest
 - kind: BuildConfig
@@ -219,7 +224,12 @@ objects:
                           label "entando-maven"
                       }
                       steps {
-                          git url: "${SOURCE_REPOSITORY_URL}", branch: "${SOURCE_REPOSITORY_REF}", credentialsId: "${APPLICATION_NAME}-build-${SOURCE_SECRET}"
+                          withCredentials([usernamePassword(credentialsId: '${APPLICATION_NAME}-build-${SOURCE_SECRET}', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                            sh '''
+                                git clone ${SOURCE_REPOSITORY_URL} .
+                                git checkout ${SOURCE_REPOSITORY_REF}
+                            '''
+                          }
                           sh '''
                               if [ -n "${CONTEXT_DIR}" ]; then
                                 cd "${CONTEXT_DIR}"
@@ -274,7 +284,7 @@ objects:
                   }
                   stage("Prepare ${APPLICATION_NAME} Database ") {
                       agent {
-                          label 'entando-postgresql'
+                          label 'entando-${DBMS}'
                       }
                       steps {
                           withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
@@ -282,27 +292,24 @@ objects:
                               sh '''
                                   #!/bin/bash
                                   #Hack to populate all the ENV Variables
-                                  source ${HOME}/export-db-variables.sh "${DATABASE_ENV}"
-                                  set -e
+                                  source ${HOME}/export-env-variables.sh "${DATABASE_ENV}"
+                                  set -ex
                                   ${HOME}/backup-dbs.sh
                                   ${HOME}/recreate-dbs.sh
-                                  oc delete pod migrate-db --ignore-not-found=true -n ${APPLICATION_NAME}-stage
-                                  oc run migrate-db --image=${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest \
-                                      -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-stage \
-                                      --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
-                                      --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \
-                                      --command -- /usr/local/s2i/init-db-from-deployment.sh
+                                  ${HOME}/migrate-db.sh ${APPLICATION_NAME}-stage ${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:latest \
+                                      ${APPLICATION_NAME}-db-file-secret-stage
                                   '''
                           }
                       }
                       post {
                           failure {
                               withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-stage',
-                                                usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                                                usernameVariable: 'USERNAME', passwordVariable: 'DATABASE_ENV']]) {
                                   sh '''
                                       #!/bin/bash
+                                      set -x
                                       #Hack to populate all the ENV Variables
-                                      source ${HOME}/export-db-variables.sh "${PASSWORD}"
+                                      source ${HOME}/export-env-variables.sh "${DATABASE_ENV}"
                                       ${HOME}/restore-dbs.sh
                                      '''
                               }
@@ -478,7 +485,7 @@ objects:
                   }
                   stage('Prepare ${APPLICATION_NAME} Production Database') {
                       agent {
-                          label 'entando-postgresql'
+                          label 'entando-${DBMS}'
                       }
                       steps {
                           withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${PRODUCTION_CLUSTER_SECRET}',
@@ -488,36 +495,21 @@ objects:
                                   #Setup port forwarding from the remote cluster's PostgreSQL pod to this Jenkins slave
                                   #TODO see if we can use an Openshift Token Credential
                                   oc login -u $CLUSTER_USERNAME -p $CLUSTER_PASSWORD https://${PRODUCTION_CLUSTER_URL} --insecure-skip-tls-verify
-                                  PG_POD=$(oc get pods -n ${APPLICATION_NAME}-prod -l deploymentConfig=${APPLICATION_NAME}-postgresql | grep '${APPLICATION_NAME}-[a-zA-Z0-9\\-]*' -o)
-                                  nohup oc port-forward $PG_POD 5432:5432  -n ${APPLICATION_NAME}-prod  >  forwarding.log 2>&1&
-                                  for i in {1..60}
-                                  do
-                                      sleep 5
-                                      cat forwarding.log
-                                      if fgrep --quiet "Forwarding from" forwarding.log
-                                      then
-                                          exit 0
-                                      fi
-                                  done
-                                  exit -1
+                                  ${HOME}/forward-to-db-port.sh ${APPLICATION_NAME} prod
                                  '''
                           }
                           withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
-                                            usernameVariable: 'DB_USERNAME', passwordVariable: 'DB_PASSWORD']]) {
+                                            usernameVariable: 'DB_USERNAME', passwordVariable: 'DATABASE_ENV']]) {
                               sh '''
                                   #!/bin/bash
                                   #Hack to populate all the ENV Variables
-                                  source ${HOME}/export-db-variables.sh "${DB_PASSWORD}"
+                                  source ${HOME}/export-env-variables.sh "${DATABASE_ENV}"
                                   oc whoami #test that it is still the cluster admin user and not jenkins
                                   set -e
-                                  env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/backup-dbs.sh
-                                  env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/recreate-dbs.sh
-                                  oc delete pod migrate-db  --ignore-not-found=true -n ${APPLICATION_NAME}-prod
-                                  oc run migrate-db --image=${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage \
-                                      -it --replicas=1  --restart=Never -n ${APPLICATION_NAME}-prod \
-                                      --env PORTDB_URL=$PORTDB_URL --env PORTDB_USERNAME=$PORTDB_USERNAME --env PORTDB_PASSWORD=$PORTDB_PASSWORD \
-                                      --env SERVDB_URL=$SERVDB_URL --env SERVDB_USERNAME=$SERVDB_USERNAME --env SERVDB_PASSWORD=$SERVDB_PASSWORD \
-                                      --command -- /usr/local/s2i/init-db-from-deployment.sh
+                                  ${HOME}/backup-dbs.sh
+                                  ${HOME}/recreate-dbs.sh
+                                  ${HOME}/migrate-db.sh ${APPLICATION_NAME}-prod ${SHARED_DOCKER_REGISTRY_URL}/${DOCKER_IMAGE_NAMESPACE}/${APPLICATION_NAME}:stage \
+                                      ${APPLICATION_NAME}-db-file-secret-prod
                                  '''
                           }
                       }
@@ -525,12 +517,12 @@ objects:
                       post {
                           failure {
                               withCredentials([[$class          : 'UsernamePasswordMultiBinding', credentialsId: '${APPLICATION_NAME}-build-${APPLICATION_NAME}-db-file-secret-prod',
-                                                usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                                                usernameVariable: 'USERNAME', passwordVariable: 'DATABASE_ENV']]) {
                                   sh '''
                                       #!/bin/bash
                                       #Hack to populate all the ENV Variables
-                                      source ${HOME}/export-db-variables.sh "${PASSWORD}"
-                                      env PORTDB_SERVICE_HOST=localhost SERVDB_SERVICE_HOST=localhost ${HOME}/restore-dbs.sh
+                                      source ${HOME}/export-env-variables.sh "${DATABASE_ENV}"
+                                      ${HOME}/restore-dbs.sh
                                      '''
                               }
                           }

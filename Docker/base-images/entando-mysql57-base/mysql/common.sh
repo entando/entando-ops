@@ -95,7 +95,26 @@ function shutdown_local_mysql() {
   mysqladmin $admin_flags flush-privileges shutdown
 }
 
-# Initialize the MySQL database (create user accounts and the initial database)
+function init_db(){
+  USER_VAR=$(get_var_name $1 USERNAME)
+  PASSWORD_VAR=$(get_var_name $1 PASSWORD)
+  DATABASE_VAR=$(get_var_name $1 DATABASE)
+  mysql_flags=$2
+  admin_flags=$3
+  log_info "Creating user specified by ${USER_VAR} (${!USER_VAR}) ..."
+  mysql $mysql_flags <<EOSQL || true
+    CREATE USER '${!USER_VAR}'@'%' IDENTIFIED BY '${!PASSWORD_VAR}';
+EOSQL
+  log_info "Creating database ${!DATABASE_VAR} ..."
+  mysqladmin $admin_flags create "${!DATABASE_VAR}"
+  log_info "Granting privileges to user ${!USER_VAR} for ${!DATABASE_VAR} ..."
+  mysql $mysql_flags <<EOSQL
+      GRANT ALL ON \`${!DATABASE_VAR}\`.* TO '${!USER_VAR}'@'%' ;
+      FLUSH PRIVILEGES ;
+EOSQL
+}
+
+# Initialize the MySQL databases (create user accounts and the initial database)
 function initialize_database() {
   log_info 'Initializing database ...'
   if [ "`version2number $MYSQL_VERSION`" -lt '800' ] ; then
@@ -131,11 +150,12 @@ function initialize_database() {
       mysql $mysql_flags -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
       mysql_flags="-u root --socket=$MYSQL_LOCAL_SOCKET -p${MYSQL_ROOT_PASSWORD}"
     fi
-
+    log_info "Creating root@% with password $MYSQL_ROOT_PASSWORD"
     mysql $mysql_flags <<EOSQL
-      CREATE USER IF NOT EXISTS 'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+      CREATE USER  'root'@'%' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
       GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 EOSQL
+    log_info "Created root@% with password $MYSQL_ROOT_PASSWORD"
   else
     mysql $mysql_flags -e "ALTER USER 'root'@'localhost' IDENTIFIED BY ''";
     mysql_flags="-u root --socket=$MYSQL_LOCAL_SOCKET"
@@ -152,51 +172,15 @@ EOSQL
     return 0
   fi
 
-  # Do not care what option is compulsory here, just create what is specified
-  if [ -v MYSQL_USER ]; then
-    log_info "Creating user specified by MYSQL_USER (${MYSQL_USER}) ..."
-mysql $mysql_flags <<EOSQL
-    CREATE USER '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
-EOSQL
-  fi
-
-  if [ -v MYSQL_DATABASE ]; then
-    log_info "Creating database ${MYSQL_DATABASE} ..."
-    mysqladmin $admin_flags create "${MYSQL_DATABASE}"
-    if [ -v MYSQL_USER ]; then
-      log_info "Granting privileges to user ${MYSQL_USER} for ${MYSQL_DATABASE} ..."
-mysql $mysql_flags <<EOSQL
-      GRANT ALL ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%' ;
-      FLUSH PRIVILEGES ;
-EOSQL
-    fi
-  fi
-  if [ -v MYSQL_USER2 ] && [ "$MYSQL_USER2" != "$MYSQL_USER" ] ; then
-    log_info "Creating user specified by MYSQL_USER2 (${MYSQL_USER2}) ..."
-mysql $mysql_flags <<EOSQL
-    CREATE USER '${MYSQL_USER2}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD2}';
-EOSQL
-  else
-    MYSQL_USER2="$MYSQL_USER"
-  fi
-
-  if [ -v MYSQL_DATABASE2 ]; then
-    log_info "Creating database ${MYSQL_DATABASE2} ..."
-    mysqladmin $admin_flags create "${MYSQL_DATABASE2}"
-    if [ -v MYSQL_USER ]; then
-      log_info "Granting privileges to user ${MYSQL_USER2} for ${MYSQL_DATABASE2} ..."
-mysql $mysql_flags <<EOSQL
-      GRANT ALL ON \`${MYSQL_DATABASE2}\`.* TO '${MYSQL_USER2}'@'%' ;
-      FLUSH PRIVILEGES ;
-EOSQL
-    fi
-  fi
-
-
+  DB_PREFIX_ARRAY=($(get_db_prefix_array))
+  for DB in ${DB_PREFIX_ARRAY[*]} ; do
+    init_db $DB "$mysql_flags" "$admin_flags"
+  done
   log_info 'Initialization finished'
 
   # remember that the database was just initialized, it may be needed on other places
   export MYSQL_DATADIR_FIRST_INIT=true
+
 }
 
 # The 'server_id' number for slave needs to be within 1-4294967295 range.

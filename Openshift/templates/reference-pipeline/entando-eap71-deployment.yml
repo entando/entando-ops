@@ -264,9 +264,9 @@ objects:
           - name: SERVDB_NONXA
             value: "true"
           - name: PORTDB_JTA
-            value: "true"
+            value: "false"
           - name: SERVDB_JTA
-            value: "true"
+            value: "false"
           - name: SERVDB_MIN_POOL_SIZE
             value: "${DB_MIN_POOL_SIZE}"
           - name: PORTDB_MIN_POOL_SIZE

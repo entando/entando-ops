@@ -120,7 +120,7 @@ objects:
               - "/bin/sh"
               - "-i"
               - "-c"
-              - "psql -h 127.0.0.1 -U postgres -q -d postgres -c '\\l'|grep '5 rows'"
+              - "/usr/libexec/s2i/test/run"
           livenessProbe:
             timeoutSeconds: 1
             initialDelaySeconds: 180

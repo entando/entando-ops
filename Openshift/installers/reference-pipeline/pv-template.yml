@@ -18,9 +18,9 @@ objects:
     - ReadWriteOnce
     - ReadWriteMany
     capacity:
-      storage: 5Gi
+      storage: 1Gi
     hostPath:
-      path: /data/openshift/${NAME}/
+      path: /home/ampie/openshift.local.clusterup/openshift.local.pv/${NAME}/
       type: ""
     persistentVolumeReclaimPolicy: Recycle
  

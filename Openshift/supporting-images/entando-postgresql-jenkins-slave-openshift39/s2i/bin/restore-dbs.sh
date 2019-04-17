@@ -1,16 +1,23 @@
 #!/bin/bash
+set -e
+source $(dirname ${BASH_SOURCE[0]})/common.sh
 
 export PGPASSWORD=$ADMIN_PASSWORD
+function restore_db(){
+  HOST_VAR=$(get_host_var $1)
+  PORT_VAR=$(get_port_var $1)
+  DATABASE_VAR=$(get_var_name ${1} DATABASE)
+  USERNAME_VAR=$(get_var_name ${1} USERNAME)
 
-if [ -f "${SERVDB_DATABASE}.sql" ]; then
-    dropdb -h ${SERVDB_SERVICE_HOST} --port=${SERVDB_SERVICE_PORT} -U ${ADMIN_USERNAME} ${SERVDB_DATABASE}
-    createdb -h ${SERVDB_SERVICE_HOST} --port=${SERVDB_SERVICE_PORT} -U ${ADMIN_USERNAME} -E UTF-8 -O ${SERVDB_USERNAME} ${SERVDB_DATABASE}
-    psql -U ${ADMIN_USERNAME} --host=${SERVDB_SERVICE_HOST} --port=${SERVDB_SERVICE_PORT} -d ${SERVDB_DATABASE} < ${SERVDB_DATABASE}.sql
-fi
-if [ -f "${PORTDB_DATABASE}.sql" ]; then
-    dropdb -h ${PORTDB_SERVICE_HOST} --port=${PORTDB_SERVICE_PORT} -U ${ADMIN_USERNAME} ${PORTDB_DATABASE}
-    createdb -h ${PORTDB_SERVICE_HOST} --port=${PORTDB_SERVICE_PORT} -U ${ADMIN_USERNAME} -E UTF-8 -O ${PORTDB_USERNAME} ${PORTDB_DATABASE}
-    psql -U ${ADMIN_USERNAME} --host=${PORTDB_SERVICE_HOST} --port=${PORTDB_SERVICE_PORT} -d ${PORTDB_DATABASE} < ${PORTDB_DATABASE}.sql
-fi
+  if [ -f "${!DATABASE_VAR}.sql" ]; then
+    echo "Restoring ${!DATABASE_VAR} from ${!DATABASE_VAR}.sql"
+    dropdb -h ${!HOST_VAR} --port=${!PORT_VAR} -U ${ADMIN_USERNAME} ${!DATABASE_VAR}
+    createdb -h ${!HOST_VAR} --port=${!PORT_VAR} -U ${ADMIN_USERNAME} -E UTF-8 -O ${!USERNAME_VAR} ${!DATABASE_VAR}
+    psql -U ${ADMIN_USERNAME} --host=${!HOST_VAR} --port=${!PORT_VAR} -d ${!DATABASE_VAR} < ${!DATABASE_VAR}.sql
+  else
+    echo "ERROR: NO BACKUP FOUND FOR ${!DATABASE_VAR}"
+  fi
+}
 
-
+restore_db SERVDB
+restore_db PORTDB

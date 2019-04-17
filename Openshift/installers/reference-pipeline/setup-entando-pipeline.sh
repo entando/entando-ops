@@ -1,6 +1,39 @@
 #!/usr/bin/env bash
 export ENTANDO_OPS_HOME=$(dirname $(dirname $(dirname $(dirname $(realpath $BASH_SOURCE[0])))))
 echo $ENTANDO_OPS_HOME
+
+function determine_db_admin(){
+    case "${1}" in
+        "postgresql")
+          echo "postgres"
+        ;;
+        "mysql")
+          echo "root"
+        ;;
+    esac
+}
+function determine_db_port(){
+    case "${1}" in
+        "postgresql")
+          echo "5432"
+        ;;
+        "mysql")
+          echo "3306"
+        ;;
+    esac
+}
+
+function determine_db_template(){
+    case "${1}" in
+        "postgresql")
+          echo "entando-postgresql95-deployment.yml"
+        ;;
+        "mysql")
+          echo "entando-mysql57-deployment.yml"
+        ;;
+    esac
+}
+
 function read_config(){
   source $(dirname $0)/clear-vars.sh
   if [ -f $CONFIG_DIR/$1.conf ]; then
@@ -32,8 +65,10 @@ function create_stage_projects(){
     oc policy add-role-to-user system:image-puller system:serviceaccount:$APPLICATION_NAME-build:jenkins -n $IMAGE_STREAM_NAMESPACE
     oc policy add-role-to-user edit system:serviceaccount:$APPLICATION_NAME-build:jenkins -n $APPLICATION_NAME-stage
     oc project $APPLICATION_NAME-build
+    oc create -n openshift -f https://raw.githubusercontent.com/openshift/origin/master/examples/jenkins/jenkins-persistent-template.json 2> /dev/null
+    #NB!! for openshift v3.9 use    -p JENKINS_ENTANDO_IMAGE_VERSION
     oc new-app --template=jenkins-persistent \
-        -p JENKINS_ENTANDO_IMAGE_VERSION=jenkins:2\
+        -p JENKINS_IMAGE_STREAM_TAG=jenkins:2\
         -p NAMESPACE=openshift \
         -p MEMORY_LIMIT=2048Mi \
         -p ENABLE_OAUTH=true
@@ -103,10 +138,13 @@ function install_build_image_streams(){
 #}
 
 function install_deployment_image_streams(){
-  if  !  oc describe is/entando-postgresql95-openshift -n entando| grep ${ENTANDO_IMAGE_VERSION} ; then
+  if  !  oc describe is/entando-postgresql95-openshift -n $IMAGE_STREAM_NAMESPACE| grep ${ENTANDO_IMAGE_VERSION} ; then
     oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-postgresql95-openshift.json -n $IMAGE_STREAM_NAMESPACE
   fi
-  if  !  oc describe is/appbuilder -n entando| grep ${ENTANDO_IMAGE_VERSION} ; then
+  if  !  oc describe is/entando-mysql57-openshift -n $IMAGE_STREAM_NAMESPACE| grep ${ENTANDO_IMAGE_VERSION} ; then
+    oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/entando-mysql57-openshift.json -n $IMAGE_STREAM_NAMESPACE
+  fi
+  if  !  oc describe is/appbuilder -n $IMAGE_STREAM_NAMESPACE| grep ${ENTANDO_IMAGE_VERSION} ; then
     oc replace --force -f $ENTANDO_OPS_HOME/Openshift/image-streams/appbuilder.json -n $IMAGE_STREAM_NAMESPACE
   fi
 }
@@ -210,6 +248,7 @@ function deploy_build_template(){
             -p DOCKER_IMAGE_NAMESPACE="${DOCKER_IMAGE_NAMESPACE}" \
             -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
             -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
+            -p DBMS="${DBMS}" \
           |  oc replace --force --grace-period 60  -f -
   else
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-build-and-promote.yml \
@@ -225,6 +264,7 @@ function deploy_build_template(){
             -p DOCKER_IMAGE_NAMESPACE="${DOCKER_IMAGE_NAMESPACE}" \
             -p PRODUCTION_CLUSTER_TOKEN="${PRODUCTION_CLUSTER_TOKEN}" \
             -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
+            -p DBMS="${DBMS}" \
           |  oc replace --force --grace-period 60  -f -
 
   fi
@@ -233,10 +273,10 @@ function deploy_build_template(){
 
 function prepare_db_secret(){
   echo "Creating the Entando DB Secret for the $1 environment."
-  if [ "${DEPLOY_POSTGRESQL}" = "true" ]; then
+  if [ "${DEPLOY_DBMS}" = "true" ]; then
   # specifiy the service
-      DB_SERVICE_HOST="${APPLICATION_NAME}-postgresql.${APPLICATION_NAME}-$1.svc"
-      DB_SERVICE_PORT="5432"
+      DB_SERVICE_HOST="${APPLICATION_NAME}-${DBMS}.${APPLICATION_NAME}-$1.svc"
+      DB_SERVICE_PORT=$(determine_db_port ${DBMS})
   # generate passwords and save to passwords file
     if [ -f $CONFIG_DIR/$1-passwords.txt ]; then
       source $CONFIG_DIR/$1-passwords.txt
@@ -249,7 +289,7 @@ DB_ADMIN_PASSWORD=${DB_ADMIN_PASSWORD}
 EOF
     fi
   fi
-  oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-db-file-secret.yml \
+  oc process -f $DB_SECRET_TEMPLATE \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p SECRET_NAME="${APPLICATION_NAME}-db-file-secret-$1" \
             -p USERNAME="${DB_USERNAME}" \
@@ -257,7 +297,8 @@ EOF
             -p DB_HOSTNAME="${DB_SERVICE_HOST}" \
             -p DB_PORT="${DB_SERVICE_PORT}" \
             -p ADMIN_PASSWORD="${DB_ADMIN_PASSWORD}" \
-            -p ADMIN_USERNAME="postgres" \
+            -p ADMIN_USERNAME="$(determine_db_admin $DBMS)" \
+            -p DB_VENDOR="${DBMS}" \
           |  oc replace --force --grace-period 60  -f - || { echo "DB File Secret Creation Failed";exit 1; }
 }
 function deploy_runtime_templates(){
@@ -298,8 +339,9 @@ function deploy_runtime_templates(){
             -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
             | oc replace --force --grace-period 60  -f -
   fi
-  if [ "${DEPLOY_POSTGRESQL}" = "true" ]; then
-      oc process -f $ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/entando-postgresql95-deployment.yml \
+  if [ "${DEPLOY_DBMS}" = "true" ]; then
+    echo "Deploying DB Template $(determine_db_template $DBMS)"
+    oc process -f "$ENTANDO_OPS_HOME/Openshift/templates/reference-pipeline/$(determine_db_template $DBMS)" \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p IMAGE_STREAM_NAMESPACE="${IMAGE_STREAM_NAMESPACE}" \
             -p ENTANDO_IMAGE_VERSION="${ENTANDO_IMAGE_VERSION}" \
@@ -427,6 +469,10 @@ shift
 for i in "$@"
 do
 case $i in
+    -dbms=*|--database-management-system=*)
+      DBMS="${i#*=}"
+      shift # past argument=value
+    ;;
     -an=*|--application-name=*)
       APPLICATION_NAME="${i#*=}"
       shift # past argument=value
@@ -452,7 +498,10 @@ case $i in
 esac
 done
 IMAGE_STREAM_NAMESPACE=${IMAGE_STREAM_NAMESPACE:-entando}
-ENTANDO_IMAGE_VERSION=${ENTANDO_IMAGE_VERSION:-5.0.3-SNAPSHOT}
+ENTANDO_IMAGE_VERSION=${ENTANDO_IMAGE_VERSION:-5.1.0}
+DBMS=${DBMS:-postgresql}
+CONFIG_DIR=${CONFIG_DIR:-${APPLICATION_NAME}-conf}
+DB_SECRET_TEMPLATE=${DB_SECRET_TEMPLATE:-$ENTANDO_OPS_HOME/Openshift/templates/entando-db-file-secret.yml}
 echo "IMAGE_STREAM_NAMESPACE=$IMAGE_STREAM_NAMESPACE"
 case $COMMAND in
   create)

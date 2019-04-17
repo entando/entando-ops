@@ -87,17 +87,34 @@
 :FSI_CCD_DEMO_DESCRIPTION: The Entando team, Red Hat and our business partners have collaborated to bring you a demo that illustrates how Entando can be used as the user experience layer for your Red Hat Process Automation Manager processes. The process in question allows customers to initiate a dispute case against a specific transaction. This demo provides two Entando apps - a customer facing app and a back-office app. These apps connect to a shared KIE Server instance.
 :EAP_IMAGE_DISCLAIMER: Please note that this configuration uses a child image of the official JBoss EAP commercial Docker Image. This would mean that  in order to deploy this in a production environment, you would need to purchase the necessary subscription from Red Hat first.
 
-# Entando Maven Jenkins Slave for Openshift 3.9
+# Entando PostgreSQL Jenkins Slave for Openshift 3.9
 
 This image is designed to work with a Jenkins server running the Jenkins Kubernetes Plugin. This specific image
 targets version of the Jenkins server running in version 3.9 of Openshift. Its Openshift client will not work
 with incompatible versions of the Openshift server.
 
-This Image has the necessary Maven infrastructure to build any Maven project. In addition, it also has a 
-Docker client installation. Keep in mind though that you need to connect to a Docker server, which could very
-well be the Docker server that instantiated the image to start with.
+This Image has the necessary Maven infrastructure to build any Maven project. It also comes with
+the PostgreSQL 9.5 client software. This image is intended for Maven processes that need to update
+a remove PostgreSQL database.
 
 This Image also comes with the Entando dependencies pre-cached in the $HOME/.m2/repository directory.
+
+# Some important features.
+
+This image comes with three important scripts that will typically be used by Jenkins pipelines. These three
+scripts typically use the similar environment variables to connect to the correct PostgreSQL server. Please ensure
+that these variables are available from your Jenkins Pipeline Scripts using Jenkins secrets 
+
+**ADMIN_USERNAME** - the password associated with the postgres user
+**ADMIN_PASSWORD** - the password associated with the postgres user
+**PORTDB_SERVICE_HOST**
+**SERVDB_SERVICE_HOST**
+**PORTDB_SERVICE_PORT**
+**SERVDB_SERVICE_PORT**
+
+## backup-dbs.sh
+
+This script backs  
 
 # Running this image.
 

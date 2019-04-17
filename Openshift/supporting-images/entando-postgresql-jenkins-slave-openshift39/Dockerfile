@@ -9,7 +9,7 @@ ENV ENTANDO_VERSION=$ENTANDO_VERSION \
     USERID_TO_USE=1001
 USER root
 RUN yum -y update-minimal --setopt=tsflags=nodocs --security --sec-severity=Important --sec-severity=Critical && \
-    yum -y install https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-centos95-9.5-3.noarch.rpm && \
+    yum -y install https://download.postgresql.org/pub/repos/yum/9.5/redhat/rhel-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm && \
     yum  -y install postgresql95 && \
     yum clean all && \
     rm -rf /var/cache/yum/*

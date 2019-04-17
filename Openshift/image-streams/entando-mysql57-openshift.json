@@ -37,9 +37,9 @@
       {
         "from": {
           "kind": "DockerImage",
-          "name": "docker.io/entando/entando-mysql57-openshift:5.1.0-SNAPSHOT"
+          "name": "docker.io/entando/entando-mysql57-openshift:5.1.0"
         },
-        "name": "5.1.0-SNAPSHOT",
+        "name": "5.1.0",
         "referencePolicy": {
           "type": "Source"
         }

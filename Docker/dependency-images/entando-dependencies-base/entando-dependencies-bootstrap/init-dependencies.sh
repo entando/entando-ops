@@ -16,7 +16,7 @@ if mvn clean package -Dproject.build.sourceEncoding=UTF-8 ; then
       popd
     #Keep the image lean:
       rm -Rf fsi-cc-dispute-customer-*
-      $ENTANDO_COMMON_PATH/restore-settings-xml.sh
+      $(dirname ${BASH_SOURCE[0]})/restore-settings-xml.sh
       echo "Dependency init succeeded"
       exit 0
 else

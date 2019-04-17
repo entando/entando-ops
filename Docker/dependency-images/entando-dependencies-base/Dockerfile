@@ -7,11 +7,10 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     USERID_TO_USE=1001 \
     MAVEN_MIRROR_URL="${MAVEN_MIRROR_FOR_DOCKER_BUILDS}" \
     ENTANDO_COMMON_PATH="/entando-common"
-
-COPY --chown=1001:0 ./entando-common "$ENTANDO_COMMON_PATH"
-COPY --chown=1001:0 ./jetty-runner $HOME/jetty-runner
+COPY --chown=1001:0 ./entando-dependencies-bootstrap "${ENTANDO_COMMON_PATH}"
+USER $USERID_TO_USE
 COPY --chown=1001:0 ./settings.xml $HOME/.m2/settings.xml
-COPY --chown=1001:0 ./wfmodules $HOME/wildfly/modules
+RUN ${ENTANDO_COMMON_PATH}/init-dependencies.sh
 
 ENV PORTDB_NONXA="true" \
     PORTDB_JTA="false" \
@@ -35,8 +34,11 @@ ENV PORTDB_NONXA="true" \
 USER root
 RUN mkdir -p /entando-data/databases  && chown -Rf $USERID_TO_USE:0 /entando-data/ && chmod -Rf ug+rw /entando-data/ && \
     mkdir -p /entando-data-templates && chown -Rf $USERID_TO_USE:0 /entando-data-templates/ && chmod -Rf ug+rw /entando-data-templates/
-USER $USERID_TO_USE
-RUN ${ENTANDO_COMMON_PATH}/init-dependencies.sh
 ENV MAVEN_MIRROR_URL=""
+COPY --chown=1001:0 ./entando-common "$ENTANDO_COMMON_PATH"
+COPY --chown=1001:0 ./jetty-runner $HOME/jetty-runner
+COPY --chown=1001:0 ./wfmodules $HOME/wildfly/modules
+USER $USERID_TO_USE
+
 
 #Now we have all the dependencies sitting at $HOME./m2/settings

@@ -14,3 +14,5 @@
 **/contrib/wfmodules/org/apache/derby
 **/contrib/settings.xml
 **/contrib/maven-setup
+**/my.cnf
+**/forwarding.log

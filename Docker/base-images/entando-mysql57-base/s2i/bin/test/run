@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+source ${ENTANDO_COMMON_PATH}/env-helper.sh
+export_env_files
+
+login_count=0
+for i in {1..180}; do
+    sleep 1
+    if  mysql -u root -e "show databases"; then
+        login_count=$((login_count + 1))
+        echo "login_count=$login_count"
+        if [ "$login_count" = "3" ] || mysql -u root  -e "show databases" | grep ${PORTDB_DATABASE} ; then
+            echo "MySQL Started"
+            DATABASES=$(echo "show databases"|mysql -u root)
+            DB_PREFIXES=($(get_db_prefix_array))
+            for DB_PREFIX in ${DB_PREFIXES[*]}; do
+                DB_NAME_VAR=${DB_PREFIX}_DATABASE
+                echo "Confirming DB created: ${!DB_NAME_VAR}"
+                if ! echo $DATABASES|grep ${!DB_NAME_VAR} ;  then
+                    echo "Test failed. Database ${!DB_NAME_VAR} not found in list:">&2
+                    echo "$DATABASES">&2
+                    exit 1
+                fi
+            done
+            rm my.cnf &>/dev/null
+            cat <<EOT >> my.cnf
+[client]
+user = ${ADMIN_USERNAME}
+password = ${ADMIN_PASSWORD}
+EOT
+            if mysql --defaults-file=my.cnf -u root -h 127.0.0.1 -e "show databases" ;then
+                echo "root logged in successfully with password ${ADMIN_PASSWORD}"
+            else
+                echo "Test failed. root cannot log in with password ${ADMIN_PASSWORD}">&2
+                exit 2
+            fi
+            rm my.cnf &>/dev/null
+            echo "Test succeeded"
+            exit 0
+        fi
+    fi
+done
+echo "Test failed: could not connect to MySQL">&2
+exit 3
