@@ -6,7 +6,7 @@ function export_variables(){
 }
 
 function export_env_files(){
-  if [ -v ENV_FILES  ]; then
+  if [ -v ENV_FILES  ] && [ -n "${ENV_FILES}" ]; then
     IFS=","  read -ra ENV_FILES_ARG <<< "$ENV_FILES"
     for f in "${ENV_FILES_ARG[@]}"
     do
