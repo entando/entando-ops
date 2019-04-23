@@ -1,4 +1,4 @@
-FROM centos/nodejs-10-centos7:latest
+FROM centos/nodejs-8-centos7:latest
 ARG DIGITAL_EXCHANGE_UI_ENABLED=false
 ARG APP_BUILDER_BRANCH
 ARG ENTANDO_COMPONENTS_BRANCH
@@ -14,11 +14,11 @@ ENV DOMAIN=$DOMAIN_MARKER \
 
 USER root
 RUN chmod ug+rw /opt
-
 USER 1001
 # Install and configure `serve`. Download project from entando repository
 RUN  source /opt/rh/rh-nodejs8/enable && \
-  npm install -g serve && \
+  npm i -g npm && \
+  npm i -g serve && \
   git clone --branch $APP_BUILDER_BRANCH https://github.com/entando/app-builder.git && \
   cd /opt/app-root/src/app-builder && npm install && npm run build && \
   cd /opt/app-root/src/ && mv app-builder/build /opt/app-builder && rm -rf app-builder && \
