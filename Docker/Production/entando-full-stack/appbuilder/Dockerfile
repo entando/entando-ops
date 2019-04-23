@@ -1,4 +1,4 @@
-FROM centos/nodejs-8-centos7:latest
+FROM centos/nodejs-10-centos7:latest
 ARG DIGITAL_EXCHANGE_UI_ENABLED=false
 ARG APP_BUILDER_BRANCH
 ARG ENTANDO_COMPONENTS_BRANCH
@@ -20,11 +20,8 @@ USER 1001
 RUN  source /opt/rh/rh-nodejs8/enable && \
   npm install -g serve && \
   git clone --branch $APP_BUILDER_BRANCH https://github.com/entando/app-builder.git && \
-  git clone --branch $ENTANDO_COMPONENTS_BRANCH https://github.com/entando/entando-components.git && \
-  echo "[\"entando-plugin-jpkiebpm\"]" > app-builder/entando-plugins-config/plugins.json && \
-  cd entando-components/plugins/entando-plugin-jpkiebpm/app-builder && npm install && \
-  cd /opt/app-root/src/app-builder && npm install && npm run import-plugins && npm run build && \
-  cd /opt/app-root/src/ && mv app-builder/build /opt/app-builder && rm -rf app-builder entando-components && \
+  cd /opt/app-root/src/app-builder && npm install && npm run build && \
+  cd /opt/app-root/src/ && mv app-builder/build /opt/app-builder && rm -rf app-builder && \
   chmod -R ug+rw /opt/app-builder
 
 COPY --chown=1001:0 start.sh /opt/app-builder/start.sh

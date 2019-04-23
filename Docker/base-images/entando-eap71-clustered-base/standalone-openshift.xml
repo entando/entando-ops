@@ -565,7 +565,7 @@
                 <!-- ##HTTPS_CONNECTOR## -->
                 <host name="default-host" alias="localhost">
                     <location name="/" handler="welcome-content"/>
-          <location name="/cmsresources" handler="cmscontent"/>
+                <location name="/cmsresources" handler="cmscontent"/>
                     <!-- ##ACCESS_LOG_VALVE## -->
                     <filter-ref name="server-header"/>
                     <filter-ref name="x-powered-by-header"/>
