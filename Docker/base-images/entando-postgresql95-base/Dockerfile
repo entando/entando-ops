@@ -42,6 +42,7 @@ ENV PORTDB_USERNAME=agile \
     PREPARE_DATA="true" \
     DB_ENVIRONMENT="production" \
     LOGFILEPREFIX="/var/log/entando/engine_" \
+    LOGNAME="/var/log/entando/engine.log" \
     LOGFILEROTATEPATTERN="/var/log/entando/engine_%i.log.gz" \
     LOGACTIVEFILEOUTPUT="true"
 

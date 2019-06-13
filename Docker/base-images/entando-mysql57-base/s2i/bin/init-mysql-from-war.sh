@@ -9,12 +9,15 @@ if ${ENTANDO_COMMON_PATH}/init-db-from-war.sh "$@" ;  then
     mysqld stop
     echo "copying from:"
     ls -al $HOME/data/
-    cp $HOME/data/ $HOME/data_template/ -Rf
+    mv $HOME/data $HOME/data_template
+    mkdir $HOME/data
     echo "copy result:"
     ls -al $HOME/data_template/
 
     /usr/libexec/fix-permissions $HOME/data_template
-    /usr/libexec/fix-permissions $HOME/passwd
+    /usr/libexec/fix-permissions $HOME/data
+    /usr/libexec/fix-permissions /etc/my.cnf.d/
+    rm  /var/lib/mysql/mysql.sock.lock
     rm * -rf
     echo "MySQL Database preparation successful"
     echo $(date +%s) > $HOME/data_template/build_id

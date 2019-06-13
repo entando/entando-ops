@@ -44,6 +44,7 @@ ENV ENTANDO_VERSION="$ENTANDO_VERSION" \
     ENTANDO_OIDC_CLIENT_ID="dummy" \
     ENTANDO_OIDC_REDIRECT_BASE_URL="http://dummy.com" \
     LOGFILEPREFIX="/var/log/entando/engine_" \
+    LOGNAME="/var/log/entando/engine.log" \
     LOGACTIVEFILEOUTPUT="true" \
     LOGFILEROTATEPATTERN="/var/log/entando/engine_%i.log.gz" \
     RESOURCEDISKROOTFOLDER="/entando-data/resources/" \
