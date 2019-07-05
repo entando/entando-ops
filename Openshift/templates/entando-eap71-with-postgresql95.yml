@@ -387,7 +387,7 @@ objects:
         - name: ARTIFACT_DIR
           value: "${ARTIFACT_DIR}"
         - name: PREPARE_DATA
-          value: "true"
+          value: "false"
         forcePull: true
         from:
           kind: ImageStreamTag
