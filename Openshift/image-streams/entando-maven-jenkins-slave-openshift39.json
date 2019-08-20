@@ -57,6 +57,17 @@
           "name": "docker.io/entando/entando-maven-jenkins-slave-openshift39:5.1.0"
         },
         "name": "5.1.0"
+      },
+      {
+        "annotations": {
+          "role": "jenkins-slave",
+          "slave-label":"entando-5.2.0"
+        },
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-maven-jenkins-slave-openshift39:5.2.0"
+        },
+        "name": "5.2.0"
       }
 
     ]

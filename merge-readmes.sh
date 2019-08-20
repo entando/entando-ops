@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export VERSION=${1:-5.0.3-SNAPSHOT}
+export VERSION=${1:-5.2.0-SNAPSHOT}
 OPS_ROOT=$(realpath .)
 IMAGE_GROUPS_IN_SEQUENCE=$(cat IMAGE_GROUPS_IN_SEQUENCE)
 for G in ${IMAGE_GROUPS_IN_SEQUENCE[@]}; do

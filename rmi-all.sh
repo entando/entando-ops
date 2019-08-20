@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export VERSION=${1:-5.0.3-SNAPSHOT}
+export VERSION=${1:-5.2.0-SNAPSHOT}
 IMAGE_GROUPS_IN_SEQUENCE=($(cat IMAGE_GROUPS_IN_SEQUENCE))
 docker container prune -f
 docker image prune -f

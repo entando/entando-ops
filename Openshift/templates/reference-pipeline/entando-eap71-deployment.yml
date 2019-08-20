@@ -30,7 +30,7 @@ parameters:
 - displayName: Entando Image Version
   description: Entando Image Version
   name: ENTANDO_IMAGE_VERSION
-  value: 5.0.3
+  value: 5.2.0-SNAPSHOT
   required: false
 - displayName: The base url to be used to access the Entando rest services.
   description: This must reflect the HTTPS hostname of the Entando core engine service.

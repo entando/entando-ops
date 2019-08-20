@@ -39,5 +39,5 @@ sample databases are copied to and where subsequence modifications to them will 
 
 ```
 docker volume create entando-pg-data 
-docker run -it --rm -d -p 5432:5432 -v entando-pg-data://var/lib/pgsql/data entando/postgresql:5.0.2
+docker run -it --rm -d -p 5432:5432 -v entando-pg-data://var/lib/pgsql/data entando/postgresql:5.2.0
 ```

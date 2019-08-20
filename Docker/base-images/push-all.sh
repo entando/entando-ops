@@ -1,1 +1,0 @@
-../../common/push-all.sh

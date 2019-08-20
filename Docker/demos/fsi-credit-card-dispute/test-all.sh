@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export ENTANDO_IMAGE_VERSION=${1:-5.0.3-SNAPSHOT}
+export ENTANDO_IMAGE_VERSION=${1:-5.2.0-SNAPSHOT}
 
 function cleanup(){
     docker-compose -f docker-compose-qa.yml down &>/dev/null

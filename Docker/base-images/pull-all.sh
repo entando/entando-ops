@@ -1,1 +1,0 @@
-../../common/pull-all.sh

@@ -75,7 +75,7 @@ function create_stage_projects(){
 }
 
 function patch_bitbucket_webhook_secret(){
-  WEB_HOOK_SECRET_KEY=$(openssl rand -base64 29 | tr -d "=+/" | cut -c1-25)
+  WEB_HOOK_SECRET_KEY=$(date +%s | sha256sum | base64 | head -c 16)
   cat <<EOF | oc replace -n "${APPLICATION_NAME}-build" --force --grace-period 60 -f -
 apiVersion: v1
 kind: Secret
@@ -281,8 +281,8 @@ function prepare_db_secret(){
     if [ -f $CONFIG_DIR/$1-passwords.txt ]; then
       source $CONFIG_DIR/$1-passwords.txt
     else
-      DB_PASSWORD=$(openssl rand -base64 24)
-      DB_ADMIN_PASSWORD=$(openssl rand -base64 24)
+      DB_PASSWORD=$(date +%s | sha256sum | base64 | head -c 16)
+      DB_ADMIN_PASSWORD=$(date +%s | sha256sum | base64 | head -c 16)
       cat <<EOF > $CONFIG_DIR/$1-passwords.txt
 DB_PASSWORD=${DB_PASSWORD}
 DB_ADMIN_PASSWORD=${DB_ADMIN_PASSWORD}

@@ -30,7 +30,7 @@ spec:
 EOF
 }
 function create_bitbucket_webhook_secret(){
-  WEB_HOOK_SECRET_KEY=$(openssl rand -base64 29 | tr -d "=+/" | cut -c1-25)
+  WEB_HOOK_SECRET_KEY=$(date +%s | sha256sum | base64 | head -c 16)
   cat <<EOF | oc replace -n "${APPLICATION_NAME}-build" --force --grace-period 60 -f -
 apiVersion: v1
 kind: Secret

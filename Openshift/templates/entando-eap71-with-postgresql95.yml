@@ -32,7 +32,7 @@ parameters:
 - displayName: Entando Image Stream Tag
   description: The Image Stream Tag to use, which generally corresponds with the Entando version to be used
   name: ENTANDO_IMAGE_VERSION
-  value: 5.0.3
+  value: 5.2.0-SNAPSHOT
   required: false
 - displayName: Custom http Route Hostname
   description: 'Custom hostname for http service route.  Leave blank for default hostname,

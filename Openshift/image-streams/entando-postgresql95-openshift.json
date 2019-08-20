@@ -47,6 +47,16 @@
       {
         "from": {
           "kind": "DockerImage",
+          "name": "docker.io/entando/entando-postgresql95-openshift:5.2.0"
+        },
+        "name": "5.2.0",
+        "referencePolicy": {
+          "type": "Source"
+        }
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
           "name": "docker.io/entando/entando-postgresql95-openshift:latest"
         },
         "name": "latest",

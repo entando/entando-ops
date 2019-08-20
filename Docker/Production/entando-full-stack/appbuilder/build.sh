@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export VERSION=${1:-5.0.3-SNAPSHOT}
+export VERSION=${1:-5.2.0-SNAPSHOT}
 export ENTANDO_IMAGE="appbuilder"
 export DIGITAL_EXCHANGE_UI_ENABLED=false
 source ../../../../common/build-common.sh

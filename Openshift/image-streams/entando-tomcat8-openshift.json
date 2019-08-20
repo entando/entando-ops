@@ -29,6 +29,13 @@
           "name": "docker.io/entando/entando-tomcat85-openshift:5.0.3"
         },
         "name": "5.0.3"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-tomcat85-openshift:5.2.0"
+        },
+        "name": "5.2.0"
       }
     ]
   }

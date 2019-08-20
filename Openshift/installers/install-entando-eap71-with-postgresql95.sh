@@ -10,7 +10,7 @@ ensure_image_stream "appbuilder"
 
 function recreate_postgresql_secret(){
     echo "Creating Postgresql secret."
-    export DATABASE_PASSWORD=$(openssl rand -base64 20)
+    export DATABASE_PASSWORD=$(date +%s | sha256sum | base64 | head -c 16)
     oc process -f $ENTANDO_OPS_HOME/Openshift/templates/entando-secret.yml \
             -p APPLICATION_NAME="${APPLICATION_NAME}" \
             -p SECRET_NAME="${APPLICATION_NAME}-db-secret" \

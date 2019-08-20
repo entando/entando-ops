@@ -1,2 +1,2 @@
-Invalid interpolation format for "image" option in service "customer-engine": "entando/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION:-5.0.3-SNAPSHOT}"
-Invalid interpolation format for "image" option in service "customer-engine": "entando/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION:-5.0.3-SNAPSHOT}"
+Invalid interpolation format for "image" option in service "customer-engine": "entando/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION:-5.2.0-SNAPSHOT}"
+Invalid interpolation format for "image" option in service "customer-engine": "entando/fsi-cc-dispute-customer:${ENTANDO_IMAGE_VERSION:-5.2.0-SNAPSHOT}"

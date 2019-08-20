@@ -39,5 +39,5 @@ sample databases are copied to and where subsequence modifications to them will 
 
 ```
 docker volume create entando-mysql-data
-docker run -it --rm -d -p 3306:3306 -v entando-mysql-data://var/lib/mysql/data entando/mysql:5.0.2
+docker run -it --rm -d -p 3306:3306 -v entando-mysql-data://var/lib/mysql/data entando/mysql:5.2.0
 ```

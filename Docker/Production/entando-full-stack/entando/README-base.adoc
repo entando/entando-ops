@@ -47,5 +47,5 @@ embedded Derby databases for optional use.
 
 ```
 docker volume create entando-data 
-docker run -it --rm -d -p 8080:8080 -v entando-data:/entando-data entando/engine-api:5.0.2
+docker run -it --rm -d -p 8080:8080 -v entando-data:/entando-data entando/engine-api:5.2.0
 ```

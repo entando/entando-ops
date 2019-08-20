@@ -44,6 +44,13 @@
           "name": "docker.io/entando/entando-eap71-clustered-openshift:5.1.0"
         },
         "name": "5.1.0"
+      },
+      {
+        "from": {
+          "kind": "DockerImage",
+          "name": "docker.io/entando/entando-eap71-clustered-openshift:5.2.0"
+        },
+        "name": "5.2.0"
       }
 
     ]

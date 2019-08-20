@@ -125,7 +125,7 @@ uploaded resources, protected resources and indices, as well as the two pre-buil
 
 ```
 docker volume create entando-ccd-admin-data 
-docker run -it --rm -d -p 8080:8080 -v entando-ccd-admin-data:/entando-data entando/fsi-cc-dispute-admin:5.0.2
+docker run -it --rm -d -p 8080:8080 -v entando-ccd-admin-data:/entando-data entando/fsi-cc-dispute-admin:5.2.0
 ```
 Once this command is executed, the app is available at http://localhost:8080/fsi-credit-card-dispute-customer. Log in using
 aryaStark/adminadmin as username/password
